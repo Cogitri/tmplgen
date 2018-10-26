@@ -1,0 +1,19 @@
+name: tmplgen
+version: "0.1.0"
+author: Rasmus Thomsen <rasmus.thomsen@protonmail.com>
+about: A Void Linux Template generator for rust packages
+args:
+  - tmpltype:
+      short: t
+      long: tmpltype
+      value_name: <rate/gem
+      help: Sets what kind of template we want to generate
+      required: true
+  - verbose:
+      short: v
+      long: verbose
+      help: Be more verbose
+  - INPUT:
+      help: Sets for which package the template should be generated
+      required: true
+      index: 1

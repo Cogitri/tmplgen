@@ -1,0 +1,11 @@
+# Template file for '@pkgname@'
+pkgname=@pkgname@
+version=@version@
+revision=1
+build_style=@build_style@
+short_desc="@description@"
+maintainer="@maintainer@"
+license=@license@
+homepage="@homepage@"
+distfiles="@distfiles@"
+checksum=aaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb

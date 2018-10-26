@@ -1,0 +1,10 @@
+[package]
+name = "tmplgen"
+version = "0.1.0"
+authors = ["Rasmus Thomsen <rasmus.thomsen@protonmail.com>"]
+
+[dependencies]
+crates_io_api = "^0.3.0"
+log = "^0.4.0"
+clap = {version = "^2.32", features = ["yaml"]}
+git2 = "^0.7.5"
