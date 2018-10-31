@@ -2,6 +2,10 @@
 name = "tmplgen"
 version = "0.1.0"
 authors = ["Rasmus Thomsen <rasmus.thomsen@protonmail.com>"]
+description = "Generate Void Linux templates"
+homepage = "https://github.com/Cogitri/tmplgen"
+repository = "https://github.com/Cogitri/tmplgen"
+readme = "README.md"
 
 [dependencies]
 crates_io_api = "^0.3.0"
