@@ -26,7 +26,6 @@ use std::io::prelude::Write;
 use std::process::Command;
 use std::str::from_utf8;
 
-#[derive(Debug)]
 struct PkgInfo{
     pkg_name: String,
     version: String,
@@ -90,8 +89,6 @@ fn write_template(pkg_info: &PkgInfo) -> Result<(), std::io::Error> {
     template_string = template_string.replace("@homepage@", &pkg_info.homepage);
     template_string = template_string.replace("@maintainer@", &maintainer);
     template_string = template_string.replace("@distfiles@", &format!("https://static.crates.io/crates/{name}/{name}-${{version}}.crate", name = &pkg_info.pkg_name));
-
-    println!("{}", template_string);
 
     let mut file = File::create("template")?;
 
