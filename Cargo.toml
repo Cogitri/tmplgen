@@ -6,6 +6,7 @@ description = "Generate Void Linux templates"
 homepage = "https://github.com/Cogitri/tmplgen"
 repository = "https://github.com/Cogitri/tmplgen"
 readme = "README.md"
+license = "GPL-3.0-or-later"
 
 [dependencies]
 crates_io_api = "^0.3.0"
