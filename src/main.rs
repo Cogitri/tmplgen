@@ -74,7 +74,7 @@ fn write_template(pkg_info: &PkgInfo) -> Result<(), std::io::Error> {
     template_string = template_string.replace("@license@", &pkg_info.license);
     template_string = template_string.replace("@homepage@", &pkg_info.homepage);
     template_string = template_string.replace("@maintainer@", &maintainer);
-    template_string = template_string.replace("@distfiles@", &format!("https://crates.io/api/v1/crates/{}/{}/download", &pkg_info.pkg_name, pkg_info.version));
+    template_string = template_string.replace("@distfiles@", &format!("https://static.crates.io/crates/{name}/{name}-${{version}}.crate", name = &pkg_info.pkg_name));
 
     println!("{}", template_string);
 
