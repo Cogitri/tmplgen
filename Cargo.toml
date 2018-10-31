@@ -7,4 +7,3 @@ authors = ["Rasmus Thomsen <rasmus.thomsen@protonmail.com>"]
 crates_io_api = "^0.3.0"
 log = "^0.4.0"
 clap = {version = "^2.32", features = ["yaml"]}
-git2 = "^0.7.5"

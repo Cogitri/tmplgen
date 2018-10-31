@@ -3,7 +3,6 @@ extern crate crates_io_api;
 extern crate log;
 #[macro_use]
 extern crate clap;
-extern crate git2;
 
 use crates_io_api::SyncClient;
 use clap::App;
@@ -11,7 +10,6 @@ use std::fs::File;
 use std::io::prelude::Write;
 use std::process::Command;
 use std::str::from_utf8;
-use git2::Config;
 
 #[derive(Debug)]
 struct PkgInfo{
