@@ -74,7 +74,7 @@ fn crate_info(crate_name: &String) -> (PkgInfo) {
 }
 
 fn write_template(pkg_info: &PkgInfo) -> Result<(), std::io::Error> {
-    let mut template_in= include_str!("template.in");
+    let template_in = include_str!("template.in");
 
     let git_author = Command::new("git").args(&["config", "user.name"]).output().expect("Couldn't determine git username!");
     let git_mail = Command::new("git").args(&["config", "user.email"]).output().expect("Couldn't determine git username!");
