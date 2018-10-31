@@ -6,7 +6,7 @@ args:
   - tmpltype:
       short: t
       long: tmpltype
-      value_name: <rate/gem
+      value_name: crate/gem
       help: Sets what kind of template we want to generate
       required: true
   - verbose:
