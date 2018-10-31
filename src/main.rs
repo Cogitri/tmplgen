@@ -69,13 +69,16 @@ fn write_template(pkg_info: &PkgInfo) -> Result<(), std::io::Error> {
     let git_author = Command::new("git").args(&["config", "user.name"]).output().expect("Couldn't determine git username!");
     let git_mail = Command::new("git").args(&["config", "user.email"]).output().expect("Couldn't determine git username!");
 
+    let mut maintainer = format!("{}, <{}>", from_utf8(&git_author.stdout).unwrap(), from_utf8(&git_mail.stdout).unwrap());
+    maintainer = maintainer.replace("\n", "");
+
     template_string = template_in.replace("@pkgname@", &pkg_info.pkg_name);
     template_string = template_string.replace("@version@", &pkg_info.version);
     template_string = template_string.replace("@build_style@", "cargo");
     template_string = template_string.replace("@description@", &pkg_info.description);
     template_string = template_string.replace("@license@", &pkg_info.license);
     template_string = template_string.replace("@homepage@", &pkg_info.homepage);
-    template_string = template_string.replace("@maintainer@", &format!("{:?} <{:?}>", from_utf8(git_author.stdout.as_slice()), from_utf8(git_mail.stdout.as_slice())));
+    template_string = template_string.replace("@maintainer@", &maintainer);
     template_string = template_string.replace("@distfiles@", &format!("https://crates.io/api/v1/crates/{}/{}/download", &pkg_info.pkg_name, pkg_info.version));
 
     println!("{}", template_string);
@@ -94,8 +97,6 @@ fn main() {
     let is_verbose = help_tuple.2;
 
     let pkg_info = crate_info(&pkg_name);
-
-    println!("{:?}", pkg_info);
 
     write_template(&pkg_info);
 }
