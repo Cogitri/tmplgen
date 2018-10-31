@@ -32,7 +32,6 @@ fn help_string() -> (String, String ,bool) {
     }
 
     let crate_name = String::from(matches.value_of("INPUT").unwrap());
-    println!("Generating template for package {} of type {}", crate_name, tmpl_type);
 
     (crate_name, tmpl_type, is_verbose)
 }
@@ -62,15 +61,13 @@ fn crate_info(crate_name: &String) -> (PkgInfo) {
 fn write_template(pkg_info: &PkgInfo) -> Result<(), std::io::Error> {
     let mut template_in= include_str!("template.in");
 
-    let mut template_string = String::new();
-
     let git_author = Command::new("git").args(&["config", "user.name"]).output().expect("Couldn't determine git username!");
     let git_mail = Command::new("git").args(&["config", "user.email"]).output().expect("Couldn't determine git username!");
 
-    let mut maintainer = format!("{}, <{}>", from_utf8(&git_author.stdout).unwrap(), from_utf8(&git_mail.stdout).unwrap());
+    let mut maintainer = format!("{} <{}>", from_utf8(&git_author.stdout).unwrap(), from_utf8(&git_mail.stdout).unwrap());
     maintainer = maintainer.replace("\n", "");
 
-    template_string = template_in.replace("@pkgname@", &pkg_info.pkg_name);
+    let mut template_string = template_in.replace("@pkgname@", &pkg_info.pkg_name);
     template_string = template_string.replace("@version@", &pkg_info.version);
     template_string = template_string.replace("@build_style@", "cargo");
     template_string = template_string.replace("@description@", &pkg_info.description);
@@ -94,7 +91,11 @@ fn main() {
     let tmpl_type = help_tuple.1;
     let is_verbose = help_tuple.2;
 
+    if is_verbose {
+        println!("Generating template for package {} of type {}", pkg_name, tmpl_type);
+    }
+
     let pkg_info = crate_info(&pkg_name);
 
-    write_template(&pkg_info);
+    write_template(&pkg_info).expect("Failed to write template!");
 }
