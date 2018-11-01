@@ -9,10 +9,6 @@ args:
       value_name: crate/gem
       help: Sets what kind of template we want to generate
       required: true
-  - verbose:
-      short: v
-      long: verbose
-      help: Be more verbose
   - INPUT:
       help: Sets for which package the template should be generated
       required: true

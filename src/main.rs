@@ -35,20 +35,15 @@ struct PkgInfo{
 }
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
-fn help_string() -> (String, String ,bool) {
+fn help_string() -> (String, String) {
     let help_yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(help_yaml).get_matches();
 
     let tmpl_type = String::from(matches.value_of("tmpltype").unwrap());
 
-    let mut is_verbose = false;
-    if matches.is_present("verbose") {
-        is_verbose = true;
-    }
-
     let crate_name = String::from(matches.value_of("INPUT").unwrap());
 
-    (crate_name, tmpl_type, is_verbose)
+    (crate_name, tmpl_type)
 }
 
 // Query the crates.io API. Returns a PkgInfo that contains all important info
@@ -115,11 +110,8 @@ fn main() {
     let help_tuple = help_string();
     let pkg_name = help_tuple.0;
     let tmpl_type = help_tuple.1;
-    let is_verbose = help_tuple.2;
 
-    if is_verbose {
-        println!("Generating template for package {} of type {}", pkg_name, tmpl_type);
-    }
+    println!("Generating template for package {} of type {}", pkg_name, tmpl_type);
 
     let pkg_info = crate_info(&pkg_name);
 
