@@ -23,7 +23,8 @@ use crates_io_api::SyncClient;
 use clap::App;
 use std::fs::{create_dir_all,File};
 use std::io::prelude::Write;
-use std::process::Command;
+use std::path::Path;
+use std::process::{Command, exit};
 use std::str::from_utf8;
 
 struct PkgInfo{
@@ -35,7 +36,7 @@ struct PkgInfo{
 }
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
-fn help_string() -> (String, String) {
+fn help_string() -> (String, String, bool) {
     let help_yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(help_yaml).get_matches();
 
@@ -43,7 +44,9 @@ fn help_string() -> (String, String) {
 
     let crate_name = String::from(matches.value_of("INPUT").unwrap());
 
-    (crate_name, tmpl_type)
+    let force_overwrite = matches.is_present("force");
+
+    (crate_name, tmpl_type, force_overwrite)
 }
 
 // Query the crates.io API. Returns a PkgInfo that contains all important info
@@ -70,7 +73,7 @@ fn crate_info(crate_name: &String) -> (PkgInfo) {
 }
 
 // Writes the PkgInfo to a file called "template"
-fn write_template(pkg_info: &PkgInfo) -> Result<(), std::io::Error> {
+fn write_template(pkg_info: &PkgInfo, force_overwrite: bool) -> Result<(), std::io::Error> {
     let template_in = include_str!("template.in");
 
     let git_author = Command::new("git").args(&["config", "user.name"]).output().expect("Couldn't determine git username!");
@@ -92,11 +95,16 @@ fn write_template(pkg_info: &PkgInfo) -> Result<(), std::io::Error> {
 
     let xbps_distdir = format!("{}/srcpkgs/{}", from_utf8(&xdistdir.stdout).unwrap().replace("\n", "").replace("~", &std::env::var("HOME").expect("Please either replace '~' with your homepath or export HOME")), &pkg_info.pkg_name);
 
-    println!("Writing template to path {}/template", &xbps_distdir);
-
     if ! xdistdir.status.success() {
         println!("xdistdir: exited with a non-0 exit code:\n{}", from_utf8(&xdistdir.stderr).unwrap());
     }
+
+    if Path::new(&format!("{}/template", &xbps_distdir)).exists() && !force_overwrite {
+        error!("Won't overwrite existing template without `--force`!");
+        exit(1)
+    }
+
+    println!("Writing template to path {}/template", &xbps_distdir);
 
     create_dir_all(&xbps_distdir)?;
     let mut file = File::create(format!("{}/template", &xbps_distdir))?;
@@ -110,10 +118,11 @@ fn main() {
     let help_tuple = help_string();
     let pkg_name = help_tuple.0;
     let tmpl_type = help_tuple.1;
+    let force_overwite = help_tuple.2;
 
     println!("Generating template for package {} of type {}", pkg_name, tmpl_type);
 
     let pkg_info = crate_info(&pkg_name);
 
-    write_template(&pkg_info).expect("Failed to write template!");
+    write_template(&pkg_info, force_overwite).expect("Failed to write template!");
 }
