@@ -17,15 +17,15 @@ extern crate crates_io_api;
 #[macro_use]
 extern crate clap;
 
-use crates_io_api::SyncClient;
 use clap::App;
-use std::fs::{create_dir_all,File};
+use crates_io_api::SyncClient;
+use std::fs::{create_dir_all, File};
 use std::io::prelude::Write;
 use std::path::Path;
-use std::process::{Command, exit};
+use std::process::{exit, Command};
 use std::str::from_utf8;
 
-struct PkgInfo{
+struct PkgInfo {
     pkg_name: String,
     version: String,
     description: String,
@@ -74,31 +74,68 @@ fn crate_info(crate_name: &String) -> (PkgInfo) {
 fn write_template(pkg_info: &PkgInfo, force_overwrite: bool) -> Result<(), std::io::Error> {
     let template_in = include_str!("template.in");
 
-    let git_author = Command::new("git").args(&["config", "user.name"]).output().expect("Couldn't determine git username!");
-    let git_mail = Command::new("git").args(&["config", "user.email"]).output().expect("Couldn't determine git username!");
+    let git_author = Command::new("git")
+        .args(&["config", "user.name"])
+        .output()
+        .expect("Couldn't determine git username!");
+    let git_mail = Command::new("git")
+        .args(&["config", "user.email"])
+        .output()
+        .expect("Couldn't determine git username!");
 
-    let mut maintainer = format!("{} <{}>", from_utf8(&git_author.stdout).unwrap(), from_utf8(&git_mail.stdout).unwrap());
+    let mut maintainer = format!(
+        "{} <{}>",
+        from_utf8(&git_author.stdout).unwrap(),
+        from_utf8(&git_mail.stdout).unwrap()
+    );
     maintainer = maintainer.replace("\n", "");
 
-    let mut template_string = template_in.replace("@pkgname@", &pkg_info.pkg_name);
-    template_string = template_string.replace("@version@", &pkg_info.version);
-    template_string = template_string.replace("@build_style@", "cargo");
-    template_string = template_string.replace("@description@", &pkg_info.description);
-    template_string = template_string.replace("@license@", &pkg_info.license);
-    template_string = template_string.replace("@homepage@", &pkg_info.homepage);
-    template_string = template_string.replace("@maintainer@", &maintainer);
-    template_string = template_string.replace("@distfiles@", &format!("https://static.crates.io/crates/{name}/{name}-${{version}}.crate", name = &pkg_info.pkg_name));
+    let template_string = template_in
+        .replace("@pkgname@", &pkg_info.pkg_name)
+        .replace("@version@", &pkg_info.version)
+        .replace("@build_style@", "cargo")
+        .replace("@description@", &pkg_info.description)
+        .replace("@license@", &pkg_info.license)
+        .replace("@homepage@", &pkg_info.homepage)
+        .replace("@maintainer@", &maintainer)
+        .replace(
+            "@distfiles@",
+            &format!(
+                "https://static.crates.io/crates/{name}/{name}-${{version}}.crate",
+                name = &pkg_info.pkg_name
+            ),
+        );
 
-    let xdistdir = Command::new("sh").args(&["-c", "xdistdir"]).output().expect("Couldn't execute xdistdir. Make sure you have xtools installed.");
+    let xdistdir = Command::new("sh")
+        .args(&["-c", "xdistdir"])
+        .output()
+        .expect("Couldn't execute xdistdir. Make sure you have xtools installed.");
 
-    let xbps_distdir = format!("{}/srcpkgs/{}", from_utf8(&xdistdir.stdout).unwrap().replace("\n", "").replace("~", &std::env::var("HOME").expect("Please either replace '~' with your homepath or export HOME")), &pkg_info.pkg_name);
+    let xbps_distdir = format!(
+        "{}/srcpkgs/{}",
+        from_utf8(&xdistdir.stdout)
+            .unwrap()
+            .replace("\n", "")
+            .replace(
+                "~",
+                &std::env::var("HOME")
+                    .expect("Please either replace '~' with your homepath or export HOME")
+            ),
+        &pkg_info.pkg_name
+    );
 
-    if ! xdistdir.status.success() {
-        println!("xdistdir: exited with a non-0 exit code:\n{}", from_utf8(&xdistdir.stderr).unwrap());
+    if !xdistdir.status.success() {
+        println!(
+            "xdistdir: exited with a non-0 exit code:\n{}",
+            from_utf8(&xdistdir.stderr).unwrap()
+        );
     }
 
     if Path::new(&format!("{}/template", &xbps_distdir)).exists() && !force_overwrite {
-        eprintln!("Won't overwrite existing template '{}/template' without `--force`!", &xbps_distdir);
+        eprintln!(
+            "Won't overwrite existing template '{}/template' without `--force`!",
+            &xbps_distdir
+        );
         exit(1);
     }
 
@@ -118,7 +155,10 @@ fn main() {
     let tmpl_type = help_tuple.1;
     let force_overwite = help_tuple.2;
 
-    println!("Generating template for package {} of type {}", pkg_name, tmpl_type);
+    println!(
+        "Generating template for package {} of type {}",
+        pkg_name, tmpl_type
+    );
 
     let pkg_info = crate_info(&pkg_name);
 
