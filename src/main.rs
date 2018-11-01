@@ -21,7 +21,7 @@ extern crate clap;
 
 use crates_io_api::SyncClient;
 use clap::App;
-use std::fs::File;
+use std::fs::{create_dir_all,File};
 use std::io::prelude::Write;
 use std::process::Command;
 use std::str::from_utf8;
@@ -93,7 +93,18 @@ fn write_template(pkg_info: &PkgInfo) -> Result<(), std::io::Error> {
     template_string = template_string.replace("@maintainer@", &maintainer);
     template_string = template_string.replace("@distfiles@", &format!("https://static.crates.io/crates/{name}/{name}-${{version}}.crate", name = &pkg_info.pkg_name));
 
-    let mut file = File::create("template")?;
+    let xdistdir = Command::new("sh").args(&["-c", "xdistdir"]).output().expect("Couldn't execute xdistdir. Make sure you have xtools installed.");
+
+    let xbps_distdir = format!("{}/srcpkgs/{}", from_utf8(&xdistdir.stdout).unwrap().replace("\n", "").replace("~", &std::env::var("HOME").expect("Please either replace '~' with your homepath or export HOME")), &pkg_info.pkg_name);
+
+    println!("Writing template to path {}/template", &xbps_distdir);
+
+    if ! xdistdir.status.success() {
+        println!("xdistdir: exited with a non-0 exit code:\n{}", from_utf8(&xdistdir.stderr).unwrap());
+    }
+
+    create_dir_all(&xbps_distdir)?;
+    let mut file = File::create(format!("{}/template", &xbps_distdir))?;
 
     file.write_all(template_string.as_bytes())?;
 
