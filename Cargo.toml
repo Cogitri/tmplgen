@@ -10,5 +10,4 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 crates_io_api = "^0.3.0"
-log = "^0.4.0"
 clap = {version = "^2.32", features = ["yaml"]}

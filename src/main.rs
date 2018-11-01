@@ -15,8 +15,6 @@
 
 extern crate crates_io_api;
 #[macro_use]
-extern crate log;
-#[macro_use]
 extern crate clap;
 
 use crates_io_api::SyncClient;
@@ -56,7 +54,7 @@ fn crate_info(crate_name: &String) -> (PkgInfo) {
     let query_result = client.full_crate(crate_name, false);
 
     if query_result.is_err() {
-        error!("Failed to query crates.io for info");
+        eprintln!("Failed to query crates.io for info");
     }
 
     let crate_opt = query_result.ok();
@@ -100,8 +98,8 @@ fn write_template(pkg_info: &PkgInfo, force_overwrite: bool) -> Result<(), std::
     }
 
     if Path::new(&format!("{}/template", &xbps_distdir)).exists() && !force_overwrite {
-        error!("Won't overwrite existing template without `--force`!");
-        exit(1)
+        eprintln!("Won't overwrite existing template '{}/template' without `--force`!", &xbps_distdir);
+        exit(1);
     }
 
     println!("Writing template to path {}/template", &xbps_distdir);
