@@ -34,6 +34,7 @@ struct PkgInfo{
     license: String,
 }
 
+// Print the help script if invoked without arguments or with `--help`/`-h`
 fn help_string() -> (String, String ,bool) {
     let help_yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(help_yaml).get_matches();
@@ -50,6 +51,7 @@ fn help_string() -> (String, String ,bool) {
     (crate_name, tmpl_type, is_verbose)
 }
 
+// Query the crates.io API. Returns a PkgInfo that contains all important info
 fn crate_info(crate_name: &String) -> (PkgInfo) {
     let client = SyncClient::new();
 
@@ -72,6 +74,7 @@ fn crate_info(crate_name: &String) -> (PkgInfo) {
     }
 }
 
+// Writes the PkgInfo to a file called "template"
 fn write_template(pkg_info: &PkgInfo) -> Result<(), std::io::Error> {
     let template_in = include_str!("template.in");
 
