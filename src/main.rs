@@ -18,7 +18,6 @@ extern crate crates_io_api;
 extern crate clap;
 
 use clap::App;
-use crates_io_api::SyncClient;
 use std::fs::{create_dir_all, File};
 use std::io::prelude::Write;
 use std::path::Path;
@@ -49,7 +48,7 @@ fn help_string() -> (String, String, bool) {
 
 // Query the crates.io API. Returns a PkgInfo that contains all important info
 fn crate_info(crate_name: &String) -> (PkgInfo) {
-    let client = SyncClient::new();
+    let client = crates_io_api::SyncClient::new();
 
     let query_result = client.full_crate(crate_name, false);
 
@@ -68,6 +67,22 @@ fn crate_info(crate_name: &String) -> (PkgInfo) {
         homepage: crate_obj.homepage.unwrap(),
         license: crate_obj.license.unwrap_or_default(),
     }
+}
+
+fn gem_info(gem_name: &String) -> Result<PkgInfo, rubygems_api::Error> {
+    let client = rubygems_api::SyncClient::new();
+
+    let query_result = client.gem_info(gem_name)?;
+
+    let pkg_info = PkgInfo {
+        pkg_name: gem_name.clone(),
+        version: query_result.version,
+        description: query_result.info.unwrap_or_default(),
+        homepage: query_result.homepage_uri.unwrap_or_default(),
+        license: query_result.licenses.unwrap_or_default(),
+    };
+
+    Ok(pkg_info)
 }
 
 // Writes the PkgInfo to a file called "template"
@@ -153,14 +168,18 @@ fn main() {
     let help_tuple = help_string();
     let pkg_name = help_tuple.0;
     let tmpl_type = help_tuple.1;
-    let force_overwite = help_tuple.2;
+    let force_overwrite = help_tuple.2;
 
     println!(
         "Generating template for package {} of type {}",
         pkg_name, tmpl_type
     );
 
-    let pkg_info = crate_info(&pkg_name);
+    let pkg_info= if tmpl_type == "crate" {
+        crate_info(&pkg_name)
+    } else {
+        gem_info(&pkg_name).unwrap()
+    };
 
-    write_template(&pkg_info, force_overwite).expect("Failed to write template!");
+    write_template(&pkg_info, force_overwrite).expect("Failed to write template!");
 }
