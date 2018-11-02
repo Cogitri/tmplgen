@@ -47,26 +47,20 @@ fn help_string() -> (String, String, bool) {
 }
 
 // Query the crates.io API. Returns a PkgInfo that contains all important info
-fn crate_info(crate_name: &String) -> (PkgInfo) {
+fn crate_info(crate_name: &String) -> Result<PkgInfo, crates_io_api::Error> {
     let client = crates_io_api::SyncClient::new();
 
-    let query_result = client.full_crate(crate_name, false);
+    let query_result = client.full_crate(crate_name, false)?;
 
-    if query_result.is_err() {
-        eprintln!("Failed to query crates.io for info");
-    }
-
-    let crate_opt = query_result.ok();
-
-    let crate_obj = crate_opt.unwrap();
-
-    PkgInfo {
+    let pkg_info = PkgInfo {
         pkg_name: crate_name.clone(),
-        version: crate_obj.max_version,
-        description: crate_obj.description.unwrap(),
-        homepage: crate_obj.homepage.unwrap(),
-        license: crate_obj.license.unwrap_or_default(),
-    }
+        version: query_result.max_version,
+        description: query_result.description.unwrap(),
+        homepage: query_result.homepage.unwrap(),
+        license: query_result.license.unwrap_or_default(),
+    };
+
+    Ok(pkg_info)
 }
 
 fn gem_info(gem_name: &String) -> Result<PkgInfo, rubygems_api::Error> {
@@ -176,7 +170,7 @@ fn main() {
     );
 
     let pkg_info= if tmpl_type == "crate" {
-        crate_info(&pkg_name)
+        crate_info(&pkg_name).unwrap()
     } else {
         gem_info(&pkg_name).unwrap()
     };
