@@ -16,6 +16,8 @@
 extern crate crates_io_api;
 #[macro_use]
 extern crate clap;
+#[macro_use]
+extern crate failure;
 
 use clap::App;
 use std::fs::{create_dir_all, File};
@@ -23,6 +25,36 @@ use std::io::prelude::Write;
 use std::path::Path;
 use std::process::{exit, Command};
 use std::str::from_utf8;
+
+#[derive(Fail, Debug)]
+pub enum Error {
+    #[fail(display = "{}", _0)]
+    File(std::io::Error),
+    #[fail(display = "{}", _0)]
+    Crate(crates_io_api::Error),
+    #[fail(display = "{}", _0)]
+    Gem(rubygems_api::Error),
+    #[fail(display = "Not found")]
+    NotFound,
+}
+
+impl From <std::io::Error> for Error {
+    fn from(e: std::io::Error) -> Self {
+        Error::File(e)
+    }
+}
+
+impl From <crates_io_api::Error> for Error {
+    fn from(e: crates_io_api::Error) -> Self {
+        Error::Crate(e)
+    }
+}
+
+impl From <rubygems_api::Error> for Error {
+    fn from(e: rubygems_api::Error) -> Self {
+        Error::Gem(e)
+    }
+}
 
 struct PkgInfo {
     pkg_name: String,
@@ -47,7 +79,7 @@ fn help_string() -> (String, String, bool) {
 }
 
 // Query the crates.io API. Returns a PkgInfo that contains all important info
-fn crate_info(crate_name: &String) -> Result<PkgInfo, crates_io_api::Error> {
+fn crate_info(crate_name: &String) -> Result<PkgInfo, Error> {
     let client = crates_io_api::SyncClient::new();
 
     let query_result = client.full_crate(crate_name, false)?;
@@ -55,15 +87,15 @@ fn crate_info(crate_name: &String) -> Result<PkgInfo, crates_io_api::Error> {
     let pkg_info = PkgInfo {
         pkg_name: crate_name.clone(),
         version: query_result.max_version,
-        description: query_result.description.unwrap(),
-        homepage: query_result.homepage.unwrap(),
-        license: query_result.license.unwrap_or_default(),
+        description: query_result.description.unwrap_or_else(|| missing_field("description")),
+        homepage: query_result.homepage.unwrap_or_else(|| missing_field("homepage")),
+        license: query_result.license.unwrap_or_else(|| missing_field("license")),
     };
 
     Ok(pkg_info)
 }
 
-fn gem_info(gem_name: &String) -> Result<PkgInfo, rubygems_api::Error> {
+fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
     let client = rubygems_api::SyncClient::new();
 
     let query_result = client.gem_info(gem_name)?;
@@ -71,16 +103,22 @@ fn gem_info(gem_name: &String) -> Result<PkgInfo, rubygems_api::Error> {
     let pkg_info = PkgInfo {
         pkg_name: gem_name.clone(),
         version: query_result.version,
-        description: query_result.info.unwrap_or_default(),
-        homepage: query_result.homepage_uri.unwrap_or_default(),
-        license: query_result.licenses.unwrap_or_default(),
+        description: query_result.info.unwrap_or_else(|| missing_field("description")),
+        homepage: query_result.homepage_uri.unwrap_or_else(|| missing_field("homepage")),
+        license: query_result.licenses.unwrap_or_else(|| missing_field("license")),
     };
 
     Ok(pkg_info)
 }
 
+fn missing_field(field_name: &str) -> String {
+    eprintln!("Couldn't determine field '{}'! Please add it to the template yourself.", field_name);
+
+    String::from("")
+}
+
 // Writes the PkgInfo to a file called "template"
-fn write_template(pkg_info: &PkgInfo, force_overwrite: bool) -> Result<(), std::io::Error> {
+fn write_template(pkg_info: &PkgInfo, force_overwrite: bool) -> Result<(), Error> {
     let template_in = include_str!("template.in");
 
     let git_author = Command::new("git")
@@ -94,8 +132,8 @@ fn write_template(pkg_info: &PkgInfo, force_overwrite: bool) -> Result<(), std::
 
     let mut maintainer = format!(
         "{} <{}>",
-        from_utf8(&git_author.stdout).unwrap(),
-        from_utf8(&git_mail.stdout).unwrap()
+        from_utf8(&git_author.stdout).expect("Failed to decode git author!"),
+        from_utf8(&git_mail.stdout).expect("Failed to decode git email!"),
     );
     maintainer = maintainer.replace("\n", "");
 
@@ -170,10 +208,10 @@ fn main() {
     );
 
     let pkg_info= if tmpl_type == "crate" {
-        crate_info(&pkg_name).unwrap()
+        crate_info(&pkg_name).expect("Failed to get the crate's info")
     } else {
-        gem_info(&pkg_name).unwrap()
+        gem_info(&pkg_name).expect("Failed to get the gem's info")
     };
 
-    write_template(&pkg_info, force_overwrite).expect("Failed to write template!");
+    write_template(&pkg_info, force_overwrite).expect("Failed to write the template!");
 }
