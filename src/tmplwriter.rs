@@ -36,19 +36,19 @@ pub fn write_template(
         .replace("@homepage@", &pkg_info.homepage)
         .replace("@maintainer@", &maintainer);
 
-    let dependencies = &pkg_info.dependencies.as_ref().unwrap();
-
-    let mut makedepends = String::new();
-    let mut depends = String::new();
-
-    for x in &dependencies.make {
-        makedepends.push_str(x);
-    }
-    for x in &dependencies.run {
-        depends.push_str(x);
-    }
-
     if tmpl_type == "gem" {
+        let dependencies = &pkg_info.dependencies.as_ref().unwrap();
+
+        let mut makedepends = String::new();
+        let mut depends = String::new();
+
+        for x in &dependencies.make {
+            makedepends.push_str(x);
+        }
+        for x in &dependencies.run {
+            depends.push_str(x);
+        }
+
         if pkg_info.dependencies.is_some() {
             if &dependencies.make.len() != &0 {
                 template_string = template_string.replace("@makedepends@", &makedepends.trim_end())
