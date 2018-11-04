@@ -22,6 +22,8 @@ extern crate failure;
 mod crates;
 mod gems;
 mod helpers;
+#[cfg(test)]
+mod tests;
 mod tmplwriter;
 mod types;
 
