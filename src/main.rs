@@ -27,33 +27,36 @@ use std::process::{exit, Command};
 use std::str::from_utf8;
 
 #[derive(Fail, Debug)]
-pub enum Error {
+enum Error {
     #[fail(display = "{}", _0)]
     File(std::io::Error),
     #[fail(display = "{}", _0)]
     Crate(crates_io_api::Error),
     #[fail(display = "{}", _0)]
     Gem(rubygems_api::Error),
-    #[fail(display = "Not found")]
-    NotFound,
 }
 
-impl From <std::io::Error> for Error {
+impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Self {
         Error::File(e)
     }
 }
 
-impl From <crates_io_api::Error> for Error {
+impl From<crates_io_api::Error> for Error {
     fn from(e: crates_io_api::Error) -> Self {
         Error::Crate(e)
     }
 }
 
-impl From <rubygems_api::Error> for Error {
+impl From<rubygems_api::Error> for Error {
     fn from(e: rubygems_api::Error) -> Self {
         Error::Gem(e)
     }
+}
+
+struct Dependencies {
+    make: Vec<String>,
+    run: Vec<String>,
 }
 
 struct PkgInfo {
@@ -61,7 +64,8 @@ struct PkgInfo {
     version: String,
     description: String,
     homepage: String,
-    license: String,
+    license: Vec<String>,
+    dependencies: Option<Dependencies>,
 }
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
@@ -87,9 +91,18 @@ fn crate_info(crate_name: &String) -> Result<PkgInfo, Error> {
     let pkg_info = PkgInfo {
         pkg_name: crate_name.clone(),
         version: query_result.max_version,
-        description: query_result.description.unwrap_or_else(|| missing_field("description")),
-        homepage: query_result.homepage.unwrap_or_else(|| missing_field("homepage")),
-        license: query_result.license.unwrap_or_else(|| missing_field("license")),
+        description: query_result
+            .description
+            .unwrap_or_else(|| missing_field_s("description")),
+        homepage: query_result
+            .homepage
+            .unwrap_or_else(|| missing_field_s("homepage")),
+        license: vec![
+            query_result
+                .license
+                .unwrap_or_else(|| missing_field_s("license")),
+        ],
+        dependencies: None,
     };
 
     Ok(pkg_info)
@@ -100,25 +113,173 @@ fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
 
     let query_result = client.gem_info(gem_name)?;
 
+    let mut dep_vec_dev = Vec::new();
+
+    for x in query_result.dependencies.development.unwrap() {
+        let dep = determine_gem_dev_deps(x)?;
+        dep_vec_dev.push(dep.unwrap());
+    }
+
+    let mut dep_vec_run = Vec::new();
+    for x in query_result.dependencies.runtime.unwrap() {
+        let dep = determine_gem_run_deps(x)?;
+        dep_vec_run.push(dep.unwrap());
+    }
+
     let pkg_info = PkgInfo {
         pkg_name: gem_name.clone(),
         version: query_result.version,
-        description: query_result.info.unwrap_or_else(|| missing_field("description")),
-        homepage: query_result.homepage_uri.unwrap_or_else(|| missing_field("homepage")),
-        license: query_result.licenses.unwrap_or_else(|| missing_field("license")),
+        description: query_result
+            .info
+            .unwrap_or_else(|| missing_field_s("description")),
+        homepage: query_result
+            .homepage_uri
+            .unwrap_or_else(|| missing_field_s("homepage")),
+        license: query_result
+            .licenses
+            .unwrap_or_else(|| missing_field_v("license")),
+        dependencies: Some(Dependencies {
+            make: dep_vec_dev,
+            run: dep_vec_run,
+        }),
     };
 
     Ok(pkg_info)
 }
 
-fn missing_field(field_name: &str) -> String {
-    eprintln!("Couldn't determine field '{}'! Please add it to the template yourself.", field_name);
+fn tilde_parse(version: String) -> Option<Vec<String>> {
+    let ver_vec = version.split(".").collect::<Vec<_>>();
+
+    match ver_vec.len() {
+        1 => Some(vec![
+            String::from(">=".to_owned() + &version),
+            String::from("<".to_owned() + &(ver_vec[0].parse::<u8>().unwrap() + 1).to_string()),
+        ]),
+        2 => Some(vec![
+            String::from(">=".to_owned() + &version),
+            String::from("<".to_owned() + &(ver_vec[0].parse::<u8>().unwrap() + 1).to_string()),
+        ]),
+        3 => Some(vec![
+            String::from(">=".to_owned() + &version),
+            String::from(
+                "<".to_owned()
+                    + &ver_vec[0]
+                    + &".".to_owned()
+                    + &(ver_vec[1].parse::<u8>().unwrap() + 1).to_string(),
+            ),
+        ]),
+        _ => None,
+    }
+}
+
+fn determine_gem_dev_deps(rubygem_dep: rubygems_api::GemDevDeps) -> Result<Option<String>, Error> {
+    let cmpr = String::from(
+        rubygem_dep
+            .requirements
+            .split_whitespace()
+            .collect::<Vec<_>>()[0],
+    );
+    let ver = String::from(
+        rubygem_dep
+            .requirements
+            .split_whitespace()
+            .collect::<Vec<_>>()[1],
+    );
+
+    let ver_req = match cmpr.as_ref() {
+        ">" | "<" | "<=" => Some(rubygem_dep.name + &cmpr + &ver),
+        ">=" => if ver == "0" {
+            Some(rubygem_dep.name)
+        } else {
+            Some(rubygem_dep.name + &cmpr + &ver)
+        },
+        "~>" => {
+            let tilde_vec = tilde_parse(ver).unwrap();
+            Some(
+                "".to_string()
+                    + &rubygem_dep.name
+                    + &tilde_vec[0]
+                    + &" ".to_string()
+                    + &rubygem_dep.name
+                    + &tilde_vec[1]
+                    + &" ".to_string(),
+            )
+        }
+        _ => None,
+    };
+
+    Ok(ver_req)
+}
+
+fn determine_gem_run_deps(rubygem_dep: rubygems_api::GemRunDeps) -> Result<Option<String>, Error> {
+    let cmpr = String::from(
+        rubygem_dep
+            .requirements
+            .split_whitespace()
+            .collect::<Vec<_>>()[0],
+    );
+    let ver = String::from(
+        rubygem_dep
+            .requirements
+            .split_whitespace()
+            .collect::<Vec<_>>()[1],
+    );
+
+    let ver_req = match cmpr.as_ref() {
+        ">" | "<" | "<=" => Some(rubygem_dep.name + &cmpr + &ver),
+        ">=" => if ver == "0" {
+            Some(rubygem_dep.name)
+        } else {
+            Some(rubygem_dep.name + &cmpr + &ver)
+        },
+        "~>" => {
+            let tilde_vec = tilde_parse(ver).unwrap();
+            Some(
+                "".to_string()
+                    + &rubygem_dep.name
+                    + &tilde_vec[0]
+                    + &" ".to_string()
+                    + &rubygem_dep.name
+                    + &tilde_vec[1]
+                    + &" ".to_string(),
+            )
+        }
+        _ => None,
+    };
+
+    Ok(ver_req)
+}
+
+//fn missing_field<T>(field_name: &str) -> T {
+//    eprintln!("Couldn't determine field '{}'! Please add it to the template yourself.", field_name);
+//
+//    T::new()
+//}
+
+fn missing_field_s(field_name: &str) -> String {
+    eprintln!(
+        "Couldn't determine field '{}'! Please add it to the template yourself.",
+        field_name
+    );
 
     String::from("")
 }
 
+fn missing_field_v(field_name: &str) -> Vec<String> {
+    eprintln!(
+        "Couldn't determine field '{}'! Please add it to the template yourself.",
+        field_name
+    );
+
+    vec![String::from("")]
+}
+
 // Writes the PkgInfo to a file called "template"
-fn write_template(pkg_info: &PkgInfo, force_overwrite: bool) -> Result<(), Error> {
+fn write_template(
+    pkg_info: &PkgInfo,
+    force_overwrite: bool,
+    tmpl_type: String,
+) -> Result<(), Error> {
     let template_in = include_str!("template.in");
 
     let git_author = Command::new("git")
@@ -137,21 +298,60 @@ fn write_template(pkg_info: &PkgInfo, force_overwrite: bool) -> Result<(), Error
     );
     maintainer = maintainer.replace("\n", "");
 
-    let template_string = template_in
-        .replace("@pkgname@", &pkg_info.pkg_name)
+    let mut template_string = template_in
         .replace("@version@", &pkg_info.version)
-        .replace("@build_style@", "cargo")
         .replace("@description@", &pkg_info.description)
-        .replace("@license@", &pkg_info.license)
+        .replace("@license@", &pkg_info.license.join(","))
         .replace("@homepage@", &pkg_info.homepage)
-        .replace("@maintainer@", &maintainer)
-        .replace(
-            "@distfiles@",
-            &format!(
-                "https://static.crates.io/crates/{name}/{name}-${{version}}.crate",
-                name = &pkg_info.pkg_name
-            ),
-        );
+        .replace("@maintainer@", &maintainer);
+
+    let dependencies = &pkg_info.dependencies.as_ref().unwrap();
+
+    let mut makedepends = String::new();
+    let mut depends = String::new();
+
+    for x in &dependencies.make {
+        makedepends.push_str(x);
+    }
+    for x in &dependencies.run {
+        depends.push_str(x);
+    }
+
+    if tmpl_type == "gem" {
+        if pkg_info.dependencies.is_some() {
+            if &dependencies.make.len() != &0 {
+                template_string = template_string.replace("@makedepends@", &makedepends.trim_end())
+            } else {
+                template_string = template_string.replace("\nmakedepends=\"@makedepends\"", "")
+            }
+
+            if &dependencies.run.len() != &0 {
+                template_string = template_string.replace("@depends@", &depends.trim_end())
+            } else {
+                template_string = template_string.replace("\ndepends=\"@depends@\"", "")
+            }
+
+            template_string = template_string
+                .replace(
+                    "@pkgname@",
+                    &String::from("ruby-".to_owned() + &pkg_info.pkg_name),
+                ).replace("@build_style@", "gem")
+                .replace("\ndistfiles=\"@distfiles@\"", "");
+        }
+    } else {
+        template_string = template_string
+            .replace("@pkgname@", &pkg_info.pkg_name)
+            .replace("\nmakedepends=\"@makedepends\"", "")
+            .replace("\ndepends=\"@depends@\"", "")
+            .replace("@build_style@", "cargo")
+            .replace(
+                "@distfiles@",
+                &format!(
+                    "https://static.crates.io/crates/{name}/{name}-${{version}}.crate",
+                    name = &pkg_info.pkg_name
+                ),
+            );
+    }
 
     let xdistdir = Command::new("sh")
         .args(&["-c", "xdistdir"])
@@ -207,11 +407,11 @@ fn main() {
         pkg_name, tmpl_type
     );
 
-    let pkg_info= if tmpl_type == "crate" {
+    let pkg_info = if tmpl_type == "crate" {
         crate_info(&pkg_name).expect("Failed to get the crate's info")
     } else {
         gem_info(&pkg_name).expect("Failed to get the gem's info")
     };
 
-    write_template(&pkg_info, force_overwrite).expect("Failed to write the template!");
+    write_template(&pkg_info, force_overwrite, tmpl_type).expect("Failed to write the template!");
 }
