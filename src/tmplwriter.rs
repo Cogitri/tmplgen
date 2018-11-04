@@ -53,7 +53,7 @@ pub fn write_template(
             if &dependencies.make.len() != &0 {
                 template_string = template_string.replace("@makedepends@", &makedepends.trim_end())
             } else {
-                template_string = template_string.replace("\nmakedepends=\"@makedepends\"", "")
+                template_string = template_string.replace("\nmakedepends=\"@makedepends@\"", "")
             }
 
             if &dependencies.run.len() != &0 {
@@ -72,7 +72,7 @@ pub fn write_template(
     } else {
         template_string = template_string
             .replace("@pkgname@", &pkg_info.pkg_name)
-            .replace("\nmakedepends=\"@makedepends\"", "")
+            .replace("\nmakedepends=\"@makedepends@\"", "")
             .replace("\ndepends=\"@depends@\"", "")
             .replace("@build_style@", "cargo")
             .replace(
