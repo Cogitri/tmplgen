@@ -1,5 +1,5 @@
 pub fn missing_field_s(field_name: &str) -> String {
-    eprintln!(
+    error!(
         "Couldn't determine field '{}'! Please add it to the template yourself.",
         field_name
     );
@@ -8,7 +8,7 @@ pub fn missing_field_s(field_name: &str) -> String {
 }
 
 pub fn missing_field_v(field_name: &str) -> Vec<String> {
-    eprintln!(
+    error!(
         "Couldn't determine field '{}'! Please add it to the template yourself.",
         field_name
     );

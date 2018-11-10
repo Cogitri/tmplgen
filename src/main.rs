@@ -18,6 +18,9 @@ extern crate crates_io_api;
 extern crate clap;
 #[macro_use]
 extern crate failure;
+#[macro_use]
+extern crate log;
+extern crate env_logger;
 
 mod crates;
 mod gems;
@@ -33,7 +36,7 @@ use gems::*;
 use tmplwriter::*;
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
-pub fn help_string() -> (String, String, bool) {
+pub fn help_string() -> (String, String, bool, bool, bool) {
     let help_yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(help_yaml).get_matches();
 
@@ -43,7 +46,11 @@ pub fn help_string() -> (String, String, bool) {
 
     let force_overwrite = matches.is_present("force");
 
-    (crate_name, tmpl_type, force_overwrite)
+    let is_verbose = matches.is_present("verbose");
+
+    let is_debug = matches.is_present("debug");
+
+    (crate_name, tmpl_type, force_overwrite, is_verbose, is_debug)
 }
 
 fn main() {
@@ -51,8 +58,22 @@ fn main() {
     let pkg_name = help_tuple.0;
     let tmpl_type = help_tuple.1;
     let force_overwrite = help_tuple.2;
+    let is_verbose = help_tuple.3;
+    let is_debug = help_tuple.4;
 
-    println!(
+    if is_debug {
+        let env =
+            env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "tmplgen=debug");
+        env_logger::Builder::from_env(env).init();
+    } else if is_verbose {
+        let env =
+            env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "tmplgen=info");
+        env_logger::Builder::from_env(env).init();
+    } else {
+        env_logger::init();
+    }
+
+    info!(
         "Generating template for package {} of type {}",
         pkg_name, tmpl_type
     );

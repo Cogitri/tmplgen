@@ -7,6 +7,8 @@ pub fn crate_info(crate_name: &String) -> Result<PkgInfo, Error> {
 
     let query_result = client.full_crate(crate_name, false)?;
 
+    debug!("crates.io query result: {:?}", query_result,);
+
     let pkg_info = PkgInfo {
         pkg_name: crate_name.clone(),
         version: query_result.max_version,
@@ -23,6 +25,8 @@ pub fn crate_info(crate_name: &String) -> Result<PkgInfo, Error> {
         ],
         dependencies: None,
     };
+
+    debug!("All pkg related info: {:?}", pkg_info);
 
     Ok(pkg_info)
 }

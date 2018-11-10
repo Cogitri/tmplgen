@@ -26,11 +26,13 @@ impl From<rubygems_api::Error> for Error {
     }
 }
 
+#[derive(Debug)]
 pub struct Dependencies {
     pub make: Vec<String>,
     pub run: Vec<String>,
 }
 
+#[derive(Debug)]
 pub struct PkgInfo {
     pub pkg_name: String,
     pub version: String,

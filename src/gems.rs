@@ -13,11 +13,15 @@ pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
         dep_vec_dev.push(dep.unwrap());
     }
 
+    debug!("Gem make dependencies: {:?}", dep_vec_dev,);
+
     let mut dep_vec_run = Vec::new();
     for x in query_result.dependencies.runtime.unwrap() {
         let dep = determine_gem_run_deps(x)?;
         dep_vec_run.push(dep.unwrap());
     }
+
+    debug!("Gem run dependencies: {:?}", dep_vec_run,);
 
     let pkg_info = PkgInfo {
         pkg_name: gem_name.clone(),
@@ -36,6 +40,8 @@ pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
             run: dep_vec_run,
         }),
     };
+
+    debug!("All pkg related info: {:?}", pkg_info);
 
     Ok(pkg_info)
 }
@@ -74,6 +80,7 @@ pub fn determine_gem_dev_deps(
             .split_whitespace()
             .collect::<Vec<_>>()[0],
     );
+
     let ver = String::from(
         rubygem_dep
             .requirements
@@ -146,9 +153,3 @@ pub fn determine_gem_run_deps(
 
     Ok(ver_req)
 }
-
-//fn missing_field<T>(field_name: &str) -> T {
-//    eprintln!("Couldn't determine field '{}'! Please add it to the template yourself.", field_name);
-//
-//    T::new()
-//}

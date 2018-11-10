@@ -103,21 +103,21 @@ pub fn write_template(
     );
 
     if !xdistdir.status.success() {
-        println!(
-            "xdistdir: exited with a non-0 exit code:\n{}",
+        error!(
+            "xdistdir: exited with a non-0 exit code:\n {:?}",
             from_utf8(&xdistdir.stderr).unwrap()
         );
     }
 
     if Path::new(&format!("{}/template", &xbps_distdir)).exists() && !force_overwrite {
-        eprintln!(
+        error!(
             "Won't overwrite existing template '{}/template' without `--force`!",
             &xbps_distdir
         );
         exit(1);
     }
 
-    println!("Writing template to path {}/template", &xbps_distdir);
+    info!("Writing template to path {}/template", &xbps_distdir);
 
     create_dir_all(&xbps_distdir)?;
     let mut file = File::create(format!("{}/template", &xbps_distdir))?;

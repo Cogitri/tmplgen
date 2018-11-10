@@ -3,16 +3,24 @@ version: "0.2.1"
 author: Rasmus Thomsen <rasmus.thomsen@protonmail.com>
 about: A Void Linux Template generator for rust packages
 args:
+  - debug:
+      short: d
+      long: debug
+      help: Print debug info
+  - force:
+      short: f
+      long: force
+      help: Overwrite template, if it already exists
   - tmpltype:
       short: t
       long: tmpltype
       value_name: crate/gem
       help: Sets what kind of template we want to generate
       required: true
-  - force:
-      short: f
-      long: force
-      help: Overwrite template, if it already exists
+  - verbose:
+      short: v
+      long: verbose
+      help: Be more verbose
   - INPUT:
       help: Sets for which package the template should be generated
       required: true
