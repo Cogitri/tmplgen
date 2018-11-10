@@ -8,6 +8,12 @@ pub enum Error {
     Gem(rubygems_api::Error),
 }
 
+#[derive(Debug, PartialEq)]
+pub enum PkgType {
+    Crate,
+    Gem,
+}
+
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Self {
         Error::File(e)

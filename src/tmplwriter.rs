@@ -9,7 +9,7 @@ use types::*;
 pub fn write_template(
     pkg_info: &PkgInfo,
     force_overwrite: bool,
-    tmpl_type: String,
+    tmpl_type: PkgType,
 ) -> Result<(), Error> {
     let template_in = include_str!("template.in");
 
@@ -36,7 +36,7 @@ pub fn write_template(
         .replace("@homepage@", &pkg_info.homepage)
         .replace("@maintainer@", &maintainer);
 
-    if tmpl_type == "gem" {
+    if tmpl_type == PkgType::Gem {
         let dependencies = &pkg_info.dependencies.as_ref().unwrap();
 
         let mut makedepends = String::new();

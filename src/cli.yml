@@ -15,13 +15,12 @@ args:
       short: t
       long: tmpltype
       value_name: crate/gem
-      help: Sets what kind of template we want to generate
-      required: true
+      help: Explicitly sets what kind of template we want to generate
   - verbose:
       short: v
       long: verbose
       help: Be more verbose
-  - INPUT:
+  - PKGNAME:
       help: Sets for which package the template should be generated
       required: true
       index: 1

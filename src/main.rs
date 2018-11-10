@@ -33,16 +33,24 @@ mod types;
 use clap::App;
 use crates::*;
 use gems::*;
+use helpers::figure_out_provider;
 use tmplwriter::*;
+use types::PkgType;
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
-pub fn help_string() -> (String, String, bool, bool, bool) {
+pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool) {
     let help_yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(help_yaml).get_matches();
 
-    let tmpl_type = String::from(matches.value_of("tmpltype").unwrap());
+    let tmpl_type = if matches.value_of("tmpltype").unwrap_or_default() == "crate" {
+        Some(PkgType::Crate)
+    } else if matches.value_of("tmpltype").unwrap_or_default() == "gem" {
+        Some(PkgType::Gem)
+    } else {
+        None
+    };
 
-    let crate_name = String::from(matches.value_of("INPUT").unwrap());
+    let crate_name = String::from(matches.value_of("PKGNAME").unwrap());
 
     let force_overwrite = matches.is_present("force");
 
@@ -73,16 +81,18 @@ fn main() {
         env_logger::init();
     }
 
+    let pkg_type = figure_out_provider(tmpl_type, &pkg_name).unwrap();
+
     info!(
-        "Generating template for package {} of type {}",
-        pkg_name, tmpl_type
+        "Generating template for package {} of type {:?}",
+        &pkg_name, pkg_type
     );
 
-    let pkg_info = if tmpl_type == "crate" {
+    let pkg_info = if pkg_type == PkgType::Crate {
         crate_info(&pkg_name).expect("Failed to get the crate's info")
     } else {
         gem_info(&pkg_name).expect("Failed to get the gem's info")
     };
 
-    write_template(&pkg_info, force_overwrite, tmpl_type).expect("Failed to write the template!");
+    write_template(&pkg_info, force_overwrite, pkg_type).expect("Failed to write the template!");
 }
