@@ -1,15 +1,16 @@
 use std::fs::{create_dir_all, File};
 use std::io::prelude::Write;
+use std::process::{exit,Command};
 use std::path::Path;
-use std::process::{exit, Command};
 use std::str::from_utf8;
 use types::*;
+use helpers::*;
 
 // Writes the PkgInfo to a file called "template"
 pub fn write_template(
     pkg_info: &PkgInfo,
     force_overwrite: bool,
-    tmpl_type: PkgType,
+    tmpl_type: &PkgType,
 ) -> Result<(), Error> {
     let template_in = include_str!("template.in");
 
@@ -36,7 +37,7 @@ pub fn write_template(
         .replace("@homepage@", &pkg_info.homepage)
         .replace("@maintainer@", &maintainer);
 
-    if tmpl_type == PkgType::Gem {
+    if tmpl_type == &PkgType::Gem {
         let dependencies = &pkg_info.dependencies.as_ref().unwrap();
 
         let mut makedepends = String::new();
@@ -65,7 +66,7 @@ pub fn write_template(
             template_string = template_string
                 .replace(
                     "@pkgname@",
-                    &String::from("ruby-".to_owned() + &pkg_info.pkg_name),
+                    &pkg_info.pkg_name,
                 ).replace("@build_style@", "gem")
                 .replace("\ndistfiles=\"@distfiles@\"", "");
         }
@@ -84,43 +85,21 @@ pub fn write_template(
             );
     }
 
-    let xdistdir = Command::new("sh")
-        .args(&["-c", "xdistdir"])
-        .output()
-        .expect("Couldn't execute xdistdir. Make sure you have xtools installed.");
+    let xbps_distdir = xdist_files();
 
-    let xbps_distdir = format!(
-        "{}/srcpkgs/{}",
-        from_utf8(&xdistdir.stdout)
-            .unwrap()
-            .replace("\n", "")
-            .replace(
-                "~",
-                &std::env::var("HOME")
-                    .expect("Please either replace '~' with your homepath or export HOME")
-            ),
-        &pkg_info.pkg_name
-    );
-
-    if !xdistdir.status.success() {
+    if Path::new(&format!("{}/{}/template", &xbps_distdir, &pkg_info.pkg_name)).exists() && !force_overwrite {
         error!(
-            "xdistdir: exited with a non-0 exit code:\n {:?}",
-            from_utf8(&xdistdir.stderr).unwrap()
-        );
-    }
-
-    if Path::new(&format!("{}/template", &xbps_distdir)).exists() && !force_overwrite {
-        error!(
-            "Won't overwrite existing template '{}/template' without `--force`!",
-            &xbps_distdir
+            "Won't overwrite existing template '{}{}/template' without `--force`!",
+            &xbps_distdir,
+            &pkg_info.pkg_name
         );
         exit(1);
     }
 
-    info!("Writing template to path {}/template", &xbps_distdir);
+    info!("Writing template to path {}{}/template", &xbps_distdir, &pkg_info.pkg_name);
 
-    create_dir_all(&xbps_distdir)?;
-    let mut file = File::create(format!("{}/template", &xbps_distdir))?;
+    create_dir_all(format!("{}{}", &xbps_distdir, &pkg_info.pkg_name))?;
+    let mut file = File::create(format!("{}{}/template", &xbps_distdir, &pkg_info.pkg_name))?;
 
     file.write_all(template_string.as_bytes())?;
 

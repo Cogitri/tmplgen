@@ -31,10 +31,7 @@ mod tmplwriter;
 mod types;
 
 use clap::App;
-use crates::*;
-use gems::*;
-use helpers::figure_out_provider;
-use tmplwriter::*;
+use helpers::*;
 use types::PkgType;
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
@@ -83,16 +80,5 @@ fn main() {
 
     let pkg_type = figure_out_provider(tmpl_type, &pkg_name).unwrap();
 
-    info!(
-        "Generating template for package {} of type {:?}",
-        &pkg_name, pkg_type
-    );
-
-    let pkg_info = if pkg_type == PkgType::Crate {
-        crate_info(&pkg_name).expect("Failed to get the crate's info")
-    } else {
-        gem_info(&pkg_name).expect("Failed to get the gem's info")
-    };
-
-    write_template(&pkg_info, force_overwrite, pkg_type).expect("Failed to write the template!");
+    template_handler(pkg_name, &pkg_type, force_overwrite);
 }
