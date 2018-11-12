@@ -6,14 +6,6 @@ pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
 
     let query_result = client.gem_info(gem_name)?;
 
-    let mut dep_vec_dev = Vec::new();
-
-    for x in query_result.dependencies.development.unwrap() {
-        dep_vec_dev.push("ruby-".to_string() + &x.name + " ");
-    }
-
-    debug!("Gem make dependencies: {:?}", dep_vec_dev);
-
     let mut dep_vec_run = Vec::new();
 
     for x in query_result.dependencies.runtime.unwrap() {
@@ -36,8 +28,8 @@ pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
             .licenses
             .unwrap_or_else(|| missing_field_v("license")),
         dependencies: Some(Dependencies {
-            make: dep_vec_dev,
-            run: dep_vec_run,
+            make: None,
+            run: Some(dep_vec_run),
         }),
     };
 
@@ -52,9 +44,6 @@ pub fn gem_dep_graph(gem_name: &String, force_overwrite: bool) {
     let query_result = client.gem_info(gem_name).unwrap();
 
     let mut deps_vec = Vec::new();
-    for x in query_result.dependencies.development.unwrap() {
-        deps_vec.push(x.name);
-    };
 
     for x in query_result.dependencies.runtime.unwrap() {
         deps_vec.push(x.name);
@@ -62,7 +51,6 @@ pub fn gem_dep_graph(gem_name: &String, force_overwrite: bool) {
 
     let xdistdir = xdist_files();
 
-    recursive_deps(&deps_vec, &xdistdir, PkgType::Gem, force_overwrite);
     recursive_deps(&deps_vec, &xdistdir, PkgType::Gem, force_overwrite);
 }
 

@@ -34,8 +34,8 @@ impl From<rubygems_api::Error> for Error {
 
 #[derive(Debug)]
 pub struct Dependencies {
-    pub make: Vec<String>,
-    pub run: Vec<String>,
+    pub make: Option<Vec<String>>,
+    pub run: Option<Vec<String>>,
 }
 
 #[derive(Debug)]

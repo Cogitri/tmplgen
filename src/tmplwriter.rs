@@ -40,24 +40,14 @@ pub fn write_template(
     if tmpl_type == &PkgType::Gem {
         let dependencies = &pkg_info.dependencies.as_ref().unwrap();
 
-        let mut makedepends = String::new();
         let mut depends = String::new();
 
-        for x in &dependencies.make {
-            makedepends.push_str(x);
-        }
-        for x in &dependencies.run {
+        for x in dependencies.run.as_ref().unwrap() {
             depends.push_str(x);
         }
 
         if pkg_info.dependencies.is_some() {
-            if &dependencies.make.len() != &0 {
-                template_string = template_string.replace("@makedepends@", &makedepends.trim_end())
-            } else {
-                template_string = template_string.replace("\nmakedepends=\"@makedepends@\"", "")
-            }
-
-            if &dependencies.run.len() != &0 {
+            if &dependencies.run.as_ref().unwrap().len() != &0 {
                 template_string = template_string.replace("@depends@", &depends.trim_end())
             } else {
                 template_string = template_string.replace("\ndepends=\"@depends@\"", "")
@@ -73,7 +63,6 @@ pub fn write_template(
     } else {
         template_string = template_string
             .replace("@pkgname@", &pkg_info.pkg_name)
-            .replace("\nmakedepends=\"@makedepends@\"", "")
             .replace("\ndepends=\"@depends@\"", "")
             .replace("@build_style@", "cargo")
             .replace(
