@@ -47,7 +47,7 @@ pub fn gem_dep_graph(gem_name: &String, force_overwrite: bool) {
 
     for x in query_result.dependencies.runtime.unwrap() {
         deps_vec.push(x.name);
-    };
+    }
 
     let xdistdir = xdist_files();
 
@@ -89,9 +89,7 @@ pub fn tilde_parse(version: String) -> Option<Vec<String>> {
     }
 }
 
-fn determine_gem_run_deps(
-    rubygem_dep: &rubygems_api::GemRunDeps,
-) -> Result<String, Error> {
+fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> Result<String, Error> {
     let cmpr = String::from(
         rubygem_dep
             .requirements
@@ -123,7 +121,7 @@ fn determine_gem_run_deps(
                 + &tilde_vec[1]
                 + &" ".to_string()
         }
-        _ => "ruby-".to_string() + &rubygem_dep.name
+        _ => "ruby-".to_string() + &rubygem_dep.name,
     };
 
     Ok(ver_req)

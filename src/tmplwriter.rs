@@ -1,10 +1,10 @@
+use helpers::*;
 use std::fs::{create_dir_all, File};
 use std::io::prelude::Write;
-use std::process::{exit,Command};
 use std::path::Path;
+use std::process::{exit, Command};
 use std::str::from_utf8;
 use types::*;
-use helpers::*;
 
 // Writes the PkgInfo to a file called "template"
 pub fn write_template(
@@ -54,10 +54,8 @@ pub fn write_template(
             }
 
             template_string = template_string
-                .replace(
-                    "@pkgname@",
-                    &pkg_info.pkg_name,
-                ).replace("@build_style@", "gem")
+                .replace("@pkgname@", &pkg_info.pkg_name)
+                .replace("@build_style@", "gem")
                 .replace("\ndistfiles=\"@distfiles@\"", "");
         }
     } else {

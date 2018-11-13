@@ -1,10 +1,10 @@
-use types::*;
-use gems::*;
-use tmplwriter::*;
 use crates::*;
+use gems::*;
 use std::path::Path;
 use std::process::{exit, Command};
 use std::str::from_utf8;
+use tmplwriter::*;
+use types::*;
 
 pub fn missing_field_s(field_name: &str) -> String {
     error!(
@@ -33,9 +33,7 @@ pub fn figure_out_provider(
             .get_crate(&pkg_name)
             .is_ok();
 
-        let gem_status = rubygems_api::SyncClient::new()
-            .gem_info(&pkg_name)
-            .is_ok();
+        let gem_status = rubygems_api::SyncClient::new().gem_info(&pkg_name).is_ok();
 
         if crate_status && gem_status {
             Err("Found a package with the specified name both on crates.io and rubygems.org! Please explicitly choose one via the `-t` parameter!".to_string())
@@ -100,7 +98,12 @@ pub fn xdist_files() -> String {
     )
 }
 
-pub fn recursive_deps(deps: &Vec<String>, xdistdir: &String, pkg_type: PkgType, force_overwrite: bool) {
+pub fn recursive_deps(
+    deps: &Vec<String>,
+    xdistdir: &String,
+    pkg_type: PkgType,
+    force_overwrite: bool,
+) {
     if force_overwrite {
         for x in deps {
             info!("Specified `-f`, will overwrite existing templates if they exists...");
@@ -114,7 +117,10 @@ pub fn recursive_deps(deps: &Vec<String>, xdistdir: &String, pkg_type: PkgType, 
                 format!("{}{}/template", xdistdir, x)
             };
             if !Path::new(&tmpl_path).exists() {
-                info!("Dependency {} doesn't exist yet, writing a template for it...", x);
+                info!(
+                    "Dependency {} doesn't exist yet, writing a template for it...",
+                    x
+                );
                 template_handler(x.to_string(), &pkg_type, force_overwrite);
             } else {
                 debug!("Dependency {} is already satisfied!", x);
