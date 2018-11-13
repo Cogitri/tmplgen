@@ -7,7 +7,7 @@ use tmplwriter::*;
 use types::*;
 
 pub fn missing_field_s(field_name: &str) -> String {
-    error!(
+    warn!(
         "Couldn't determine field '{}'! Please add it to the template yourself.",
         field_name
     );
@@ -16,7 +16,7 @@ pub fn missing_field_s(field_name: &str) -> String {
 }
 
 pub fn missing_field_v(field_name: &str) -> Vec<String> {
-    error!(
+    warn!(
         "Couldn't determine field '{}'! Please add it to the template yourself.",
         field_name
     );
