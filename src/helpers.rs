@@ -128,3 +128,11 @@ pub fn recursive_deps(
         }
     }
 }
+
+pub fn check_string_len(string: &String, string_type: &str) -> String {
+    if string.len() >= 80 {
+        warn!("{} is longer than 80 characters, please cut as you see fit!", string_type);
+    }
+
+    string.to_string()
+}
