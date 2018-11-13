@@ -44,6 +44,9 @@ pub fn write_template(
 
         for x in dependencies.run.as_ref().unwrap() {
             depends.push_str(x);
+            if depends.len() >= 80 {
+                depends.push_str("\\n");
+            }
         }
 
         if pkg_info.dependencies.is_some() {
