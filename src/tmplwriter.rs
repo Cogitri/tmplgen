@@ -74,21 +74,20 @@ pub fn write_template(
             );
     }
 
-    let xbps_distdir = xdist_files();
+    let xdist_template_path = format!("{}{}", xdist_files(), &pkg_info.pkg_name);
 
-    if Path::new(&format!("{}/{}/template", &xbps_distdir, &pkg_info.pkg_name)).exists() && !force_overwrite {
+    if Path::new(&format!("{}/template", &xdist_template_path)).exists() && !force_overwrite {
         error!(
-            "Won't overwrite existing template '{}{}/template' without `--force`!",
-            &xbps_distdir,
-            &pkg_info.pkg_name
+            "Won't overwrite existing template '{}/template' without `--force`!",
+            &xdist_template_path,
         );
         exit(1);
     }
 
-    info!("Writing template to path {}{}/template", &xbps_distdir, &pkg_info.pkg_name);
+    info!("Writing template to path {}/template", &xdist_template_path);
 
-    create_dir_all(format!("{}{}", &xbps_distdir, &pkg_info.pkg_name))?;
-    let mut file = File::create(format!("{}{}/template", &xbps_distdir, &pkg_info.pkg_name))?;
+    create_dir_all(format!("{}", &xdist_template_path))?;
+    let mut file = File::create(format!("{}/template", &xdist_template_path))?;
 
     file.write_all(template_string.as_bytes())?;
 
