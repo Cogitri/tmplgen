@@ -47,8 +47,10 @@ pub fn write_template(
 
     let mut template_string = template_in
         .replace("@version@", &pkg_info.version)
-        .replace("@description@", &check_string_len(&pkg_info.description, "description"))
-        .replace("@license@", &pkg_info.license.join(", "))
+        .replace(
+            "@description@",
+            &check_string_len(&pkg_info.description, "description"),
+        ).replace("@license@", &pkg_info.license.join(", "))
         .replace("@homepage@", &pkg_info.homepage)
         .replace("@maintainer@", &maintainer)
         .replace("@pkgname@", &pkg_info.pkg_name);
@@ -58,9 +60,11 @@ pub fn write_template(
 
         if dependencies.host.is_some() {
             let host_depends = gen_dep_string(dependencies.host.as_ref().unwrap());
-            template_string = template_string.replace("@hostmakedepends@", &host_depends.trim_end());
+            template_string =
+                template_string.replace("@hostmakedepends@", &host_depends.trim_end());
         } else {
-            template_string = template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
+            template_string =
+                template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
         }
         if dependencies.make.is_some() {
             let make_depends = gen_dep_string(dependencies.make.as_ref().unwrap());
@@ -82,8 +86,8 @@ pub fn write_template(
 
     if tmpl_type == &PkgType::Gem {
         template_string = template_string
-                .replace("@build_style@", "gem")
-                .replace("\ndistfiles=\"@distfiles@\"", "");
+            .replace("@build_style@", "gem")
+            .replace("\ndistfiles=\"@distfiles@\"", "");
     } else {
         template_string = template_string
             .replace("@pkgname@", &pkg_info.pkg_name)
@@ -99,7 +103,10 @@ pub fn write_template(
     }
 
     let license = &pkg_info.license.join(", ");
-    if license.contains(&"MIT".to_string()) || license.contains(&"ISC".to_string()) || license.contains(&"BSD".to_string()) {
+    if license.contains(&"MIT".to_string())
+        || license.contains(&"ISC".to_string())
+        || license.contains(&"BSD".to_string())
+    {
         template_string.push_str("\n\npost_install() {\n\tvlicense LICENSE\n}");
     }
 

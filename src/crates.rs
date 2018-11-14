@@ -50,7 +50,7 @@ fn check_native_deps(crate_name: &String) -> Result<Option<Dependencies>, Error>
 
     debug!("Crate dependencies: {:?}", dependencies);
 
-    let mut make_dep_vec = vec!(String::new());
+    let mut make_dep_vec = vec![String::new()];
 
     for x in dependencies {
         if x.crate_id == "openssl-sys" {
@@ -60,10 +60,10 @@ fn check_native_deps(crate_name: &String) -> Result<Option<Dependencies>, Error>
 
     if make_dep_vec.len() > 1 {
         return Ok(Some(Dependencies {
-            host: Some(vec!("pkg-config".to_string())),
+            host: Some(vec!["pkg-config".to_string()]),
             make: Some(make_dep_vec),
             run: None,
-        }))
+        }));
     } else {
         return Ok(None);
     }
