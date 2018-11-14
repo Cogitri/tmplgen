@@ -3,6 +3,7 @@ pkgname=@pkgname@
 version=@version@
 revision=1
 build_style=@build_style@
+hostmakedepends="@hostmakedepends@"
 depends="@depends@"
 short_desc="@description@"
 maintainer="@maintainer@"

@@ -43,6 +43,7 @@ pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
             .licenses
             .unwrap_or_else(|| missing_field_v("license")),
         dependencies: Some(Dependencies {
+            host: None,
             make: None,
             run: Some(dep_vec_run),
         }),

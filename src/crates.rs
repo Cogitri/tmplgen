@@ -7,6 +7,8 @@ pub fn crate_info(crate_name: &String) -> Result<PkgInfo, Error> {
 
     let query_result = client.full_crate(crate_name, false)?;
 
+    let crate_deps = check_native_deps(crate_name)?;
+
     debug!("crates.io query result: {:?}", query_result,);
 
     let pkg_info = PkgInfo {
@@ -23,10 +25,45 @@ pub fn crate_info(crate_name: &String) -> Result<PkgInfo, Error> {
                 .license
                 .unwrap_or_else(|| missing_field_s("license")),
         ],
-        dependencies: None,
+        dependencies: crate_deps,
     };
 
     debug!("All pkg related info: {:?}", pkg_info);
 
     Ok(pkg_info)
+}
+
+fn get_crate_deps(crate_name: &String) -> Result<Vec<crates_io_api::Dependency>, Error> {
+    let client = crates_io_api::SyncClient::new();
+
+    let query_result = client.get_crate(crate_name)?;
+
+    let latest_version = &query_result.versions[0].num;
+
+    Ok(client.crate_dependencies(crate_name, &latest_version)?)
+}
+
+// TODO: This only works with direct deps!
+fn check_native_deps(crate_name: &String) -> Result<Option<Dependencies>, Error> {
+    let dependencies = get_crate_deps(crate_name)?;
+
+    debug!("Crate dependencies: {:?}", dependencies);
+
+    let mut make_dep_vec = vec!(String::new());
+
+    for x in dependencies {
+        if x.crate_id == "openssl-sys" {
+            make_dep_vec.push("libressl-devel".to_string());
+        }
+    }
+
+    if make_dep_vec.len() > 1 {
+        return Ok(Some(Dependencies {
+            host: Some(vec!("pkg-config".to_string())),
+            make: Some(make_dep_vec),
+            run: None,
+        }))
+    } else {
+        return Ok(None);
+    }
 }

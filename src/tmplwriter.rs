@@ -50,32 +50,59 @@ pub fn write_template(
         .replace("@description@", &check_string_len(&pkg_info.description, "description"))
         .replace("@license@", &pkg_info.license.join(", "))
         .replace("@homepage@", &pkg_info.homepage)
-        .replace("@maintainer@", &maintainer);
+        .replace("@maintainer@", &maintainer)
+        .replace("@pkgname@", &pkg_info.pkg_name);
+
+    let mut host_depends = String::new();
+    let mut make_depends = String::new();
+    let mut run_depends = String::new();
+
+    if pkg_info.dependencies.is_some() {
+        let dependencies = pkg_info.dependencies.as_ref().unwrap();
+
+        if dependencies.host.is_some() {
+            for x in dependencies.host.as_ref().unwrap() {
+                host_depends.push_str(x);
+                if host_depends.len() >= 80 {
+                    host_depends.push_str("\\n")
+                }
+            }
+            template_string = template_string.replace("@hostmakedepends@", &host_depends.trim_end());
+        } else {
+            template_string = template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
+        }
+        if dependencies.make.is_some() {
+            for x in dependencies.make.as_ref().unwrap() {
+                make_depends.push_str(x);
+                if make_depends.len() >= 80 {
+                    make_depends.push_str("\\n")
+                }
+            }
+            template_string = template_string.replace("@makedepends@", &make_depends.trim_end());
+        } else {
+            template_string = template_string.replace("\nmakedepends=\"@makedepends@\"", "");
+        }
+        if dependencies.run.is_some() {
+            for x in dependencies.run.as_ref().unwrap() {
+                run_depends.push_str(x);
+                if run_depends.len() >= 80 {
+                    run_depends.push_str("\\n")
+                }
+            }
+            template_string = template_string.replace("@depends@", &run_depends.trim_end());
+        } else {
+            template_string = template_string.replace("\ndepends=\"@depends@\"", "");
+        }
+    } else {
+        template_string = template_string.replace("\ndepends=\"@depends@\"", "");
+        template_string = template_string.replace("\nmakedepends=\"@makedepends@\"", "");
+        template_string = template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
+    }
 
     if tmpl_type == &PkgType::Gem {
-        let dependencies = &pkg_info.dependencies.as_ref().unwrap();
-
-        let mut depends = String::new();
-
-        for x in dependencies.run.as_ref().unwrap() {
-            depends.push_str(x);
-            if depends.len() >= 80 {
-                depends.push_str("\\n");
-            }
-        }
-
-        if pkg_info.dependencies.is_some() {
-            if &dependencies.run.as_ref().unwrap().len() != &0 {
-                template_string = template_string.replace("@depends@", &depends.trim_end())
-            } else {
-                template_string = template_string.replace("\ndepends=\"@depends@\"", "")
-            }
-
-            template_string = template_string
-                .replace("@pkgname@", &pkg_info.pkg_name)
+        template_string = template_string
                 .replace("@build_style@", "gem")
                 .replace("\ndistfiles=\"@distfiles@\"", "");
-        }
     } else {
         template_string = template_string
             .replace("@pkgname@", &pkg_info.pkg_name)

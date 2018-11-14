@@ -49,6 +49,7 @@ impl From<rubygems_api::Error> for Error {
 
 #[derive(Debug)]
 pub struct Dependencies {
+    pub host: Option<Vec<String>>,
     pub make: Option<Vec<String>>,
     pub run: Option<Vec<String>>,
 }
