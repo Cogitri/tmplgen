@@ -4,16 +4,19 @@ A simple Void Linux template generator.
 
 ## Usage
 ```
-    tmplgen [FLAGS] <INPUT> --tmpltype <crate/gem>
+USAGE:
+    tmplgen [FLAGS] [OPTIONS] <PKGNAME>
 
 FLAGS:
+    -d, --debug      Print debug info
     -f, --force      Overwrite template, if it already exists
     -h, --help       Prints help information
     -V, --version    Prints version information
+    -v, --verbose    Be more verbose
 
 OPTIONS:
-    -t, --tmpltype <crate/gem>    Sets what kind of template we want to generate
+    -t, --tmpltype <crate/gem>    Explicitly sets what kind of template we want to generate
 
 ARGS:
-    <INPUT>    Sets for which package the template should be generated
+    <PKGNAME>    Sets for which package the template should be generated
 ```
