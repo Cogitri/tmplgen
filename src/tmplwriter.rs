@@ -95,6 +95,8 @@ pub fn write_template(
         template_string.push_str("\n\npost_install() {\n\tvlicense LICENSE\n}");
     }
 
+    template_string.push_str("\n");
+
     let xdist_template_path = format!("{}{}", xdist_files(), &pkg_info.pkg_name);
 
     if Path::new(&format!("{}/template", &xdist_template_path)).exists() && !force_overwrite {
