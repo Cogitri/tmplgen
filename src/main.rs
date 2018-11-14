@@ -31,7 +31,6 @@ mod tmplwriter;
 mod types;
 
 use clap::App;
-use env_logger::Builder;
 use helpers::*;
 use types::PkgType;
 
@@ -67,17 +66,7 @@ fn main() {
     let is_verbose = help_tuple.3;
     let is_debug = help_tuple.4;
 
-    let mut builder = Builder::new();
-
-    if is_debug {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Debug);
-    } else if is_verbose {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Info);
-    } else {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Warn);
-    }
-
-    builder.default_format_timestamp(false).init();
+    set_up_logging(is_debug, is_verbose);
 
     let pkg_type = figure_out_provider(tmpl_type, &pkg_name).unwrap();
 

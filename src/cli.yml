@@ -6,7 +6,7 @@ args:
   - debug:
       short: d
       long: debug
-      help: Print debug info
+      help: Print debug info. Will overrule the verbose switch.
   - force:
       short: f
       long: force
@@ -19,7 +19,7 @@ args:
   - verbose:
       short: v
       long: verbose
-      help: Be more verbose
+      help: Be more verbose. Is ignored if debugging is enabled.
   - PKGNAME:
       help: Sets for which package the template should be generated
       required: true

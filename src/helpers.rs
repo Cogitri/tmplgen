@@ -14,6 +14,7 @@
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
 use crates::*;
+use env_logger::Builder;
 use gems::*;
 use std::path::Path;
 use std::process::{exit, Command};
@@ -170,4 +171,22 @@ pub fn is_dist_gem(pkg_name: &String) -> bool {
     }
 
     false
+}
+
+pub fn set_up_logging(is_debug: bool, is_verbose: bool) {
+    let mut builder = Builder::new();
+
+    if is_debug {
+        builder.filter(Some("tmplgen"), log::LevelFilter::Debug);
+    } else if is_verbose {
+        builder.filter(Some("tmplgen"), log::LevelFilter::Info);
+    } else {
+        builder.filter(Some("tmplgen"), log::LevelFilter::Warn);
+    }
+
+    builder.default_format_timestamp(false).init();
+
+    if is_debug && is_verbose {
+        warn!("Specified both --verbose and --debug! Will ignore --verbose.");
+    }
 }
