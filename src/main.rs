@@ -30,33 +30,7 @@ mod tests;
 mod tmplwriter;
 mod types;
 
-use clap::App;
 use helpers::*;
-use types::PkgType;
-
-// Print the help script if invoked without arguments or with `--help`/`-h`
-pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool) {
-    let help_yaml = load_yaml!("cli.yml");
-    let matches = App::from_yaml(help_yaml).get_matches();
-
-    let tmpl_type = if matches.value_of("tmpltype").unwrap_or_default() == "crate" {
-        Some(PkgType::Crate)
-    } else if matches.value_of("tmpltype").unwrap_or_default() == "gem" {
-        Some(PkgType::Gem)
-    } else {
-        None
-    };
-
-    let crate_name = String::from(matches.value_of("PKGNAME").unwrap());
-
-    let force_overwrite = matches.is_present("force");
-
-    let is_verbose = matches.is_present("verbose");
-
-    let is_debug = matches.is_present("debug");
-
-    (crate_name, tmpl_type, force_overwrite, is_verbose, is_debug)
-}
 
 fn main() {
     let help_tuple = help_string();
