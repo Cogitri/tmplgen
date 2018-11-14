@@ -41,6 +41,9 @@ pub fn missing_field_v(field_name: &str) -> Vec<String> {
     vec![String::from("")]
 }
 
+// Figure out whether we're dealing with a crate or a gem if the user hasn't specified that.
+// Errors out of a package with the name the user gave us can be found on both crates.io and
+// rubygems.org
 pub fn figure_out_provider(
     tmpl_type: Option<PkgType>,
     pkg_name: &String,
@@ -68,6 +71,8 @@ pub fn figure_out_provider(
     }
 }
 
+// Handle getting the necessary info and writing a template for it. Invoked every time a template
+// should be written, useful for recursive deps.
 pub fn template_handler(pkg_name: String, pkg_type: &PkgType, force_overwrite: bool) {
     info!(
         "Generating template for package {} of type {:?}",
@@ -90,6 +95,7 @@ pub fn template_handler(pkg_name: String, pkg_type: &PkgType, force_overwrite: b
     }
 }
 
+// Figure out where to write template files with `xdistdir`
 pub fn xdist_files() -> String {
     let xdistdir = Command::new("sh")
         .args(&["-c", "xdistdir"])
@@ -118,6 +124,7 @@ pub fn xdist_files() -> String {
     )
 }
 
+// Generic function to handle recursive deps. Only used for gems as of now.
 pub fn recursive_deps(
     deps: &Vec<String>,
     xdistdir: &String,

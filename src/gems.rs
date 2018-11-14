@@ -16,6 +16,7 @@
 use helpers::*;
 use types::*;
 
+// Returns a PkgInfo object that contains all the info relevant for us
 pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
     let client = rubygems_api::SyncClient::new();
 
@@ -54,6 +55,8 @@ pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
     Ok(pkg_info)
 }
 
+// If the gem has recursive deps, we should also generate templates for those if they
+// don't exist already
 pub fn gem_dep_graph(gem_name: &String, force_overwrite: bool) {
     let client = rubygems_api::SyncClient::new();
 
@@ -70,6 +73,11 @@ pub fn gem_dep_graph(gem_name: &String, force_overwrite: bool) {
     recursive_deps(&deps_vec, &xdistdir, PkgType::Gem, force_overwrite);
 }
 
+// Convert the ~> comparator to something useful for us.
+// The ~> comparator is meant to allow only version updates up to the first version specifier
+// ~> 2.0.3 means >= 2.0.3 ∩ < 2.1
+// ~> 2.1 means >= 2.1 ∩ > 3.0
+// ~> 2 means >= 2 ∩ > 3
 pub fn tilde_parse(version: String) -> Option<Vec<String>> {
     let ver_vec = version.split(".").collect::<Vec<_>>();
 
@@ -105,6 +113,7 @@ pub fn tilde_parse(version: String) -> Option<Vec<String>> {
     }
 }
 
+// Determine the run dependencies of a gem. Deals with version requirements.
 fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> Result<String, Error> {
     let cmpr = String::from(
         rubygem_dep

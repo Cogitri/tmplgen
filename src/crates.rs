@@ -43,6 +43,7 @@ fn get_crate_deps(crate_name: &String) -> Result<Vec<crates_io_api::Dependency>,
     Ok(client.crate_dependencies(crate_name, &latest_version)?)
 }
 
+// Check if a crate needs native libs (e.g. libressl-devel)
 // TODO: This only works with direct deps!
 fn check_native_deps(crate_name: &String) -> Result<Option<Dependencies>, Error> {
     let dependencies = get_crate_deps(crate_name)?;
