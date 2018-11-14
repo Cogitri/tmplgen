@@ -222,3 +222,16 @@ pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool) {
 
     (crate_name, tmpl_type, force_overwrite, is_verbose, is_debug)
 }
+
+pub fn gen_dep_string(dep_vec: &Vec<String>) -> String {
+    let mut dep_string = String::new();
+
+    for x in dep_vec {
+        dep_string.push_str(x);
+        if dep_string.len() >= 80 {
+            dep_string.push_str("\\n")
+        }
+    }
+
+    dep_string
+}

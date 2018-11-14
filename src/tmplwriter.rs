@@ -53,42 +53,23 @@ pub fn write_template(
         .replace("@maintainer@", &maintainer)
         .replace("@pkgname@", &pkg_info.pkg_name);
 
-    let mut host_depends = String::new();
-    let mut make_depends = String::new();
-    let mut run_depends = String::new();
-
     if pkg_info.dependencies.is_some() {
         let dependencies = pkg_info.dependencies.as_ref().unwrap();
 
         if dependencies.host.is_some() {
-            for x in dependencies.host.as_ref().unwrap() {
-                host_depends.push_str(x);
-                if host_depends.len() >= 80 {
-                    host_depends.push_str("\\n")
-                }
-            }
+            let host_depends = gen_dep_string(dependencies.host.as_ref().unwrap());
             template_string = template_string.replace("@hostmakedepends@", &host_depends.trim_end());
         } else {
             template_string = template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
         }
         if dependencies.make.is_some() {
-            for x in dependencies.make.as_ref().unwrap() {
-                make_depends.push_str(x);
-                if make_depends.len() >= 80 {
-                    make_depends.push_str("\\n")
-                }
-            }
+            let make_depends = gen_dep_string(dependencies.make.as_ref().unwrap());
             template_string = template_string.replace("@makedepends@", &make_depends.trim_end());
         } else {
             template_string = template_string.replace("\nmakedepends=\"@makedepends@\"", "");
         }
         if dependencies.run.is_some() {
-            for x in dependencies.run.as_ref().unwrap() {
-                run_depends.push_str(x);
-                if run_depends.len() >= 80 {
-                    run_depends.push_str("\\n")
-                }
-            }
+            let run_depends = gen_dep_string(dependencies.run.as_ref().unwrap());
             template_string = template_string.replace("@depends@", &run_depends.trim_end());
         } else {
             template_string = template_string.replace("\ndepends=\"@depends@\"", "");
