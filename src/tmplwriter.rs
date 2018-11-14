@@ -48,7 +48,7 @@ pub fn write_template(
     let mut template_string = template_in
         .replace("@version@", &pkg_info.version)
         .replace("@description@", &check_string_len(&pkg_info.description, "description"))
-        .replace("@license@", &pkg_info.license.join(","))
+        .replace("@license@", &pkg_info.license.join(", "))
         .replace("@homepage@", &pkg_info.homepage)
         .replace("@maintainer@", &maintainer);
 
