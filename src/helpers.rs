@@ -75,6 +75,9 @@ pub fn template_handler(pkg_name: String, pkg_type: &PkgType, force_overwrite: b
     let pkg_info = if pkg_type == &PkgType::Crate {
         crate_info(&pkg_name).expect("Failed to get the crate's info")
     } else {
+        if is_dist_gem(&pkg_name) {
+            return;
+        }
         gem_info(&pkg_name).expect("Failed to get the gem's info")
     };
 
@@ -146,8 +149,25 @@ pub fn recursive_deps(
 
 pub fn check_string_len(string: &String, string_type: &str) -> String {
     if string.len() >= 80 {
-        warn!("{} is longer than 80 characters, please cut as you see fit!", string_type);
+        warn!(
+            "{} is longer than 80 characters, please cut as you see fit!",
+            string_type
+        );
     }
 
     string.to_string()
+}
+
+pub fn is_dist_gem(pkg_name: &String) -> bool {
+    for x in include_str!("dist_gems.in").split_whitespace() {
+        if pkg_name == &x {
+            error!(
+                "Gem {} is part of ruby, won't write a template for it!",
+                pkg_name
+            );
+            return true;
+        }
+    }
+
+    false
 }
