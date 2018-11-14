@@ -2,7 +2,7 @@
 
 ## Error checking
 * Generally don't assume that stuff's going right
+* Make sure that user facing errors are pretty and don't throw a backtrace or similar
 
-## Template output
-* Split lines if they're longer than 80 chars
-* Conditionally install license if required
+## Crates
+* Figure out native dependencies for recursive deps
