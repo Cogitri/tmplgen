@@ -9,7 +9,7 @@ readme = "README.md"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-crates_io_api = { git = "https://github.com/Cogitri/crates_io_api" }
+crates_io_api = { path="vendor/crates_io_api", version="0.3.0" }
 clap = {version = "^2.32", features = ["yaml"]}
 rubygems_api = "^0.1.0"
 failure = "^0.1.3"
