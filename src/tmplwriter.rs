@@ -90,6 +90,11 @@ pub fn write_template(
             );
     }
 
+    let license = &pkg_info.license.join(", ");
+    if license.contains(&"MIT".to_string()) || license.contains(&"ISC".to_string()) || license.contains(&"BSD".to_string()) {
+        template_string.push_str("\n\npost_install() {\n\tvlicense LICENSE\n}");
+    }
+
     let xdist_template_path = format!("{}{}", xdist_files(), &pkg_info.pkg_name);
 
     if Path::new(&format!("{}/template", &xdist_template_path)).exists() && !force_overwrite {
