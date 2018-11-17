@@ -73,6 +73,7 @@ pub fn gem_dep_graph(gem_name: &String, force_overwrite: bool) {
     recursive_deps(&deps_vec, &xdistdir, PkgType::Gem, force_overwrite);
 }
 
+/* Can't be used right now we'll just replace it with >=
 // Convert the ~> comparator to something useful for us.
 // The ~> comparator is meant to allow only version updates up to the first version specifier
 // ~> 2.0.3 means >= 2.0.3 ∩ < 2.1
@@ -112,6 +113,7 @@ pub fn tilde_parse(version: String) -> Option<Vec<String>> {
         _ => None,
     }
 }
+*/
 
 // Determine the run dependencies of a gem. Deals with version requirements.
 fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> Result<String, Error> {
@@ -136,16 +138,7 @@ fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> Result<Stri
         } else {
             "ruby-".to_string() + &rubygem_dep.name + &cmpr + &ver
         },
-        "~>" => {
-            let tilde_vec = tilde_parse(ver).unwrap();
-            "ruby-".to_string()
-                + &rubygem_dep.name
-                + &tilde_vec[0]
-                + &" ruby-".to_string()
-                + &rubygem_dep.name
-                + &tilde_vec[1]
-                + &" ".to_string()
-        }
+        "~>" => "ruby-".to_string() +  &rubygem_dep.name + ">=" + &ver,
         _ => "ruby-".to_string() + &rubygem_dep.name,
     };
 
