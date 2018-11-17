@@ -227,10 +227,16 @@ pub fn gen_dep_string(dep_vec: &Vec<String>) -> String {
     let mut dep_string = String::new();
 
     for x in dep_vec {
-        dep_string.push_str(x);
-        if dep_string.len() >= 80 {
-            dep_string.push_str("\\n")
+        let after_string = "".to_string() + &dep_string + x;
+
+        // If the string with the new dep added is longer than or equal to 80
+        // chars we want
+        if after_string.lines().last().unwrap().len() >= 80 {
+                dep_string.push_str("\n")
         }
+
+        dep_string.push_str(x);
+        dep_string.push_str(" ");
     }
 
     dep_string
