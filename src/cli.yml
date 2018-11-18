@@ -1,5 +1,5 @@
 name: tmplgen
-version: "0.3.2"
+version: "0.3.3"
 author: Rasmus Thomsen <rasmus.thomsen@protonmail.com>
 about: A Void Linux Template generator for rust packages
 args:
