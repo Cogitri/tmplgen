@@ -60,7 +60,10 @@ pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
 pub fn gem_dep_graph(gem_name: &String, force_overwrite: bool) {
     let client = rubygems_api::SyncClient::new();
 
-    let query_result = client.gem_info(gem_name).unwrap();
+    let query_result = client
+        .gem_info(gem_name)
+        .map_err(|e| err_handler(e.to_string()))
+        .unwrap();
 
     let mut deps_vec = Vec::new();
 
@@ -138,7 +141,7 @@ fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> Result<Stri
         } else {
             "ruby-".to_string() + &rubygem_dep.name + &cmpr + &ver
         },
-        "~>" => "ruby-".to_string() +  &rubygem_dep.name + ">=" + &ver,
+        "~>" => "ruby-".to_string() + &rubygem_dep.name + ">=" + &ver,
         _ => "ruby-".to_string() + &rubygem_dep.name,
     };
 

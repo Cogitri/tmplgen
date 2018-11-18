@@ -114,6 +114,7 @@ pub fn xdist_files() -> String {
     format!(
         "{}/srcpkgs/",
         from_utf8(&xdistdir.stdout)
+            .map_err(|e| err_handler(e.to_string()))
             .unwrap()
             .replace("\n", "")
             .replace(
@@ -232,7 +233,7 @@ pub fn gen_dep_string(dep_vec: &Vec<String>) -> String {
         // If the string with the new dep added is longer than or equal to 80
         // chars we want
         if after_string.lines().last().unwrap().len() >= 80 {
-                dep_string.push_str("\n")
+            dep_string.push_str("\n")
         }
 
         dep_string.push_str(x);
@@ -240,4 +241,9 @@ pub fn gen_dep_string(dep_vec: &Vec<String>) -> String {
     }
 
     dep_string
+}
+
+pub fn err_handler(err_string: String) {
+    error!("{:?}", err_string);
+    exit(1);
 }

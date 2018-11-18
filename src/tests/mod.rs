@@ -1,4 +1,5 @@
 use crates::*;
+use env_logger::Builder;
 use gems::*;
 use std::env;
 use std::fs::File;
@@ -20,6 +21,8 @@ fn test_query_gem() {
 
 #[test]
 fn test_tmplwriter() {
+    Builder::new().filter(Some("tmplgen"), log::LevelFilter::Warn).default_format_timestamp(false).init();
+
     let pkg_info = PkgInfo {
         pkg_name: "tmplgen".to_string(),
         version: "0.3.1".to_string(),
