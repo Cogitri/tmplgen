@@ -43,7 +43,7 @@ fn main() {
     set_up_logging(is_debug, is_verbose);
 
     let pkg_type = figure_out_provider(tmpl_type, &pkg_name)
-        .map_err(|e| err_handler(&e))
+        .map_err(|e| err_handler(&e.to_string()))
         .unwrap();
 
     template_handler(&pkg_name, &pkg_type, force_overwrite);

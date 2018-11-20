@@ -47,7 +47,7 @@ pub fn missing_field_v(field_name: &str) -> Vec<String> {
 pub fn figure_out_provider(
     tmpl_type: Option<PkgType>,
     pkg_name: &str,
-) -> Result<PkgType, String> {
+) -> Result<PkgType, failure::Error> {
     if tmpl_type.is_none() {
         let crate_status = crates_io_api::SyncClient::new()
             .get_crate(&pkg_name)
@@ -56,7 +56,7 @@ pub fn figure_out_provider(
         let gem_status = rubygems_api::SyncClient::new().gem_info(&pkg_name).is_ok();
 
         if crate_status && gem_status {
-            Err("Found a package with the specified name both on crates.io and rubygems.org! Please explicitly choose one via the `-t` parameter!".to_string())
+            Err(format_err!("Found a package with the specified name both on crates.io and rubygems.org! Please explicitly choose one via the `-t` parameter!"))
         } else if crate_status {
             debug!("Determined the target package to be a crate");
             Ok(PkgType::Crate)
@@ -64,7 +64,7 @@ pub fn figure_out_provider(
             debug!("Determined the target package to be a ruby gem");
             Ok(PkgType::Gem)
         } else {
-            Err("Unable to determine what type of the target package! Make sure you've spelled the package name correctly!".to_string())
+            Err(format_err!("Unable to determine what type of the target package! Make sure you've spelled the package name correctly!"))
         }
     } else {
         Ok(tmpl_type.unwrap())
