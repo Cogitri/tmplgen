@@ -1,6 +1,7 @@
 use crates::*;
 use env_logger::Builder;
 use gems::*;
+use helpers::*;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
@@ -45,4 +46,9 @@ fn test_tmplwriter() {
     tmpl_file.read_to_string(&mut tmpl_string).unwrap();
 
     assert_eq!(tmpl_string, include_str!("template_test"));
+}
+
+#[test]
+fn test_provider_selector() {
+    assert_eq!(figure_out_provider(None,"tmplgen").unwrap(), PkgType::Crate);
 }
