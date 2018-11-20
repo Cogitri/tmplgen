@@ -36,6 +36,7 @@ fn test_tmplwriter() {
     let test_path = "/tmp/tmplgen-tests";
 
     env::set_var("XBPS_DISTDIR", test_path);
+    env::set_var("HOME", test_path);
 
     write_template(&pkg_info, true, &PkgType::Crate).unwrap();
 
