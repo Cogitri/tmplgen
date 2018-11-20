@@ -32,21 +32,21 @@ pub fn write_template(
     let git_author = Command::new("git")
         .args(&["config", "user.name"])
         .output()
-        .map_err(|e| err_handler("Could not determine git username! ".to_string() + &e.to_string()))
+        .map_err(|e| err_handler(&("Could not determine git username! ".to_string() + &e.to_string())))
         .unwrap();
     let git_mail = Command::new("git")
         .args(&["config", "user.email"])
         .output()
-        .map_err(|e| err_handler("Could not determine git user email! ".to_string() + &e.to_string()))
+        .map_err(|e| err_handler(&("Could not determine git user email! ".to_string() + &e.to_string())))
         .unwrap();
 
     let mut maintainer = format!(
         "{} <{}>",
         from_utf8(&git_author.stdout)
-            .map_err(|e| err_handler("Failed to decode git author!".to_string() + &e.to_string()))
+            .map_err(|e| err_handler(&("Failed to decode git author!".to_string() + &e.to_string())))
             .unwrap(),
         from_utf8(&git_mail.stdout)
-            .map_err(|e| err_handler("Failed to decode git email!".to_string() + &e.to_string()))
+            .map_err(|e| err_handler(&("Failed to decode git email!".to_string() + &e.to_string())))
             .unwrap(),
     );
     maintainer = maintainer.replace("\n", "");
@@ -130,7 +130,7 @@ pub fn write_template(
 
     info!("Writing template to path {}/template", &xdist_template_path);
 
-    create_dir_all(format!("{}", &xdist_template_path))?;
+    create_dir_all(&xdist_template_path)?;
     let mut file = File::create(format!("{}/template", &xdist_template_path))?;
 
     file.write_all(template_string.as_bytes())?;

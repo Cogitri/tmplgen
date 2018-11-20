@@ -46,7 +46,7 @@ pub fn missing_field_v(field_name: &str) -> Vec<String> {
 // rubygems.org
 pub fn figure_out_provider(
     tmpl_type: Option<PkgType>,
-    pkg_name: &String,
+    pkg_name: &str,
 ) -> Result<PkgType, String> {
     if tmpl_type.is_none() {
         let crate_status = crates_io_api::SyncClient::new()
@@ -73,7 +73,7 @@ pub fn figure_out_provider(
 
 // Handle getting the necessary info and writing a template for it. Invoked every time a template
 // should be written, useful for recursive deps.
-pub fn template_handler(pkg_name: String, pkg_type: &PkgType, force_overwrite: bool) {
+pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: bool) {
     info!(
         "Generating template for package {} of type {:?}",
         &pkg_name, pkg_type
@@ -82,10 +82,10 @@ pub fn template_handler(pkg_name: String, pkg_type: &PkgType, force_overwrite: b
     let pkg_info = if pkg_type == &PkgType::Crate {
         crate_info(&pkg_name).expect("Failed to get the crate's info")
     } else {
-        if is_dist_gem(&pkg_name) {
+        if is_dist_gem(pkg_name) {
             return;
         }
-        gem_info(&pkg_name).expect("Failed to get the gem's info")
+        gem_info(pkg_name).expect("Failed to get the gem's info")
     };
 
     write_template(&pkg_info, force_overwrite, &pkg_type).expect("Failed to write the template!");
@@ -114,7 +114,7 @@ pub fn xdist_files() -> String {
     format!(
         "{}/srcpkgs/",
         from_utf8(&xdistdir.stdout)
-            .map_err(|e| err_handler(e.to_string()))
+            .map_err(|e| err_handler(&e.to_string()))
             .unwrap()
             .replace("\n", "")
             .replace(
@@ -127,19 +127,19 @@ pub fn xdist_files() -> String {
 
 // Generic function to handle recursive deps. Only used for gems as of now.
 pub fn recursive_deps(
-    deps: &Vec<String>,
-    xdistdir: &String,
-    pkg_type: PkgType,
+    deps: &[String],
+    xdistdir: &str,
+    pkg_type: &PkgType,
     force_overwrite: bool,
 ) {
     if force_overwrite {
         for x in deps {
             info!("Specified `-f`, will overwrite existing templates if they exists...");
-            template_handler(x.to_string(), &pkg_type, force_overwrite);
+            template_handler(x, &pkg_type, force_overwrite);
         }
     } else {
         for x in deps {
-            let tmpl_path = if pkg_type == PkgType::Gem {
+            let tmpl_path = if pkg_type == &PkgType::Gem {
                 format!("{}ruby-{}/template", xdistdir, x)
             } else {
                 format!("{}{}/template", xdistdir, x)
@@ -149,7 +149,7 @@ pub fn recursive_deps(
                     "Dependency {} doesn't exist yet, writing a template for it...",
                     x
                 );
-                template_handler(x.to_string(), &pkg_type, force_overwrite);
+                template_handler(x, &pkg_type, force_overwrite);
             } else {
                 debug!("Dependency {} is already satisfied!", x);
             }
@@ -157,7 +157,7 @@ pub fn recursive_deps(
     }
 }
 
-pub fn check_string_len(string: &String, string_type: &str) -> String {
+pub fn check_string_len(string: &str, string_type: &str) -> String {
     if string.len() >= 80 {
         warn!(
             "{} is longer than 80 characters, please cut as you see fit!",
@@ -168,9 +168,9 @@ pub fn check_string_len(string: &String, string_type: &str) -> String {
     string.to_string()
 }
 
-pub fn is_dist_gem(pkg_name: &String) -> bool {
+pub fn is_dist_gem(pkg_name: &str) -> bool {
     for x in include_str!("dist_gems.in").split_whitespace() {
-        if pkg_name == &x {
+        if pkg_name == x {
             error!(
                 "Gem {} is part of ruby, won't write a template for it!",
                 pkg_name
@@ -224,7 +224,7 @@ pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool) {
     (crate_name, tmpl_type, force_overwrite, is_verbose, is_debug)
 }
 
-pub fn gen_dep_string(dep_vec: &Vec<String>) -> String {
+pub fn gen_dep_string(dep_vec: &[String]) -> String {
     let mut dep_string = String::new();
 
     for x in dep_vec {
@@ -243,7 +243,7 @@ pub fn gen_dep_string(dep_vec: &Vec<String>) -> String {
     dep_string
 }
 
-pub fn err_handler(err_string: String) {
+pub fn err_handler(err_string: &str) {
     error!("{:?}", err_string);
     exit(1);
 }

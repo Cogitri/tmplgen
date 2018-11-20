@@ -17,7 +17,7 @@ use helpers::*;
 use types::*;
 
 // Returns a PkgInfo object that contains all the info relevant for us
-pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
+pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     let client = rubygems_api::SyncClient::new();
 
     let query_result = client.gem_info(gem_name)?;
@@ -32,7 +32,7 @@ pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
     debug!("Gem run dependencies: {:?}", dep_vec_run);
 
     let pkg_info = PkgInfo {
-        pkg_name: format!("ruby-{}", gem_name.clone()),
+        pkg_name: format!("ruby-{}", gem_name.to_string()),
         version: query_result.version,
         description: query_result
             .info
@@ -57,12 +57,12 @@ pub fn gem_info(gem_name: &String) -> Result<PkgInfo, Error> {
 
 // If the gem has recursive deps, we should also generate templates for those if they
 // don't exist already
-pub fn gem_dep_graph(gem_name: &String, force_overwrite: bool) {
+pub fn gem_dep_graph(gem_name: &str, force_overwrite: bool) {
     let client = rubygems_api::SyncClient::new();
 
     let query_result = client
         .gem_info(gem_name)
-        .map_err(|e| err_handler(e.to_string()))
+        .map_err(|e| err_handler(&e.to_string()))
         .unwrap();
 
     let mut deps_vec = Vec::new();
@@ -73,7 +73,7 @@ pub fn gem_dep_graph(gem_name: &String, force_overwrite: bool) {
 
     let xdistdir = xdist_files();
 
-    recursive_deps(&deps_vec, &xdistdir, PkgType::Gem, force_overwrite);
+    recursive_deps(&deps_vec, &xdistdir, &PkgType::Gem, force_overwrite);
 }
 
 /* Can't be used right now we'll just replace it with >=
