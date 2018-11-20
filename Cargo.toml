@@ -14,7 +14,7 @@ clap = {version = "^2.32", features = ["yaml"]}
 rubygems_api = "^0.1.0"
 failure = "^0.1.3"
 log = "^0.4.6"
-env_logger = "^0.5.13"
+env_logger = {version= "^0.6.0", features = ["termcolor"]}
 
 [dev-dependencies]
-cargo-husky = {version = "^1.2.0", features = ["precommit-hook", "run-cargo-test", "run-cargo-clippy"]}
+cargo-husky = {version = "^1.2.0", features = ["precommit-hook", "run-cargo-test"]}
