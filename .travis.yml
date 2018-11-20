@@ -1,0 +1,9 @@
+language: rust
+rust:
+  - stable
+  - beta
+  - nightly
+cache: cargo
+before_install:
+  - mkdir vendor && cd vendor && git clone https://github.com/Cogitri/crates_io_api
+  - git clone https://github.com/chneukirchen/xtools $HOME/bin
