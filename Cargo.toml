@@ -2,11 +2,13 @@
 name = "tmplgen"
 version = "0.3.3"
 authors = ["Rasmus Thomsen <rasmus.thomsen@protonmail.com>"]
-description = "Generate Void Linux templates"
+description = "Void Linux template generator for language-specific package managers"
 homepage = "https://github.com/Cogitri/tmplgen"
 repository = "https://github.com/Cogitri/tmplgen"
 readme = "README.md"
 license = "GPL-3.0-or-later"
+keywords = ["binary", "cli", "linux", "void-linux"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 crates_io_api = { path="vendor/crates_io_api", version="0.3.0" }
@@ -18,3 +20,6 @@ env_logger = {version= "^0.6.0", features = ["termcolor"]}
 
 [dev-dependencies]
 cargo-husky = {version = "^1.2.0", features = ["precommit-hook", "run-cargo-test"]}
+
+[badges]
+travis-ci = { repository = "Cogitri/tmplgen" }
