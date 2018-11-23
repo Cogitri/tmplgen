@@ -6,6 +6,7 @@ noarch=@noarch@
 wrksrc="@wrksrc@"
 build_style=@build_style@
 hostmakedepends="@hostmakedepends@"
+makedepends="@makedepends@"
 depends="@depends@"
 short_desc="@description@"
 maintainer="@maintainer@"
