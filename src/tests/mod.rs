@@ -2,6 +2,7 @@ use crates::*;
 use env_logger::Builder;
 use gems::*;
 use helpers::*;
+use perldist::*;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
@@ -18,6 +19,12 @@ fn test_query_crate() {
 fn test_query_gem() {
     let pkg_info = gem_info("ffi").unwrap();
     assert_eq!(pkg_info.license[0], "BSD-3-Clause");
+}
+
+#[test]
+fn test_query_perldist() {
+    let pkg_info = perldist_info("Moose").unwrap();
+    assert_eq!(pkg_info.pkg_name, "perl-Moose")
 }
 
 #[test]
