@@ -17,6 +17,7 @@ use clap::App;
 use crates::*;
 use env_logger::Builder;
 use gems::*;
+use perldist::*;
 use std::path::Path;
 use std::process::{exit, Command};
 use std::str::from_utf8;
@@ -55,14 +56,19 @@ pub fn figure_out_provider(
 
         let gem_status = rubygems_api::SyncClient::new().gem_info(&pkg_name).is_ok();
 
-        if crate_status && gem_status {
-            Err(format_err!("Found a package with the specified name both on crates.io and rubygems.org! Please explicitly choose one via the `-t` parameter!"))
+        let perldist_status = metacpan_api::SyncClient::new().perl_info(&pkg_name).is_ok();
+
+        if (crate_status && gem_status) || (crate_status && perldist_status) || (gem_status && perldist_status) {
+            Err(format_err!("Found a package matching the specified name on multiple platforms! Please explicitly choose one via the `-t` parameter!"))
         } else if crate_status {
             debug!("Determined the target package to be a crate");
             Ok(PkgType::Crate)
         } else if gem_status {
             debug!("Determined the target package to be a ruby gem");
             Ok(PkgType::Gem)
+        } else if perldist_status {
+            debug!("Determined the target package to be a perldist");
+            Ok(PkgType::PerlDist)
         } else {
             Err(format_err!("Unable to determine what type of the target package! Make sure you've spelled the package name correctly!"))
         }
@@ -81,6 +87,8 @@ pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: boo
 
     let pkg_info = if pkg_type == &PkgType::Crate {
         crate_info(&pkg_name).expect("Failed to get the crate's info")
+    } else if pkg_type == &PkgType::PerlDist {
+        perldist_info(&pkg_name).expect("Failed to get the perldist's info")
     } else {
         if is_dist_gem(pkg_name) {
             return;

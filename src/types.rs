@@ -21,12 +21,15 @@ pub enum Error {
     Crate(crates_io_api::Error),
     #[fail(display = "{}", _0)]
     Gem(rubygems_api::Error),
+    #[fail(display = "{}", _0)]
+    PerlDist(metacpan_api::Error)
 }
 
 #[derive(Debug, PartialEq)]
 pub enum PkgType {
     Crate,
     Gem,
+    PerlDist,
 }
 
 impl From<std::io::Error> for Error {
@@ -44,6 +47,12 @@ impl From<crates_io_api::Error> for Error {
 impl From<rubygems_api::Error> for Error {
     fn from(e: rubygems_api::Error) -> Self {
         Error::Gem(e)
+    }
+}
+
+impl From<metacpan_api::Error> for Error {
+    fn from (e: metacpan_api::Error) -> Self {
+        Error::PerlDist(e)
     }
 }
 

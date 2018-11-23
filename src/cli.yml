@@ -14,7 +14,7 @@ args:
   - tmpltype:
       short: t
       long: tmpltype
-      value_name: crate/gem
+      value_name: crate/gem/perldist
       help: Explicitly sets what kind of template we want to generate
   - verbose:
       short: v

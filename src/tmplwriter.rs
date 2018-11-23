@@ -90,15 +90,31 @@ pub fn write_template(
         template_string = template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
     }
 
-    if tmpl_type == &PkgType::Gem {
+    if tmpl_type == &PkgType::PerlDist {
+        template_string = template_string
+            .replace("@build_style@", "perl-module")
+            .replace("@noarch@", "yes")
+            .replace("@wrksrc@", "${pkgname/perl-/}-${version}")
+            .replace("perl_5", "Artistic-1.0-Perl, GPL-1.0-or-later")
+            .replace("@distfiles@",
+                &format!(
+                    "${{CPAN_SITE}}/{module_name}/${{pkgname/perl-/}}-${{version}}.tar.gz",
+                    module_name = &pkg_info.pkg_name.replace("perl-", ""),
+                ),
+            );
+    } else if tmpl_type == &PkgType::Gem {
         template_string = template_string
             .replace("@build_style@", "gem")
-            .replace("\ndistfiles=\"@distfiles@\"", "");
+            .replace("\ndistfiles=\"@distfiles@\"", "")
+            .replace("\nwrksrc=\"@wrksrc@\"", "")
+            .replace("\nnoarch=@noarch@", "");
     } else {
         template_string = template_string
             .replace("@pkgname@", &pkg_info.pkg_name)
             .replace("\ndepends=\"@depends@\"", "")
             .replace("@build_style@", "cargo")
+            .replace("\nwrksrc=\"@wrksrc@\"", "")
+            .replace("\nnoarch=@noarch@", "")
             .replace(
                 "@distfiles@",
                 &format!(

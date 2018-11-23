@@ -25,6 +25,7 @@ extern crate env_logger;
 mod crates;
 mod gems;
 mod helpers;
+mod perldist;
 #[cfg(test)]
 mod tests;
 mod tmplwriter;
