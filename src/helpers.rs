@@ -217,6 +217,8 @@ pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool) {
         Some(PkgType::Crate)
     } else if matches.value_of("tmpltype").unwrap_or_default() == "gem" {
         Some(PkgType::Gem)
+    } else if matches.value_of("tmpltype").unwrap_or_default() == "perldist" {
+        Some(PkgType::PerlDist)
     } else {
         None
     };
