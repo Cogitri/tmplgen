@@ -1,5 +1,7 @@
 # tmplgen
 
+[![Build Status](https://travis-ci.org/Cogitri/tmplgen.svg?branch=master)](https://travis-ci.org/Cogitri/tmplgen)
+[![codecov](https://codecov.io/gh/Cogitri/tmplgen/branch/master/graph/badge.svg)](https://codecov.io/gh/Cogitri/tmplgen)
 A simple Void Linux template generator.
 
 ## Usage

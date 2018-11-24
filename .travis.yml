@@ -1,9 +1,36 @@
 language: rust
+sudo: required
+dist: trusty
+addons:
+    apt:
+        packages:
+            - libssl-dev
 rust:
   - stable
   - beta
   - nightly
 cache: cargo
+
+before_cache: |
+  if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
+    git clone https://github.com/xd009642/tarpaulin
+    pushd tarpaulin
+    cargo update
+    RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install
+    popd
+  fi
+
+script:
+  - cargo clean
+  - cargo build
+  - cargo test
+
 before_install:
   - mkdir vendor && cd vendor && git clone https://github.com/Cogitri/crates_io_api
   - git clone https://github.com/chneukirchen/xtools $HOME/bin
+
+after_success: |
+  if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
+    cargo tarpaulin --out Xml
+    bash <(curl -s https://codecov.io/bash)
+  fi
