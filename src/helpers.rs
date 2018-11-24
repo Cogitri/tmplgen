@@ -149,6 +149,8 @@ pub fn recursive_deps(
         for x in deps {
             let tmpl_path = if pkg_type == &PkgType::Gem {
                 format!("{}ruby-{}/template", xdistdir, x)
+            } else if pkg_type == &PkgType::PerlDist {
+                format!("{}perl-{}/template", xdistdir, x)
             } else {
                 format!("{}{}/template", xdistdir, x)
             };
