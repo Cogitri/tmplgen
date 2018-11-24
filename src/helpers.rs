@@ -86,14 +86,14 @@ pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: boo
     );
 
     let pkg_info = if pkg_type == &PkgType::Crate {
-        crate_info(&pkg_name).expect("Failed to get the crate's info")
+        crate_info(&pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
     } else if pkg_type == &PkgType::PerlDist {
-        perldist_info(&pkg_name).expect("Failed to get the perldist's info")
+        perldist_info(&pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
     } else {
         if is_dist_gem(pkg_name) {
             return;
         }
-        gem_info(pkg_name).expect("Failed to get the gem's info")
+        gem_info(pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
     };
 
     write_template(&pkg_info, force_overwrite, &pkg_type).expect("Failed to write the template!");
