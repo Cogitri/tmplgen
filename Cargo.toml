@@ -22,6 +22,9 @@ metacpan_api = "^0.1.0"
 [dev-dependencies]
 cargo-husky = {version = "^1.2.0", features = ["precommit-hook", "run-cargo-test"]}
 
+[profile.release]
+lto = true
+
 [badges]
 travis-ci = { repository = "Cogitri/tmplgen" }
 codecov = { repository = "https://codecov.io/gh/Cogitri/tmplgen" }
