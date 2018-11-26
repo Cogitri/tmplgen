@@ -35,7 +35,7 @@ fn test_tmplwriter() {
         .default_format_timestamp(false)
         .init();
 
-    let pkg_info = PkgInfo {
+    let pkg_info_crate = PkgInfo {
         pkg_name: "tmplgen".to_string(),
         version: "0.3.1".to_string(),
         description: "Void Linux template generator for language-specific package managers"
@@ -51,15 +51,79 @@ fn test_tmplwriter() {
     env::set_var("XBPS_DISTDIR", test_path);
     env::set_var("HOME", test_path);
 
-    write_template(&pkg_info, true, &PkgType::Crate).unwrap();
+    write_template(&pkg_info_crate, true, &PkgType::Crate).unwrap();
 
-    let mut tmpl_file = File::open(format!("{}/srcpkgs/tmplgen/template", test_path)).unwrap();
+    let mut tmpl_file_crate =
+        File::open(format!("{}/srcpkgs/tmplgen/template", test_path)).unwrap();
 
-    let mut tmpl_string = String::new();
+    let mut tmpl_string_crate = String::new();
 
-    tmpl_file.read_to_string(&mut tmpl_string).unwrap();
+    tmpl_file_crate
+        .read_to_string(&mut tmpl_string_crate)
+        .unwrap();
 
-    assert_eq!(tmpl_string, include_str!("template_test"));
+    assert_eq!(tmpl_string_crate, include_str!("template_test_crate.in"));
+
+    let pkg_info_perl = PkgInfo {
+        pkg_name: "perl-Moose".to_string(),
+        version: "2.2011".to_string(),
+        description: "A postmodern object system for Perl 5".to_string(),
+        homepage: "http://moose.perl.org/".to_string(),
+        license: vec!["perl_5".to_string()],
+        dependencies: Some(Dependencies {
+            host: Some(vec!["perl".to_string()]),
+            make: Some(vec![
+                "JSON::PP".to_string(),
+                "ExtUtils::MakeMaker".to_string(),
+                "perl".to_string(),
+                "Dist::CheckConflicts".to_string(),
+            ]),
+            run: Some(vec![
+                "Devel::PartialDump".to_string(),
+                "Data::OptList".to_string(),
+                "Class::Load::XS".to_string(),
+                "Params::Util".to_string(),
+                "Sub::Identify".to_string(),
+                "parent".to_string(),
+                "Package::DeprecationManager".to_string(),
+                "Scalar::Util".to_string(),
+                "Carp".to_string(),
+                "Eval::Closure".to_string(),
+                "Data::OptList".to_string(),
+                "Package::Stash::XS".to_string(),
+                "Sub::Name".to_string(),
+                "List::Util".to_string(),
+                "Module::Runtime".to_string(),
+                "Devel::OverloadInfo".to_string(),
+                "perl".to_string(),
+                "Sub::Exporter".to_string(),
+                "warnings".to_string(),
+                "Devel::StackTrace".to_string(),
+                "Devel::GlobalDestruction".to_string(),
+                "Package::Stash".to_string(),
+                "Try::Tiny".to_string(),
+                "MRO::Compat".to_string(),
+                "Module::Runtime::Conflicts".to_string(),
+                "Dist::CheckConflicts".to_string(),
+                "strict".to_string(),
+                "Class::Load".to_string(),
+            ]),
+        }),
+        sha: None,
+    };
+
+    write_template(&pkg_info_perl, true, &PkgType::PerlDist).unwrap();
+
+    let mut tmpl_file_perl =
+        File::open(format!("{}/srcpkgs/perl-Moose/template", test_path)).unwrap();
+
+    let mut tmpl_string_perl = String::new();
+
+    tmpl_file_perl
+        .read_to_string(&mut tmpl_string_perl)
+        .unwrap();
+
+    assert_eq!(tmpl_string_perl, include_str!("template_test_perl.in"));
 }
 
 #[test]
@@ -159,10 +223,22 @@ fn test_perl_dep_graph() {
 #[test]
 fn test_determine_gem_run_deps() {
     let rubygem_deps = vec![
-        GemRunDeps { name: "dep1".to_string(), requirements: ">= 0".to_string()},
-        GemRunDeps { name: "dep2".to_string(), requirements: ">= 1".to_string()},
-        GemRunDeps { name: "dep3".to_string(), requirements: "> 2".to_string()},
-        GemRunDeps { name: "dep4".to_string(), requirements: "~> 1".to_string()}
+        GemRunDeps {
+            name: "dep1".to_string(),
+            requirements: ">= 0".to_string(),
+        },
+        GemRunDeps {
+            name: "dep2".to_string(),
+            requirements: ">= 1".to_string(),
+        },
+        GemRunDeps {
+            name: "dep3".to_string(),
+            requirements: "> 2".to_string(),
+        },
+        GemRunDeps {
+            name: "dep4".to_string(),
+            requirements: "~> 1".to_string(),
+        },
     ];
 
     let mut dep_string = String::new();
@@ -172,5 +248,8 @@ fn test_determine_gem_run_deps() {
         dep_string.push_str(" ");
     }
 
-    assert_eq!(&dep_string, "ruby-dep1 ruby-dep2>=1 ruby-dep3>2 ruby-dep4>=1 ")
+    assert_eq!(
+        &dep_string,
+        "ruby-dep1 ruby-dep2>=1 ruby-dep3>2 ruby-dep4>=1 "
+    )
 }
