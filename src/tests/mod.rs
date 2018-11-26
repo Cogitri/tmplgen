@@ -96,3 +96,8 @@ fn test_gen_dep_string_split() {
         " ruby-rspec-mocks>=3.8.0"
     );
 }
+
+#[test]
+fn test_crate_check_native_deps() {
+    assert_eq!(&check_native_deps("openssl").unwrap().unwrap().make.unwrap()[0], "libressl-devel")
+}
