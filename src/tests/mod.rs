@@ -68,6 +68,28 @@ fn test_provider_selector() {
         figure_out_provider(None, "tmplgen").unwrap(),
         PkgType::Crate
     );
+
+    assert_eq!(
+        figure_out_provider(None, "ruby-progressbar").unwrap(),
+        PkgType::Gem
+    );
+
+    assert_eq!(
+        figure_out_provider(None, "Moose").unwrap(),
+        PkgType::PerlDist
+    );
+
+    assert_eq!(
+        figure_out_provider(Some(PkgType::Crate), "").unwrap(),
+        PkgType::Crate
+    )
+}
+
+#[test]
+#[should_panic]
+fn test_figure_out_provider_panic() {
+    figure_out_provider(None, "ffi").unwrap();
+    figure_out_provider(None, "dioaüsdioüaw").unwrap();
 }
 
 #[test]
@@ -96,6 +118,8 @@ fn test_gen_dep_string_split() {
         dep_string.lines().last().unwrap(),
         " ruby-rspec-mocks>=3.8.0"
     );
+
+
 }
 
 #[test]
