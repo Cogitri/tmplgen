@@ -53,18 +53,18 @@ pub fn figure_out_provider(
             || (crate_status && perldist_status)
             || (gem_status && perldist_status)
         {
-            Err(format_err!("Found a package matching the specified name on multiple platforms! Please explicitly choose one via the `-t` parameter!"))
+            Err(format_err!("Found a package matching the specified package {} on multiple platforms! Please explicitly choose one via the `-t` parameter!", &pkg_name))
         } else if crate_status {
-            debug!("Determined the target package to be a crate");
+            debug!("Determined the target package {} to be a crate", &pkg_name);
             Ok(PkgType::Crate)
         } else if gem_status {
-            debug!("Determined the target package to be a ruby gem");
+            debug!("Determined the target package {} to be a ruby gem", &pkg_name);
             Ok(PkgType::Gem)
         } else if perldist_status {
             debug!("Determined the target package to be a perldist");
             Ok(PkgType::PerlDist)
         } else {
-            Err(format_err!("Unable to determine what type of the target package! Make sure you've spelled the package name correctly!"))
+            Err(format_err!("Unable to determine what type of the target package {} is! Make sure you've spelled the package name correctly!", &pkg_name))
         }
     } else {
         Ok(tmpl_type.unwrap())
