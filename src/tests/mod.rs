@@ -60,3 +60,8 @@ fn test_tmplwriter() {
 fn test_provider_selector() {
     assert_eq!(figure_out_provider(None,"tmplgen").unwrap(), PkgType::Crate);
 }
+
+#[test]
+fn test_built_in() {
+    assert_eq!(is_built_in("File::Basename", &PkgType::PerlDist), true)
+}

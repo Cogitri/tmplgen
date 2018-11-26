@@ -72,3 +72,14 @@ pub struct PkgInfo {
     pub license: Vec<String>,
     pub dependencies: Option<Dependencies>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct BuiltIns {
+    pub perl: Vec<BuiltInDep>,
+    pub ruby: Vec<BuiltInDep>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BuiltInDep {
+    pub name: String,
+}

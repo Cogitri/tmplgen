@@ -85,21 +85,27 @@ pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: boo
         &pkg_name, pkg_type
     );
 
-    let pkg_info = if pkg_type == &PkgType::Crate {
-        crate_info(&pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
-    } else if pkg_type == &PkgType::PerlDist {
-        perldist_info(&pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
-    } else {
-        if is_dist_gem(pkg_name) {
-            return;
-        }
-        gem_info(pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
-    };
+        let pkg_info = if pkg_type == &PkgType::Crate {
+            crate_info(&pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
+        } else if pkg_type == &PkgType::PerlDist {
+            if is_built_in(pkg_name, pkg_type) {
+                return;
+            }
+
+            perldist_info(&pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
+        } else {
+            if is_built_in(pkg_name, pkg_type) {
+                return;
+            }
+            gem_info(pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
+        };
 
     write_template(&pkg_info, force_overwrite, &pkg_type).expect("Failed to write the template!");
 
     if pkg_type == &PkgType::Gem {
         gem_dep_graph(&pkg_name, force_overwrite);
+    } else if pkg_type == &PkgType::PerlDist {
+        perldist_dep_graph(&pkg_name, force_overwrite);
     }
 }
 
@@ -133,7 +139,7 @@ pub fn xdist_files() -> String {
     )
 }
 
-// Generic function to handle recursive deps. Only used for gems as of now.
+// Generic function to handle recursive deps.
 pub fn recursive_deps(
     deps: &[String],
     xdistdir: &str,
@@ -142,7 +148,7 @@ pub fn recursive_deps(
 ) {
     if force_overwrite {
         for x in deps {
-            info!("Specified `-f`, will overwrite existing templates if they exists...");
+            info!("Specified `-f`, will overwrite existing templates if they exist...");
             template_handler(x, &pkg_type, force_overwrite);
         }
     } else {
@@ -150,10 +156,13 @@ pub fn recursive_deps(
             let tmpl_path = if pkg_type == &PkgType::Gem {
                 format!("{}ruby-{}/template", xdistdir, x)
             } else if pkg_type == &PkgType::PerlDist {
-                format!("{}perl-{}/template", xdistdir, x)
+                format!("{}perl-{}/template", xdistdir, x.replace("::", "-"))
             } else {
                 format!("{}{}/template", xdistdir, x)
             };
+
+            debug!("Checking for template in {}...", &tmpl_path);
+
             if !Path::new(&tmpl_path).exists() {
                 info!(
                     "Dependency {} doesn't exist yet, writing a template for it...",
@@ -178,14 +187,35 @@ pub fn check_string_len(string: &str, string_type: &str) -> String {
     string.to_string()
 }
 
-pub fn is_dist_gem(pkg_name: &str) -> bool {
-    for x in include_str!("dist_gems.in").split_whitespace() {
-        if pkg_name == x {
-            error!(
-                "Gem {} is part of ruby, won't write a template for it!",
-                pkg_name
-            );
-            return true;
+pub fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
+    let data: BuiltIns = serde_json::from_str(include_str!("built_in.in")).unwrap();
+
+    let built_ins = BuiltIns {
+        perl: data.perl,
+        ruby: data.ruby,
+    };
+
+    if pkg_type == &PkgType::Gem {
+        for x in built_ins.ruby {
+            if pkg_name == x.name {
+                warn!(
+                    "Gem {} is part of ruby, won't write a template for it!",
+                    pkg_name
+                );
+                return true;
+            }
+        }
+    } else if pkg_type == &PkgType::PerlDist {
+        let pkg_name = pkg_name.replace("::", "-");
+
+        for x in built_ins.perl {
+            if pkg_name == x.name {
+                warn!(
+                    "Perl distribution {} is part of perl, won't write a template for it!",
+                    pkg_name
+                );
+                return true;
+            }
         }
     }
 
@@ -200,7 +230,7 @@ pub fn set_up_logging(is_debug: bool, is_verbose: bool) {
     } else if is_verbose {
         builder.filter(Some("tmplgen"), log::LevelFilter::Info);
     } else {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Warn);
+        builder.filter(Some("tmplgen"), log::LevelFilter::Debug);
     }
 
     builder.default_format_timestamp(false).init();
@@ -236,7 +266,7 @@ pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool) {
     (crate_name, tmpl_type, force_overwrite, is_verbose, is_debug)
 }
 
-pub fn gen_dep_string(dep_vec: &[String]) -> String {
+pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
     let mut dep_string = String::new();
 
     for x in dep_vec {
@@ -248,13 +278,21 @@ pub fn gen_dep_string(dep_vec: &[String]) -> String {
             dep_string.push_str("\n")
         }
 
-        dep_string.push_str(x);
+        if pkg_type == &PkgType::PerlDist {
+            if x == "perl" { }
+            else {
+                dep_string.push_str(&("perl-".to_string() + &x.replace("::", "-")));
+            }
+        } else {
+            dep_string.push_str(x);
+        }
         dep_string.push_str(" ");
     }
 
     dep_string
 }
 
+// TODO: Doing it this way means that all error using this function will show up as "ERROR tmplgen::helpers" in env_logger
 pub fn err_handler(err_string: &str) {
     error!("{:?}", err_string);
     exit(1);

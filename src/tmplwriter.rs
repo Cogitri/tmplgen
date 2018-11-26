@@ -65,7 +65,7 @@ pub fn write_template(
         let dependencies = pkg_info.dependencies.as_ref().unwrap();
 
         if dependencies.host.is_some() {
-            let host_depends = gen_dep_string(dependencies.host.as_ref().unwrap());
+            let host_depends = gen_dep_string(dependencies.host.as_ref().unwrap(), tmpl_type);
             template_string =
                 template_string.replace("@hostmakedepends@", &host_depends.trim_end());
         } else {
@@ -73,13 +73,13 @@ pub fn write_template(
                 template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
         }
         if dependencies.make.is_some() {
-            let make_depends = gen_dep_string(dependencies.make.as_ref().unwrap());
+            let make_depends = gen_dep_string(dependencies.make.as_ref().unwrap(), tmpl_type);
             template_string = template_string.replace("@makedepends@", &make_depends.trim_end());
         } else {
             template_string = template_string.replace("\nmakedepends=\"@makedepends@\"", "");
         }
         if dependencies.run.is_some() {
-            let run_depends = gen_dep_string(dependencies.run.as_ref().unwrap());
+            let run_depends = gen_dep_string(dependencies.run.as_ref().unwrap(), tmpl_type);
             template_string = template_string.replace("@depends@", &run_depends.trim_end());
         } else {
             template_string = template_string.replace("\ndepends=\"@depends@\"", "");
