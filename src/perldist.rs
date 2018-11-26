@@ -25,6 +25,10 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
 
     debug!("metacpan.org query result: {:?}", query_result);
 
+    let download_url = query_result
+        .download_url
+        .replace(&query_result.version, "${version}");
+
     let pkg_info = PkgInfo {
         pkg_name: "perl-".to_string() + &query_result.name,
         version: query_result.version,
@@ -40,6 +44,7 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
             .unwrap_or_else(|| vec![missing_field_s("license")]),
         dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())),
         sha: None,
+        download_url: Some(download_url),
     };
 
     debug!("All pkg related info: {:?}", pkg_info);

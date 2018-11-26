@@ -44,6 +44,9 @@ fn test_tmplwriter() {
         license: vec!["GPL-3.0-or-later".to_string()],
         dependencies: None,
         sha: None,
+        download_url: Some(
+            "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
+        ),
     };
 
     let test_path = "/tmp/tmplgen-tests";
@@ -110,6 +113,9 @@ fn test_tmplwriter() {
             ]),
         }),
         sha: None,
+        download_url: Some(
+            "https://cpan.metacpan.org/authors/id/E/ET/ETHER/Moose-${version}.tar.gz".to_string(),
+        ),
     };
 
     write_template(&pkg_info_perl, true, &PkgType::PerlDist).unwrap();
@@ -261,8 +267,5 @@ fn test_xdist_files() {
     env::set_var("XBPS_DISTDIR", "~/test");
     env::set_var("HOME", test_path);
 
-    assert_eq!(
-        xdist_files().unwrap(),
-        "/tmp/tmplgen-tests/test/srcpkgs/"
-    )
+    assert_eq!(xdist_files().unwrap(), "/tmp/tmplgen-tests/test/srcpkgs/")
 }

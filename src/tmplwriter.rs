@@ -101,23 +101,22 @@ pub fn write_template(
         template_string = template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
     }
 
+    if pkg_info.download_url.is_some() {
+        template_string =
+            template_string.replace("@distfiles@", &pkg_info.download_url.as_ref().unwrap())
+    } else {
+        template_string = template_string.replace("\ndistfiles=\"@distfiles@\"", "")
+    }
+
     if tmpl_type == &PkgType::PerlDist {
         template_string = template_string
             .replace("@build_style@", "perl-module")
             .replace("@noarch@", "yes")
             .replace("@wrksrc@", "${pkgname/perl-/}-${version}")
-            .replace("perl_5", "Artistic-1.0-Perl, GPL-1.0-or-later")
-            .replace(
-                "@distfiles@",
-                &format!(
-                    "${{CPAN_SITE}}/{module_name}/${{pkgname/perl-/}}-${{version}}.tar.gz",
-                    module_name = &pkg_info.pkg_name.replace("perl-", ""),
-                ),
-            );
+            .replace("perl_5", "Artistic-1.0-Perl, GPL-1.0-or-later");
     } else if tmpl_type == &PkgType::Gem {
         template_string = template_string
             .replace("@build_style@", "gem")
-            .replace("\ndistfiles=\"@distfiles@\"", "")
             .replace("\nwrksrc=\"@wrksrc@\"", "")
             .replace("\nnoarch=@noarch@", "");
     } else {
@@ -126,14 +125,7 @@ pub fn write_template(
             .replace("\ndepends=\"@depends@\"", "")
             .replace("@build_style@", "cargo")
             .replace("\nwrksrc=\"@wrksrc@\"", "")
-            .replace("\nnoarch=@noarch@", "")
-            .replace(
-                "@distfiles@",
-                &format!(
-                    "https://static.crates.io/crates/{name}/{name}-${{version}}.crate",
-                    name = &pkg_info.pkg_name
-                ),
-            );
+            .replace("\nnoarch=@noarch@", "");
     }
 
     let license = &pkg_info.license.join(", ");

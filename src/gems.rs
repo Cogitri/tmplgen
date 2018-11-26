@@ -55,6 +55,7 @@ pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
             run: gem_run_deps,
         }),
         sha: Some(query_result.sha),
+        download_url: None,
     };
 
     debug!("All pkg related info: {:?}", pkg_info);

@@ -25,6 +25,10 @@ pub fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
             .unwrap_or_else(|| missing_field_s("license"))],
         dependencies: crate_deps,
         sha: None,
+        download_url: Some(format!(
+            "https://static.crates.io/crates/{name}/{name}-${{version}}.crate",
+            name = &crate_name,
+        )),
     };
 
     debug!("All pkg related info: {:?}", pkg_info);
