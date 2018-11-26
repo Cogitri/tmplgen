@@ -62,7 +62,7 @@ pub fn gem_dep_graph(gem_name: &str, force_overwrite: bool) {
 
     let query_result = client
         .gem_info(gem_name)
-        .map_err(|e| err_handler(&e.to_string()))
+        .map_err(|e| err_handler(&format!("Failed to query gem {}: {}", &gem_name,  e.to_string())))
         .unwrap();
 
     let mut deps_vec = Vec::new();
