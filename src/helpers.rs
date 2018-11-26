@@ -273,10 +273,17 @@ pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
     for x in dep_vec {
         let after_string = "".to_string() + &dep_string + x;
 
-        // If the string with the new dep added is longer than or equal to 80
-        // chars we want
-        if after_string.lines().last().unwrap().len() >= 80 {
-            dep_string.push_str("\n")
+        let last_line_ln = after_string.lines().last().unwrap().len();
+
+        // If the string with the new dep added _plus_ the {make,host,}depends=""
+        // is longer than 80 chars, we want to split the line and insert a leading
+        // space to the new line.
+        // Otherwise, we want to add a space to the string (to seperate two deps),
+        // but we don't want to introduce leading whitespace
+        if &last_line_ln >= &65 {
+            dep_string.push_str("\n ");
+        } else if &last_line_ln > &x.len() {
+            dep_string.push_str(" ");
         }
 
         if pkg_type == &PkgType::PerlDist {
@@ -287,7 +294,6 @@ pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
         } else {
             dep_string.push_str(x);
         }
-        dep_string.push_str(" ");
     }
 
     dep_string
