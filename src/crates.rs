@@ -26,6 +26,7 @@ pub fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
                 .unwrap_or_else(|| missing_field_s("license")),
         ],
         dependencies: crate_deps,
+        sha: None,
     };
 
     debug!("All pkg related info: {:?}", pkg_info);

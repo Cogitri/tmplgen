@@ -13,4 +13,4 @@ maintainer="@maintainer@"
 license="@license@"
 homepage="@homepage@"
 distfiles="@distfiles@"
-checksum=aaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb
+checksum=@checksum@

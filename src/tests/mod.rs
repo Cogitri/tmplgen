@@ -38,6 +38,7 @@ fn test_tmplwriter() {
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: vec!["GPL-3.0-or-later".to_string()],
         dependencies: None,
+        sha: None,
     };
 
     let test_path = "/tmp/tmplgen-tests";

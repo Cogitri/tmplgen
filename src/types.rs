@@ -71,6 +71,7 @@ pub struct PkgInfo {
     pub homepage: String,
     pub license: Vec<String>,
     pub dependencies: Option<Dependencies>,
+    pub sha: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

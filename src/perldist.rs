@@ -26,6 +26,7 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
         license: query_result.license
             .unwrap_or_else(|| missing_field_v("license")),
         dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())),
+        sha: None,
     };
 
     debug!("All pkg related info: {:?}", pkg_info);
