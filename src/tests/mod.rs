@@ -31,7 +31,7 @@ fn test_query_perldist() {
 #[test]
 fn test_tmplwriter() {
     Builder::new()
-        .filter(Some("tmplgen"), log::LevelFilter::Warn)
+        .filter(Some("tmplgen"), log::LevelFilter::Error)
         .default_format_timestamp(false)
         .init();
 
