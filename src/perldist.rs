@@ -9,7 +9,18 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
 
     let query_result = match query_result {
         Ok(query_result) => query_result,
-        Err(_error) => client.perl_info(&client.get_dist(&perldist_name).map_err(|e| err_handler(&format!("Failed to info for the PerlDist {}: {} ", &perldist_name, &e.to_string()))).unwrap())?,
+        Err(_error) => client.perl_info(
+            &client
+                .get_dist(&perldist_name)
+                .map_err(|e| {
+                    err_handler(&format!(
+                        "Failed to info for the PerlDist {}: {} ",
+                        &perldist_name,
+                        &e.to_string()
+                    ))
+                })
+                .unwrap(),
+        )?,
     };
 
     debug!("metacpan.org query result: {:?}", query_result);
@@ -20,10 +31,12 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
         description: query_result
             .description
             .unwrap_or_else(|| missing_field_s("description")),
-        homepage: query_result.resources
+        homepage: query_result
+            .resources
             .homepage
             .unwrap_or_else(|| format!("https://metacpan.org/release/{}", perldist_name)),
-        license: query_result.license
+        license: query_result
+            .license
             .unwrap_or_else(|| missing_field_v("license")),
         dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())),
         sha: None,
@@ -46,18 +59,18 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Dependencies {
         }
     }
 
-    if ! make_vec.contains(&"perl".to_string()) {
+    if !make_vec.contains(&"perl".to_string()) {
         make_vec.push("perl".to_string());
     }
 
-    if ! run_vec.contains(&"perl".to_string()) {
+    if !run_vec.contains(&"perl".to_string()) {
         run_vec.push("perl".to_string());
     }
 
     Dependencies {
         host: Some(vec!["perl".to_string()]),
         make: Some(make_vec),
-        run: Some(run_vec)
+        run: Some(run_vec),
     }
 }
 
@@ -68,7 +81,20 @@ pub fn perldist_dep_graph(perldist_name: &str) {
 
     let query_result = match query_result {
         Ok(query_result) => query_result,
-        Err(_error) => client.perl_info(&client.get_dist(&perldist_name).map_err(|e| err_handler(&format!("Failed to info for the PerlDist {}: {} ", &perldist_name, &e.to_string()))).unwrap()).unwrap(),
+        Err(_error) => client
+            .perl_info(
+                &client
+                    .get_dist(&perldist_name)
+                    .map_err(|e| {
+                        err_handler(&format!(
+                            "Failed to info for the PerlDist {}: {} ",
+                            &perldist_name,
+                            &e.to_string()
+                        ))
+                    })
+                    .unwrap(),
+            )
+            .unwrap(),
     };
 
     let mut deps_vec = Vec::new();

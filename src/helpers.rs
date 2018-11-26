@@ -58,7 +58,10 @@ pub fn figure_out_provider(
 
         let perldist_status = metacpan_api::SyncClient::new().perl_info(&pkg_name).is_ok();
 
-        if (crate_status && gem_status) || (crate_status && perldist_status) || (gem_status && perldist_status) {
+        if (crate_status && gem_status)
+            || (crate_status && perldist_status)
+            || (gem_status && perldist_status)
+        {
             Err(format_err!("Found a package matching the specified name on multiple platforms! Please explicitly choose one via the `-t` parameter!"))
         } else if crate_status {
             debug!("Determined the target package to be a crate");
@@ -85,20 +88,47 @@ pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: boo
         &pkg_name, pkg_type
     );
 
-        let pkg_info = if pkg_type == &PkgType::Crate {
-            crate_info(&pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
-        } else if pkg_type == &PkgType::PerlDist {
-            if is_built_in(pkg_name, pkg_type) {
-                return;
-            }
+    let pkg_info = if pkg_type == &PkgType::Crate {
+        crate_info(&pkg_name)
+            .map_err(|e| {
+                err_handler(&format!(
+                    "Failed to info for the {:?} {}: {} ",
+                    &pkg_type,
+                    &pkg_name,
+                    &e.to_string()
+                ))
+            })
+            .unwrap()
+    } else if pkg_type == &PkgType::PerlDist {
+        if is_built_in(pkg_name, pkg_type) {
+            return;
+        }
 
-            perldist_info(&pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
-        } else {
-            if is_built_in(pkg_name, pkg_type) {
-                return;
-            }
-            gem_info(pkg_name).map_err(|e| err_handler(&format!("Failed to info for the {:?} {}: {} ", &pkg_type, &pkg_name, &e.to_string()))).unwrap()
-        };
+        perldist_info(&pkg_name)
+            .map_err(|e| {
+                err_handler(&format!(
+                    "Failed to info for the {:?} {}: {} ",
+                    &pkg_type,
+                    &pkg_name,
+                    &e.to_string()
+                ))
+            })
+            .unwrap()
+    } else {
+        if is_built_in(pkg_name, pkg_type) {
+            return;
+        }
+        gem_info(pkg_name)
+            .map_err(|e| {
+                err_handler(&format!(
+                    "Failed to info for the {:?} {}: {} ",
+                    &pkg_type,
+                    &pkg_name,
+                    &e.to_string()
+                ))
+            })
+            .unwrap()
+    };
 
     write_template(&pkg_info, force_overwrite, &pkg_type).expect("Failed to write the template!");
 
@@ -140,52 +170,51 @@ pub fn xdist_files() -> String {
 }
 
 // Generic function to handle recursive deps.
-pub fn recursive_deps(
-    deps: &[String],
-    xdistdir: &str,
-    pkg_type: &PkgType,
-) {
-        for x in deps {
-            let tmpl_path = if pkg_type == &PkgType::Gem {
-                format!("{}ruby-{}/template", xdistdir, x)
-            } else if pkg_type == &PkgType::PerlDist {
-                // We don't write templates for modules, but only
-                // for distributions. As such we have to convert
-                // the module's name to the distribution's name,
-                // if we're handling a module
-                let perl_client = metacpan_api::SyncClient::new();
+pub fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) {
+    for x in deps {
+        let tmpl_path = if pkg_type == &PkgType::Gem {
+            format!("{}ruby-{}/template", xdistdir, x)
+        } else if pkg_type == &PkgType::PerlDist {
+            // We don't write templates for modules, but only
+            // for distributions. As such we have to convert
+            // the module's name to the distribution's name,
+            // if we're handling a module
+            let perl_client = metacpan_api::SyncClient::new();
 
-                let dist = perl_client.get_dist(&x);
+            let dist = perl_client.get_dist(&x);
 
-                if dist.is_ok() {
-                    format!("{}perl-{}/template", xdistdir, dist.unwrap().replace("::", "-"))
-                } else {
-                    format!("{}perl-{}/template", xdistdir, x.replace("::", "-"))
-                }
+            if dist.is_ok() {
+                format!(
+                    "{}perl-{}/template",
+                    xdistdir,
+                    dist.unwrap().replace("::", "-")
+                )
             } else {
-                format!("{}{}/template", xdistdir, x)
-            };
-
-            debug!("Checking for template in {}...", &tmpl_path);
-
-            if !Path::new(&tmpl_path).exists() {
-                info!(
-                    "Dependency {} doesn't exist yet, writing a template for it...",
-                    x
-                );
-                template_handler(x, &pkg_type, false);
-            } else {
-                debug!("Dependency {} is already satisfied!", x);
+                format!("{}perl-{}/template", xdistdir, x.replace("::", "-"))
             }
+        } else {
+            format!("{}{}/template", xdistdir, x)
+        };
+
+        debug!("Checking for template in {}...", &tmpl_path);
+
+        if !Path::new(&tmpl_path).exists() {
+            info!(
+                "Dependency {} doesn't exist yet, writing a template for it...",
+                x
+            );
+            template_handler(x, &pkg_type, false);
+        } else {
+            debug!("Dependency {} is already satisfied!", x);
         }
+    }
 }
 
 pub fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> String {
     if string.len() >= 80 {
         warn!(
             "{} of package {} is longer than 80 characters, please cut as you see fit!",
-            pkg_name,
-            string_type
+            pkg_name, string_type
         );
     }
 
@@ -291,8 +320,8 @@ pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
         }
 
         if pkg_type == &PkgType::PerlDist {
-            if x == "perl" { }
-            else {
+            if x == "perl" {
+            } else {
                 dep_string.push_str(&("perl-".to_string() + &x.replace("::", "-")));
             }
         } else {

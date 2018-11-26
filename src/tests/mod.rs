@@ -29,12 +29,16 @@ fn test_query_perldist() {
 
 #[test]
 fn test_tmplwriter() {
-    Builder::new().filter(Some("tmplgen"), log::LevelFilter::Warn).default_format_timestamp(false).init();
+    Builder::new()
+        .filter(Some("tmplgen"), log::LevelFilter::Warn)
+        .default_format_timestamp(false)
+        .init();
 
     let pkg_info = PkgInfo {
         pkg_name: "tmplgen".to_string(),
         version: "0.3.1".to_string(),
-        description: "Void Linux template generator for language-specific package managers".to_string(),
+        description: "Void Linux template generator for language-specific package managers"
+            .to_string(),
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: vec!["GPL-3.0-or-later".to_string()],
         dependencies: None,
@@ -59,7 +63,10 @@ fn test_tmplwriter() {
 
 #[test]
 fn test_provider_selector() {
-    assert_eq!(figure_out_provider(None,"tmplgen").unwrap(), PkgType::Crate);
+    assert_eq!(
+        figure_out_provider(None, "tmplgen").unwrap(),
+        PkgType::Crate
+    );
 }
 
 #[test]
@@ -76,9 +83,16 @@ fn test_empty_gem_dep() {
 
 #[test]
 fn test_gen_dep_string_split() {
-    let dep_vec = ["ruby-rspec-core>=3.8.0".to_string(), "ruby-rspec-expectations>=3.8.0".to_string(), "ruby-rspec-mocks>=3.8.0".to_string()];
+    let dep_vec = [
+        "ruby-rspec-core>=3.8.0".to_string(),
+        "ruby-rspec-expectations>=3.8.0".to_string(),
+        "ruby-rspec-mocks>=3.8.0".to_string(),
+    ];
 
     let dep_string = gen_dep_string(&dep_vec, &PkgType::Gem);
 
-    assert_eq!(dep_string.lines().last().unwrap(), " ruby-rspec-mocks>=3.8.0");
+    assert_eq!(
+        dep_string.lines().last().unwrap(),
+        " ruby-rspec-mocks>=3.8.0"
+    );
 }

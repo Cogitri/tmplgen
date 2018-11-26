@@ -69,7 +69,13 @@ pub fn gem_dep_graph(gem_name: &str) {
 
     let query_result = client
         .gem_info(gem_name)
-        .map_err(|e| err_handler(&format!("Failed to query gem {}: {}", &gem_name,  e.to_string())))
+        .map_err(|e| {
+            err_handler(&format!(
+                "Failed to query gem {}: {}",
+                &gem_name,
+                e.to_string()
+            ))
+        })
         .unwrap();
 
     let mut deps_vec = Vec::new();
@@ -143,11 +149,13 @@ fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> Result<Stri
 
     let ver_req = match cmpr.as_ref() {
         ">" | "<" | "<=" => "ruby-".to_string() + &rubygem_dep.name + &cmpr + &ver,
-        ">=" => if ver == "0" {
-            "ruby-".to_string() + &rubygem_dep.name
-        } else {
-            "ruby-".to_string() + &rubygem_dep.name + &cmpr + &ver
-        },
+        ">=" => {
+            if ver == "0" {
+                "ruby-".to_string() + &rubygem_dep.name
+            } else {
+                "ruby-".to_string() + &rubygem_dep.name + &cmpr + &ver
+            }
+        }
         "~>" => "ruby-".to_string() + &rubygem_dep.name + ">=" + &ver,
         _ => "ruby-".to_string() + &rubygem_dep.name,
     };

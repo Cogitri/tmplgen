@@ -20,11 +20,9 @@ pub fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
         homepage: query_result
             .homepage
             .unwrap_or_else(|| missing_field_s("homepage")),
-        license: vec![
-            query_result
-                .license
-                .unwrap_or_else(|| missing_field_s("license")),
-        ],
+        license: vec![query_result
+            .license
+            .unwrap_or_else(|| missing_field_s("license"))],
         dependencies: crate_deps,
         sha: None,
     };
