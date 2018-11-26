@@ -55,7 +55,7 @@ pub fn write_template(
         .replace("@version@", &pkg_info.version)
         .replace(
             "@description@",
-            &check_string_len(&pkg_info.description, "description"),
+            &check_string_len(&pkg_info.pkg_name ,&pkg_info.description, "description"),
         ).replace("@license@", &pkg_info.license.join(", "))
         .replace("@homepage@", &pkg_info.homepage)
         .replace("@maintainer@", &maintainer)

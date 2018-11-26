@@ -176,10 +176,11 @@ pub fn recursive_deps(
     }
 }
 
-pub fn check_string_len(string: &str, string_type: &str) -> String {
+pub fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> String {
     if string.len() >= 80 {
         warn!(
-            "{} is longer than 80 characters, please cut as you see fit!",
+            "{} of package {} is longer than 80 characters, please cut as you see fit!",
+            pkg_name,
             string_type
         );
     }
