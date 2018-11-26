@@ -63,10 +63,12 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Dependencies {
 pub fn perldist_dep_graph(perldist_name: &str, force_overwrite: bool) {
     let client = metacpan_api::SyncClient::new();
 
-    let query_result = client
-        .perl_info(perldist_name)
-        .map_err(|e| err_handler(&e.to_string()))
-        .unwrap();
+    let query_result = client.perl_info(&perldist_name);
+
+    let query_result = match query_result {
+        Ok(query_result) => query_result,
+        Err(_error) => client.perl_info(&client.get_dist(&perldist_name).map_err(|e| err_handler(&format!("Failed to info for the PerlDist {}: {} ", &perldist_name, &e.to_string()))).unwrap()).unwrap(),
+    };
 
     let mut deps_vec = Vec::new();
 
