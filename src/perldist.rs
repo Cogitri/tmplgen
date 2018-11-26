@@ -37,7 +37,7 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
             .unwrap_or_else(|| format!("https://metacpan.org/release/{}", perldist_name)),
         license: query_result
             .license
-            .unwrap_or_else(|| missing_field_v("license")),
+            .unwrap_or_else(|| vec![missing_field_s("license")]),
         dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())),
         sha: None,
     };

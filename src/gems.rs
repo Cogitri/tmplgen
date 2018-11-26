@@ -48,7 +48,7 @@ pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
             .unwrap_or_else(|| missing_field_s("homepage")),
         license: query_result
             .licenses
-            .unwrap_or_else(|| missing_field_v("license")),
+            .unwrap_or_else(|| vec![missing_field_s("license")]),
         dependencies: Some(Dependencies {
             host: None,
             make: None,

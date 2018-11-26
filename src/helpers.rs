@@ -33,15 +33,6 @@ pub fn missing_field_s(field_name: &str) -> String {
     String::from("")
 }
 
-pub fn missing_field_v(field_name: &str) -> Vec<String> {
-    warn!(
-        "Couldn't determine field '{}'! Please add it to the template yourself.",
-        field_name
-    );
-
-    vec![String::from("")]
-}
-
 // Figure out whether we're dealing with a crate or a gem if the user hasn't specified that.
 // Errors out of a package with the name the user gave us can be found on both crates.io and
 // rubygems.org
