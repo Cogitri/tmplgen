@@ -65,3 +65,10 @@ fn test_provider_selector() {
 fn test_built_in() {
     assert_eq!(is_built_in("File::Basename", &PkgType::PerlDist), true)
 }
+
+#[test]
+fn test_empty_gem_dep() {
+    let pkg_info = gem_info("ffi").unwrap();
+
+    assert_eq!(pkg_info.dependencies.unwrap().run, None);
+}
