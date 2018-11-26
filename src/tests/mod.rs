@@ -3,6 +3,7 @@ use env_logger::Builder;
 use gems::*;
 use helpers::*;
 use perldist::*;
+use rubygems_api::GemRunDeps;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
@@ -103,4 +104,35 @@ fn test_crate_check_native_deps() {
         &check_native_deps("openssl").unwrap().unwrap().make.unwrap()[0],
         "libressl-devel"
     )
+}
+
+//TODO: Improve the below test to test recursive deps
+#[test]
+fn test_gem_dep_graph() {
+    assert!(gem_dep_graph("ffi").is_ok())
+}
+
+//TODO: Improve the below test to test recursive deps
+#[test]
+fn test_perl_dep_graph() {
+    assert!(perldist_dep_graph("Moose").is_ok())
+}
+
+#[test]
+fn test_determine_gem_run_deps() {
+    let rubygem_deps = vec![
+        GemRunDeps { name: "dep1".to_string(), requirements: ">= 0".to_string()},
+        GemRunDeps { name: "dep2".to_string(), requirements: ">= 1".to_string()},
+        GemRunDeps { name: "dep3".to_string(), requirements: "> 2".to_string()},
+        GemRunDeps { name: "dep4".to_string(), requirements: "~> 1".to_string()}
+    ];
+
+    let mut dep_string = String::new();
+
+    for x in rubygem_deps {
+        dep_string.push_str(&determine_gem_run_deps(&x).unwrap());
+        dep_string.push_str(" ");
+    }
+
+    assert_eq!(&dep_string, "ruby-dep1 ruby-dep2>=1 ruby-dep3>2 ruby-dep4>=1 ")
 }

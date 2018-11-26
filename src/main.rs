@@ -26,6 +26,7 @@ extern crate serde_derive;
 extern crate metacpan_api;
 extern crate serde;
 extern crate serde_json;
+extern crate rubygems_api;
 
 mod crates;
 mod gems;
