@@ -29,7 +29,13 @@ pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
         dep_vec_run.push(dep);
     }
 
-    debug!("Gem run dependencies: {:?}", dep_vec_run);
+    debug!("Gem run dependencies: {:?}", &dep_vec_run);
+
+    let gem_run_deps = if dep_vec_run.is_empty() {
+        None
+    } else {
+        Some(dep_vec_run)
+    };
 
     let pkg_info = PkgInfo {
         pkg_name: format!("ruby-{}", gem_name.to_string()),
@@ -46,7 +52,7 @@ pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
         dependencies: Some(Dependencies {
             host: None,
             make: None,
-            run: Some(dep_vec_run),
+            run: gem_run_deps,
         }),
     };
 
