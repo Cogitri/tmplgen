@@ -44,12 +44,12 @@ fn get_crate_deps(crate_name: &str) -> Result<Vec<crates_io_api::Dependency>, Er
 
 // Check if a crate needs native libs (e.g. libressl-devel)
 // TODO: This only works with direct deps!
-fn check_native_deps(crate_name: &str) -> Result<Option<Dependencies>, Error> {
+pub fn check_native_deps(crate_name: &str) -> Result<Option<Dependencies>, Error> {
     let dependencies = get_crate_deps(crate_name)?;
 
     debug!("Crate dependencies: {:?}", dependencies);
 
-    let mut make_dep_vec = vec![String::new()];
+    let mut make_dep_vec = vec![];
 
     for x in dependencies {
         if x.crate_id == "openssl-sys" {
@@ -57,7 +57,7 @@ fn check_native_deps(crate_name: &str) -> Result<Option<Dependencies>, Error> {
         }
     }
 
-    if make_dep_vec.len() > 1 {
+    if ! make_dep_vec.is_empty() {
         Ok(Some(Dependencies {
             host: Some(vec!["pkg-config".to_string()]),
             make: Some(make_dep_vec),
