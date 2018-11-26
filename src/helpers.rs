@@ -264,7 +264,7 @@ pub fn set_up_logging(is_debug: bool, is_verbose: bool) {
     } else if is_verbose {
         builder.filter(Some("tmplgen"), log::LevelFilter::Info);
     } else {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Debug);
+        builder.filter(Some("tmplgen"), log::LevelFilter::Warn);
     }
 
     builder.default_format_timestamp(false).init();
