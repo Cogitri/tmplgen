@@ -72,3 +72,12 @@ fn test_empty_gem_dep() {
 
     assert_eq!(pkg_info.dependencies.unwrap().run, None);
 }
+
+#[test]
+fn test_gen_dep_string_split() {
+    let dep_vec = ["ruby-rspec-core>=3.8.0".to_string(), "ruby-rspec-expectations>=3.8.0".to_string(), "ruby-rspec-mocks>=3.8.0".to_string()];
+
+    let dep_string = gen_dep_string(&dep_vec, &PkgType::Gem);
+
+    assert_eq!(dep_string.lines().last().unwrap(), " ruby-rspec-mocks>=3.8.0");
+}
