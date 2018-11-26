@@ -253,3 +253,16 @@ fn test_determine_gem_run_deps() {
         "ruby-dep1 ruby-dep2>=1 ruby-dep3>2 ruby-dep4>=1 "
     )
 }
+
+#[test]
+fn test_xdist_files() {
+    let test_path = "/tmp/tmplgen-tests";
+
+    env::set_var("XBPS_DISTDIR", "~/test");
+    env::set_var("HOME", test_path);
+
+    assert_eq!(
+        xdist_files().unwrap(),
+        "/tmp/tmplgen-tests/test/srcpkgs/"
+    )
+}
