@@ -9,6 +9,8 @@ rust:
   - stable
   - beta
   - nightly
+env:
+  - RUST_BACKTRACE=1
 cache: cargo
 
 before_cache: |
@@ -27,6 +29,6 @@ before_install:
 
 after_success: |
   if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
-    cargo tarpaulin --out Xml
+    env LD_LIBRARY_PATH=$(rustc --print sysroot)/lib:$LD_LIBRARY_PATH cargo tarpaulin --out Xml
     bash <(curl -s https://codecov.io/bash)
   fi
