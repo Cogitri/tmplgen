@@ -58,7 +58,10 @@ pub fn figure_out_provider(
             debug!("Determined the target package {} to be a crate", &pkg_name);
             Ok(PkgType::Crate)
         } else if gem_status {
-            debug!("Determined the target package {} to be a ruby gem", &pkg_name);
+            debug!(
+                "Determined the target package {} to be a ruby gem",
+                &pkg_name
+            );
             Ok(PkgType::Gem)
         } else if perldist_status {
             debug!("Determined the target package to be a perldist");
@@ -159,7 +162,14 @@ pub fn xdist_files() -> Result<String, failure::Error> {
 
     Ok(format!(
         "{}/srcpkgs/",
-        from_utf8(&xdistdir.stdout)?.replace("\n", "")
+        from_utf8(&xdistdir.stdout)?.replace("\n", "").replace(
+            "~",
+            &std::env::var("HOME")
+                .map_err(|_| err_handler(
+                    "Please either replace '~' with your homepath or export HOME"
+                ))
+                .unwrap()
+        ),
     ))
 }
 
