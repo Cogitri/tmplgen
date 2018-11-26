@@ -64,19 +64,10 @@ pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
 
 // If the gem has recursive deps, we should also generate templates for those if they
 // don't exist already
-pub fn gem_dep_graph(gem_name: &str) {
+pub fn gem_dep_graph(gem_name: &str) -> Result<(), Error> {
     let client = rubygems_api::SyncClient::new();
 
-    let query_result = client
-        .gem_info(gem_name)
-        .map_err(|e| {
-            err_handler(&format!(
-                "Failed to query gem {}: {}",
-                &gem_name,
-                e.to_string()
-            ))
-        })
-        .unwrap();
+    let query_result = client.gem_info(gem_name)?;
 
     let mut deps_vec = Vec::new();
 
@@ -84,9 +75,11 @@ pub fn gem_dep_graph(gem_name: &str) {
         deps_vec.push(x.name);
     }
 
-    let xdistdir = xdist_files();
+    let xdistdir = xdist_files()?;
 
     recursive_deps(&deps_vec, &xdistdir, &PkgType::Gem);
+
+    Ok(())
 }
 
 /* Can't be used right now we'll just replace it with >=

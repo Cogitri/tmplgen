@@ -89,7 +89,7 @@ fn test_gen_dep_string_split() {
         "ruby-rspec-mocks>=3.8.0".to_string(),
     ];
 
-    let dep_string = gen_dep_string(&dep_vec, &PkgType::Gem);
+    let dep_string = gen_dep_string(&dep_vec, &PkgType::Gem).unwrap();
 
     assert_eq!(
         dep_string.lines().last().unwrap(),
@@ -99,5 +99,8 @@ fn test_gen_dep_string_split() {
 
 #[test]
 fn test_crate_check_native_deps() {
-    assert_eq!(&check_native_deps("openssl").unwrap().unwrap().make.unwrap()[0], "libressl-devel")
+    assert_eq!(
+        &check_native_deps("openssl").unwrap().unwrap().make.unwrap()[0],
+        "libressl-devel"
+    )
 }

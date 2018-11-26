@@ -23,6 +23,10 @@ pub enum Error {
     Gem(rubygems_api::Error),
     #[fail(display = "{}", _0)]
     PerlDist(metacpan_api::Error),
+    #[fail(display = "{}", _0)]
+    UTF8(std::str::Utf8Error),
+    #[fail(display = "{}", _0)]
+    Failure(failure::Error),
 }
 
 #[derive(Debug, PartialEq)]
@@ -56,6 +60,17 @@ impl From<metacpan_api::Error> for Error {
     }
 }
 
+impl From<std::str::Utf8Error> for Error {
+    fn from(e: std::str::Utf8Error) -> Self {
+        Error::UTF8(e)
+    }
+}
+
+impl From<failure::Error> for Error {
+    fn from(e: failure::Error) -> Self {
+        Error::Failure(e)
+    }
+}
 #[derive(Debug)]
 pub struct Dependencies {
     pub host: Option<Vec<String>>,

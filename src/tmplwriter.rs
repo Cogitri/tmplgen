@@ -76,7 +76,7 @@ pub fn write_template(
         let dependencies = pkg_info.dependencies.as_ref().unwrap();
 
         if dependencies.host.is_some() {
-            let host_depends = gen_dep_string(dependencies.host.as_ref().unwrap(), tmpl_type);
+            let host_depends = gen_dep_string(dependencies.host.as_ref().unwrap(), tmpl_type)?;
             template_string =
                 template_string.replace("@hostmakedepends@", &host_depends.trim_end());
         } else {
@@ -84,13 +84,13 @@ pub fn write_template(
                 template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
         }
         if dependencies.make.is_some() {
-            let make_depends = gen_dep_string(dependencies.make.as_ref().unwrap(), tmpl_type);
+            let make_depends = gen_dep_string(dependencies.make.as_ref().unwrap(), tmpl_type)?;
             template_string = template_string.replace("@makedepends@", &make_depends.trim_end());
         } else {
             template_string = template_string.replace("\nmakedepends=\"@makedepends@\"", "");
         }
         if dependencies.run.is_some() {
-            let run_depends = gen_dep_string(dependencies.run.as_ref().unwrap(), tmpl_type);
+            let run_depends = gen_dep_string(dependencies.run.as_ref().unwrap(), tmpl_type)?;
             template_string = template_string.replace("@depends@", &run_depends.trim_end());
         } else {
             template_string = template_string.replace("\ndepends=\"@depends@\"", "");
@@ -146,7 +146,7 @@ pub fn write_template(
 
     template_string.push_str("\n");
 
-    let xdist_template_path = format!("{}{}", xdist_files(), &pkg_info.pkg_name);
+    let xdist_template_path = format!("{}{}", xdist_files()?, &pkg_info.pkg_name);
 
     if Path::new(&format!("{}/template", &xdist_template_path)).exists() && !force_overwrite {
         error!(

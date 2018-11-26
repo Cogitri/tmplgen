@@ -74,46 +74,31 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Dependencies {
     }
 }
 
-pub fn perldist_dep_graph(perldist_name: &str) {
+pub fn perldist_dep_graph(perldist_name: &str) -> Result<(), Error> {
     let client = metacpan_api::SyncClient::new();
 
     let query_result = client.perl_info(&perldist_name);
 
     let query_result = match query_result {
         Ok(query_result) => query_result,
-        Err(_error) => client
-            .perl_info(
-                &client
-                    .get_dist(&perldist_name)
-                    .map_err(|e| {
-                        err_handler(&format!(
-                            "Failed to info for the PerlDist {}: {} ",
-                            &perldist_name,
-                            &e.to_string()
-                        ))
-                    })
-                    .unwrap(),
-            )
-            .unwrap(),
+        Err(_error) => client.perl_info(&client.get_dist(&perldist_name)?)?,
     };
 
     let mut deps_vec = Vec::new();
 
     let dependencies = order_perldeps(query_result.dependency.unwrap_or_default());
 
-    for x in dependencies.make {
-        for y in x {
-            deps_vec.push(y);
-        }
+    for x in dependencies.make.unwrap() {
+        deps_vec.push(x);
     }
 
-    for x in dependencies.run {
-        for y in x {
-            deps_vec.push(y);
-        }
+    for x in dependencies.run.unwrap() {
+        deps_vec.push(x);
     }
 
-    let xdistdir = xdist_files();
+    let xdistdir = xdist_files()?;
 
     recursive_deps(&deps_vec, &xdistdir, &PkgType::PerlDist);
+
+    Ok(())
 }

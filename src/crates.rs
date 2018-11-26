@@ -57,7 +57,7 @@ pub fn check_native_deps(crate_name: &str) -> Result<Option<Dependencies>, Error
         }
     }
 
-    if ! make_dep_vec.is_empty() {
+    if !make_dep_vec.is_empty() {
         Ok(Some(Dependencies {
             host: Some(vec!["pkg-config".to_string()]),
             make: Some(make_dep_vec),

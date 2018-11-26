@@ -124,40 +124,43 @@ pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: boo
     write_template(&pkg_info, force_overwrite, &pkg_type).expect("Failed to write the template!");
 
     if pkg_type == &PkgType::Gem {
-        gem_dep_graph(&pkg_name);
+        gem_dep_graph(&pkg_name)
+            .map_err(|e| {
+                err_handler(&format!(
+                    "Failed to query gem {}: {}",
+                    pkg_name,
+                    e.to_string()
+                ))
+            })
+            .unwrap();
     } else if pkg_type == &PkgType::PerlDist {
-        perldist_dep_graph(&pkg_name);
+        perldist_dep_graph(&pkg_name)
+            .map_err(|e| {
+                err_handler(&format!(
+                    "Failed to query perldist {}: {}",
+                    pkg_name,
+                    e.to_string()
+                ))
+            })
+            .unwrap();
     }
 }
 
 // Figure out where to write template files with `xdistdir`
-pub fn xdist_files() -> String {
-    let xdistdir = Command::new("sh")
-        .args(&["-c", "xdistdir"])
-        .output()
-        .expect("Couldn't execute xdistdir. Make sure you have xtools installed.");
+pub fn xdist_files() -> Result<String, failure::Error> {
+    let xdistdir = Command::new("sh").args(&["-c", "xdistdir"]).output()?;
 
     if !xdistdir.status.success() {
-        error!(
-            "xdistdir: exited with a non-0 exit code:\n {:?}",
+        return Err(format_err!(
+            "xdistdir: exited with a non-0 exit code:\n {}",
             from_utf8(&xdistdir.stderr).unwrap()
-        );
-
-        exit(1);
+        ));
     }
 
-    format!(
+    Ok(format!(
         "{}/srcpkgs/",
-        from_utf8(&xdistdir.stdout)
-            .map_err(|e| err_handler(&e.to_string()))
-            .unwrap()
-            .replace("\n", "")
-            .replace(
-                "~",
-                &std::env::var("HOME")
-                    .expect("Please either replace '~' with your homepath or export HOME")
-            ),
-    )
+        from_utf8(&xdistdir.stdout)?.replace("\n", "")
+    ))
 }
 
 // Generic function to handle recursive deps.
@@ -291,13 +294,13 @@ pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool) {
     (crate_name, tmpl_type, force_overwrite, is_verbose, is_debug)
 }
 
-pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
+pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> Result<String, Error> {
     let mut dep_string = String::new();
 
     for x in dep_vec {
         let after_string = "".to_string() + &dep_string + x;
 
-        let last_line_ln = after_string.lines().last().unwrap().len();
+        let last_line_ln = after_string.lines().last().unwrap_or_default().len();
 
         // If the string with the new dep added _plus_ the {make,host,}depends=""
         // is longer than 80 chars, we want to split the line and insert a leading
@@ -320,7 +323,7 @@ pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
         }
     }
 
-    dep_string
+    Ok(dep_string)
 }
 
 // TODO: Doing it this way means that all error using this function will show up as "ERROR tmplgen::helpers" in env_logger
