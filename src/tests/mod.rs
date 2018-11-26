@@ -106,20 +106,34 @@ fn test_empty_gem_dep() {
 
 #[test]
 fn test_gen_dep_string_split() {
-    let dep_vec = [
+    let dep_gem_vec = [
         "ruby-rspec-core>=3.8.0".to_string(),
         "ruby-rspec-expectations>=3.8.0".to_string(),
         "ruby-rspec-mocks>=3.8.0".to_string(),
     ];
 
-    let dep_string = gen_dep_string(&dep_vec, &PkgType::Gem).unwrap();
+    let dep_gem_string = gen_dep_string(&dep_gem_vec, &PkgType::Gem).unwrap();
 
     assert_eq!(
-        dep_string.lines().last().unwrap(),
+        dep_gem_string.lines().last().unwrap(),
         " ruby-rspec-mocks>=3.8.0"
     );
 
+    let dep_perldist_vec = [
+        "File::Basename".to_string(),
+        "parent".to_string(),
+        "perl".to_string(),
+        "JSON::PP".to_string(),
+        "ExtUtils::MakeMaker".to_string(),
+        "Dist::CheckConflicts".to_string(),
+    ];
 
+    let dep_perldist_string = gen_dep_string(&dep_perldist_vec, &PkgType::PerlDist).unwrap();
+
+    assert_eq!(
+        dep_perldist_string.lines().last().unwrap(),
+        " perl-Dist-CheckConflicts"
+    )
 }
 
 #[test]
