@@ -25,6 +25,7 @@ extern crate env_logger;
 extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
+extern crate metacpan_api;
 
 mod crates;
 mod gems;

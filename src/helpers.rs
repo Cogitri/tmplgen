@@ -103,9 +103,9 @@ pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: boo
     write_template(&pkg_info, force_overwrite, &pkg_type).expect("Failed to write the template!");
 
     if pkg_type == &PkgType::Gem {
-        gem_dep_graph(&pkg_name, force_overwrite);
+        gem_dep_graph(&pkg_name);
     } else if pkg_type == &PkgType::PerlDist {
-        perldist_dep_graph(&pkg_name, force_overwrite);
+        perldist_dep_graph(&pkg_name);
     }
 }
 
@@ -144,19 +144,24 @@ pub fn recursive_deps(
     deps: &[String],
     xdistdir: &str,
     pkg_type: &PkgType,
-    force_overwrite: bool,
 ) {
-    if force_overwrite {
-        for x in deps {
-            info!("Specified `-f`, will overwrite existing templates if they exist...");
-            template_handler(x, &pkg_type, force_overwrite);
-        }
-    } else {
         for x in deps {
             let tmpl_path = if pkg_type == &PkgType::Gem {
                 format!("{}ruby-{}/template", xdistdir, x)
             } else if pkg_type == &PkgType::PerlDist {
-                format!("{}perl-{}/template", xdistdir, x.replace("::", "-"))
+                // We don't write templates for modules, but only
+                // for distributions. As such we have to convert
+                // the module's name to the distribution's name,
+                // if we're handling a module
+                let perl_client = metacpan_api::SyncClient::new();
+
+                let dist = perl_client.get_dist(&x);
+
+                if dist.is_ok() {
+                    format!("{}perl-{}/template", xdistdir, dist.unwrap().replace("::", "-"))
+                } else {
+                    format!("{}perl-{}/template", xdistdir, x.replace("::", "-"))
+                }
             } else {
                 format!("{}{}/template", xdistdir, x)
             };
@@ -168,12 +173,11 @@ pub fn recursive_deps(
                     "Dependency {} doesn't exist yet, writing a template for it...",
                     x
                 );
-                template_handler(x, &pkg_type, force_overwrite);
+                template_handler(x, &pkg_type, false);
             } else {
                 debug!("Dependency {} is already satisfied!", x);
             }
         }
-    }
 }
 
 pub fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> String {

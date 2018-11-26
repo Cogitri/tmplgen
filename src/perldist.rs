@@ -60,7 +60,7 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Dependencies {
     }
 }
 
-pub fn perldist_dep_graph(perldist_name: &str, force_overwrite: bool) {
+pub fn perldist_dep_graph(perldist_name: &str) {
     let client = metacpan_api::SyncClient::new();
 
     let query_result = client.perl_info(&perldist_name);
@@ -88,5 +88,5 @@ pub fn perldist_dep_graph(perldist_name: &str, force_overwrite: bool) {
 
     let xdistdir = xdist_files();
 
-    recursive_deps(&deps_vec, &xdistdir, &PkgType::PerlDist, force_overwrite);
+    recursive_deps(&deps_vec, &xdistdir, &PkgType::PerlDist);
 }

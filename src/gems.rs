@@ -63,7 +63,7 @@ pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
 
 // If the gem has recursive deps, we should also generate templates for those if they
 // don't exist already
-pub fn gem_dep_graph(gem_name: &str, force_overwrite: bool) {
+pub fn gem_dep_graph(gem_name: &str) {
     let client = rubygems_api::SyncClient::new();
 
     let query_result = client
@@ -79,7 +79,7 @@ pub fn gem_dep_graph(gem_name: &str, force_overwrite: bool) {
 
     let xdistdir = xdist_files();
 
-    recursive_deps(&deps_vec, &xdistdir, &PkgType::Gem, force_overwrite);
+    recursive_deps(&deps_vec, &xdistdir, &PkgType::Gem);
 }
 
 /* Can't be used right now we'll just replace it with >=
