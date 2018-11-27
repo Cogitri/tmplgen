@@ -16,6 +16,14 @@ args:
       long: tmpltype
       value_name: crate/gem/perldist
       help: Explicitly sets what kind of template we want to generate
+  - update:
+      short: u
+      long: update
+      help: Check if a new version for the package is available and if so, update 'version'
+  - update_all:
+      short: U
+      long: UpdateAll
+      help: Same as 'update', but also update 'distfiles' and 'homepage'
   - verbose:
       short: v
       long: verbose

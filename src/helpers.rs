@@ -82,74 +82,39 @@ pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: boo
         &pkg_name, pkg_type
     );
 
-    let pkg_info = if pkg_type == &PkgType::Crate {
-        crate_info(&pkg_name)
-            .map_err(|e| {
-                err_handler(&format!(
-                    "Failed to info for the {:?} {}: {} ",
-                    &pkg_type,
-                    &pkg_name,
-                    &e.to_string()
-                ))
-            })
-            .unwrap()
-    } else if pkg_type == &PkgType::PerlDist {
-        if is_built_in(pkg_name, pkg_type) {
-            return;
+    let pkg_info= get_pkginfo(pkg_name, pkg_type);
+
+    if pkg_info.is_none() {
+        // If pkg_info is none that means that this package is built into perl/ruby
+        return;
+    } else {
+        if is_rec {
+            write_template(&pkg_info.unwrap(), force_overwrite, &pkg_type).map_err(|e| warn!("Failed to write the template for dep {}: {}", pkg_name, e)).unwrap_or_default()
+        } else {
+            write_template(&pkg_info.unwrap(), force_overwrite, &pkg_type).expect("Failed to write the template!");
         }
 
-        perldist_info(&pkg_name)
-            .map_err(|e| {
-                err_handler(&format!(
-                    "Failed to info for the {:?} {}: {} ",
-                    &pkg_type,
-                    &pkg_name,
-                    &e.to_string()
-                ))
-            })
-            .unwrap()
-    } else {
-        if is_built_in(pkg_name, pkg_type) {
-            return;
+        if pkg_type == &PkgType::Gem {
+            gem_dep_graph(&pkg_name)
+                .map_err(|e| {
+                    err_handler(&format!(
+                        "Failed to query gem {}: {}",
+                        pkg_name,
+                        e.to_string()
+                    ))
+                })
+                .unwrap();
+        } else if pkg_type == &PkgType::PerlDist {
+            perldist_dep_graph(&pkg_name)
+                .map_err(|e| {
+                    err_handler(&format!(
+                        "Failed to query perldist {}: {}",
+                        pkg_name,
+                        e.to_string()
+                    ))
+                })
+                .unwrap();
         }
-        gem_info(pkg_name)
-            .map_err(|e| {
-                err_handler(&format!(
-                    "Failed to info for the {:?} {}: {} ",
-                    &pkg_type,
-                    &pkg_name,
-                    &e.to_string()
-                ))
-            })
-            .unwrap()
-    };
-
-    if is_rec {
-        write_template(&pkg_info, force_overwrite, &pkg_type).map_err(|e| warn!("Failed to write the template for dep {}: {}", pkg_name, e)).unwrap_or_default()
-    } else {
-        write_template(&pkg_info, force_overwrite, &pkg_type).expect("Failed to write the template!");
-    }
-
-    if pkg_type == &PkgType::Gem {
-        gem_dep_graph(&pkg_name)
-            .map_err(|e| {
-                err_handler(&format!(
-                    "Failed to query gem {}: {}",
-                    pkg_name,
-                    e.to_string()
-                ))
-            })
-            .unwrap();
-    } else if pkg_type == &PkgType::PerlDist {
-        perldist_dep_graph(&pkg_name)
-            .map_err(|e| {
-                err_handler(&format!(
-                    "Failed to query perldist {}: {}",
-                    pkg_name,
-                    e.to_string()
-                ))
-            })
-            .unwrap();
     }
 }
 
@@ -283,7 +248,7 @@ pub fn set_up_logging(is_debug: bool, is_verbose: bool) {
 }
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
-pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool) {
+pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool) {
     let help_yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(help_yaml).get_matches();
 
@@ -305,7 +270,11 @@ pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool) {
 
     let is_debug = matches.is_present("debug");
 
-    (crate_name, tmpl_type, force_overwrite, is_verbose, is_debug)
+    let update_ver_only = matches.is_present("update");
+
+    let update_all = matches.is_present("update_all");
+
+    (crate_name, tmpl_type, force_overwrite, is_verbose, is_debug, update_ver_only, update_all)
 }
 
 pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> Result<String, Error> {
@@ -360,4 +329,48 @@ pub fn correct_license(license: &str) -> String {
     }
 
     license.to_string()
+}
+
+pub fn get_pkginfo(pkg_name: &str, pkg_type: &PkgType) -> Option<PkgInfo> {
+    if pkg_type == &PkgType::Crate {
+        return Some(crate_info(&pkg_name)
+            .map_err(|e| {
+                err_handler(&format!(
+                    "Failed to info for the {:?} {}: {} ",
+                    &pkg_type,
+                    &pkg_name,
+                    &e.to_string()
+                ))
+            })
+            .unwrap());
+    } else if pkg_type == &PkgType::PerlDist {
+        if is_built_in(pkg_name, pkg_type) {
+            return None;
+        }
+
+        return Some(perldist_info(&pkg_name)
+            .map_err(|e| {
+                err_handler(&format!(
+                    "Failed to info for the {:?} {}: {} ",
+                    &pkg_type,
+                    &pkg_name,
+                    &e.to_string()
+                ))
+            })
+            .unwrap());
+    } else {
+        if is_built_in(pkg_name, pkg_type) {
+            return None;
+        }
+        return Some(gem_info(pkg_name)
+            .map_err(|e| {
+                err_handler(&format!(
+                    "Failed to info for the {:?} {}: {} ",
+                    &pkg_type,
+                    &pkg_name,
+                    &e.to_string()
+                ))
+            })
+            .unwrap());
+    };
 }
