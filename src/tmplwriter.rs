@@ -17,7 +17,7 @@ use helpers::*;
 use std::fs::{create_dir_all, File};
 use std::io::prelude::Write;
 use std::path::Path;
-use std::process::{exit, Command};
+use std::process::Command;
 use std::str::from_utf8;
 use types::*;
 
@@ -26,7 +26,7 @@ pub fn write_template(
     pkg_info: &PkgInfo,
     force_overwrite: bool,
     tmpl_type: &PkgType,
-) -> Result<(), Error> {
+) -> Result<(), failure::Error> {
     let template_in = include_str!("template.in");
 
     let git_author = Command::new("git")
@@ -150,11 +150,10 @@ pub fn write_template(
     let xdist_template_path = format!("{}{}", xdist_files()?, &pkg_info.pkg_name);
 
     if Path::new(&format!("{}/template", &xdist_template_path)).exists() && !force_overwrite {
-        error!(
+        return Err(format_err!(
             "Won't overwrite existing template '{}/template' without `--force`!",
             &xdist_template_path,
-        );
-        exit(1);
+        ));
     }
 
     info!("Writing template to path {}/template", &xdist_template_path);

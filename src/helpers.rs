@@ -76,7 +76,7 @@ pub fn figure_out_provider(
 
 // Handle getting the necessary info and writing a template for it. Invoked every time a template
 // should be written, useful for recursive deps.
-pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: bool) {
+pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: bool, is_rec: bool) {
     info!(
         "Generating template for package {} of type {:?}",
         &pkg_name, pkg_type
@@ -124,7 +124,11 @@ pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: boo
             .unwrap()
     };
 
-    write_template(&pkg_info, force_overwrite, &pkg_type).expect("Failed to write the template!");
+    if is_rec {
+        write_template(&pkg_info, force_overwrite, &pkg_type).map_err(|e| warn!("Failed to write the template for dep {}: {}", pkg_name, e)).unwrap_or_default()
+    } else {
+        write_template(&pkg_info, force_overwrite, &pkg_type).expect("Failed to write the template!");
+    }
 
     if pkg_type == &PkgType::Gem {
         gem_dep_graph(&pkg_name)
@@ -207,7 +211,7 @@ pub fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) {
                 "Dependency {} doesn't exist yet, writing a template for it...",
                 x
             );
-            template_handler(x, &pkg_type, false);
+            template_handler(x, &pkg_type, false, true);
         } else {
             debug!("Dependency {} is already satisfied!", x);
         }

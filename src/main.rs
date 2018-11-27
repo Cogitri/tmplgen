@@ -53,5 +53,5 @@ fn main() {
         .map_err(|e| err_handler(&e.to_string()))
         .unwrap();
 
-    template_handler(&pkg_name, &pkg_type, force_overwrite);
+    template_handler(&pkg_name, &pkg_type, force_overwrite, false);
 }
