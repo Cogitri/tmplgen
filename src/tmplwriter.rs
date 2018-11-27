@@ -15,7 +15,7 @@
 
 use helpers::*;
 use std::fs::{create_dir_all, File};
-use std::io::prelude::Write;
+use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
 use std::str::from_utf8;
@@ -162,6 +162,80 @@ pub fn write_template(
     let mut file = File::create(format!("{}/template", &xdist_template_path))?;
 
     file.write_all(template_string.as_bytes())?;
+
+    Ok(())
+}
+
+pub fn update_template(pkg_name: &str, pkg_type: &PkgType, update_all: bool) -> Result<(), failure::Error> {
+    let xdist_template = format!("{}{}/template", xdist_files()?, pkg_name);
+
+    if Path::new(&xdist_template).exists() {
+        let mut template_file = File::open(&xdist_template)?;
+        let mut template_string = String::new();
+        template_file.read_to_string(&mut template_string)?;
+
+        let mut orig_ver_string = String::new();
+
+        for x in template_string.lines() {
+            if x.contains("version=") {
+                orig_ver_string = x.to_string();
+                break;
+            }
+        }
+
+        let mut orig_homepage_string = String::new();
+        let mut orig_distfiles_string = String::new();
+        let mut orig_description_string = String::new();
+
+        if update_all {
+            for x in template_string.lines() {
+                if x.contains("homepage=") {
+                    orig_homepage_string = x.to_string();
+                }
+                if x.contains("distfiles=") {
+                    orig_distfiles_string = x.to_string();
+                }
+                if x.contains("short_desc=") {
+                    orig_description_string = x.to_string();
+                }
+            }
+        }
+
+        let pkg_info = get_pkginfo(pkg_name, pkg_type);
+
+        if pkg_info.is_some() {
+            let pkg_info = pkg_info.unwrap();
+            template_string = template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
+            if update_all {
+                if orig_homepage_string.is_empty() {
+                    warn!("Couldn't find 'homepage' string and as such won't update it!");
+                } else {
+                    template_string = template_string.replace(&orig_homepage_string, &format!("homepage=\"{}\"", &pkg_info.homepage));
+                }
+                if orig_distfiles_string.is_empty() {
+                    warn!("Couldn't find 'distfiles' string and as such won't update it!");
+                } else {
+                    template_string = template_string.replace(&orig_distfiles_string, &format!("distfiles=\"{}\"", &pkg_info.download_url.unwrap_or_default()));
+                }
+            }
+
+            if orig_description_string.is_empty() {
+                warn!("Couldn't find 'description' string and as such won't update it!");
+            } else {
+                template_string = template_string.replace(&orig_description_string, &format!("short_desc=\"{}\"", &pkg_info.description));
+            }
+
+            info!("Updating template {}: ", &xdist_template);
+
+            let mut template_file = File::create(&xdist_template)?;
+            template_file.write_all(template_string.as_bytes())?;
+
+        } else {
+            return Err(format_err!("Couldn't retrieve PkgInfo!"));
+        }
+    } else {
+        return Err(format_err!("Template doesn't exist yet; can't update a non-existant template!"));
+    }
 
     Ok(())
 }

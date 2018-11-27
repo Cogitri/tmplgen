@@ -38,6 +38,7 @@ mod tmplwriter;
 mod types;
 
 use helpers::*;
+use tmplwriter::*;
 
 fn main() {
     let help_tuple = help_string();
@@ -46,12 +47,22 @@ fn main() {
     let force_overwrite = help_tuple.2;
     let is_verbose = help_tuple.3;
     let is_debug = help_tuple.4;
+    let is_update_ver = help_tuple.5;
+    let is_update_all = help_tuple.6;
 
     set_up_logging(is_debug, is_verbose);
+
+    if is_update_ver && is_update_all {
+        warn!("Specified both -u and -U! Will ignore -u");
+    }
 
     let pkg_type = figure_out_provider(tmpl_type, &pkg_name)
         .map_err(|e| err_handler(&e.to_string()))
         .unwrap();
 
-    template_handler(&pkg_name, &pkg_type, force_overwrite, false);
+    if is_update_ver || is_update_all {
+        update_template(&pkg_name, &pkg_type, is_update_all).map_err(|e| err_handler(&format!("Failed to update template: {}", e.to_string()))).unwrap();
+    } else {
+        template_handler(&pkg_name, &pkg_type, force_overwrite, false);
+    }
 }
