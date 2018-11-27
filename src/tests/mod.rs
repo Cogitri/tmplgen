@@ -217,12 +217,14 @@ fn test_crate_check_native_deps() {
 //TODO: Improve the below test to test recursive deps
 #[test]
 fn test_gem_dep_graph() {
+    env::set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
     assert!(gem_dep_graph("ffi").is_ok())
 }
 
 //TODO: Improve the below test to test recursive deps
 #[test]
 fn test_perl_dep_graph() {
+    env::set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
     assert!(perldist_dep_graph("Moose").is_ok())
 }
 
