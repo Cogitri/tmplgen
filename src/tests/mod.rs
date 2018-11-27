@@ -269,3 +269,9 @@ fn test_xdist_files() {
 
     assert_eq!(xdist_files().unwrap(), "/tmp/tmplgen-tests/test/srcpkgs/")
 }
+
+#[test]
+fn test_correct_license() {
+    assert_eq!(correct_license("GPL-1.0+"), "GPL-1.0-or-later".to_string());
+    assert_eq!(correct_license("perl_5"), "Artistic-1.0-Perl, GPL-1.0-or-later".to_string());
+}
