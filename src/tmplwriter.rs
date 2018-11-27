@@ -166,8 +166,8 @@ pub fn write_template(
     Ok(())
 }
 
-pub fn update_template(pkg_name: &str, pkg_type: &PkgType, update_all: bool) -> Result<(), failure::Error> {
-    let xdist_template = format!("{}{}/template", xdist_files()?, pkg_name);
+pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), failure::Error> {
+    let xdist_template = format!("{}{}/template", xdist_files()?, &pkg_info.pkg_name);
 
     if Path::new(&xdist_template).exists() {
         let mut template_file = File::open(&xdist_template)?;
@@ -201,22 +201,21 @@ pub fn update_template(pkg_name: &str, pkg_type: &PkgType, update_all: bool) -> 
             }
         }
 
-        let pkg_info = get_pkginfo(pkg_name, pkg_type);
+        template_string = template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
+        if update_all {
+            if orig_homepage_string.is_empty() {
+                warn!("Couldn't find 'homepage' string and as such won't update it!");
+            } else {
+                template_string = template_string.replace(&orig_homepage_string, &format!("homepage=\"{}\"", &pkg_info.homepage));
+            }
 
-        if pkg_info.is_some() {
-            let pkg_info = pkg_info.unwrap();
-            template_string = template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
-            if update_all {
-                if orig_homepage_string.is_empty() {
-                    warn!("Couldn't find 'homepage' string and as such won't update it!");
-                } else {
-                    template_string = template_string.replace(&orig_homepage_string, &format!("homepage=\"{}\"", &pkg_info.homepage));
-                }
-                if orig_distfiles_string.is_empty() {
-                    warn!("Couldn't find 'distfiles' string and as such won't update it!");
-                } else {
-                    template_string = template_string.replace(&orig_distfiles_string, &format!("distfiles=\"{}\"", &pkg_info.download_url.unwrap_or_default()));
-                }
+            if orig_distfiles_string.is_empty() {
+                warn!("Couldn't find 'distfiles' string and as such won't update it!");
+            } else {
+                // This looks a bit funny because...well, it is. download_url can be empty, but we
+                // want to just remove the previous distfiles, in case the gem downloads some additional
+                // data
+                template_string = template_string.replace(&orig_distfiles_string, &format!("distfiles=\"{}", format!("{}\"", &pkg_info.download_url.as_ref().unwrap_or(&orig_distfiles_string.replace("distfiles=\"", "")))));
             }
 
             if orig_description_string.is_empty() {
