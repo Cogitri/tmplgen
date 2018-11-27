@@ -341,3 +341,19 @@ pub fn err_handler(err_string: &str) {
     error!("{:?}", err_string);
     exit(1);
 }
+
+pub fn correct_license(license: &str) -> String {
+    let data: CorrectedVals = serde_json::from_str(include_str!("corrected_values.in")).unwrap();
+
+    let corrected_vals = CorrectedVals {
+        licenses: data.licenses,
+    };
+
+    for x in corrected_vals.licenses {
+        if license == x.is {
+           return  x.should.to_string();
+        }
+    }
+
+    license.to_string()
+}

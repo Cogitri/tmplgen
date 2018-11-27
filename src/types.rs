@@ -100,3 +100,14 @@ pub struct BuiltIns {
 pub struct BuiltInDep {
     pub name: String,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct CorrectedVals {
+    pub licenses: Vec<CorrectedLicenses>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CorrectedLicenses {
+    pub is: String,
+    pub should: String,
+}

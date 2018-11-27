@@ -57,13 +57,23 @@ pub fn write_template(
     );
     maintainer = maintainer.replace("\n", "");
 
+    let mut license = String::new();
+
+    for x in &pkg_info.license {
+        if ! license.is_empty() {
+            license.push_str(", ");
+        }
+
+        license.push_str(&correct_license(x));
+    }
+
     let mut template_string = template_in
         .replace("@version@", &pkg_info.version)
         .replace(
             "@description@",
             &check_string_len(&pkg_info.pkg_name, &pkg_info.description, "description"),
         )
-        .replace("@license@", &pkg_info.license.join(", "))
+        .replace("@license@", &license)
         .replace("@homepage@", &pkg_info.homepage)
         .replace("@maintainer@", &maintainer)
         .replace("@pkgname@", &pkg_info.pkg_name)
@@ -112,8 +122,7 @@ pub fn write_template(
         template_string = template_string
             .replace("@build_style@", "perl-module")
             .replace("@noarch@", "yes")
-            .replace("@wrksrc@", "${pkgname/perl-/}-${version}")
-            .replace("perl_5", "Artistic-1.0-Perl, GPL-1.0-or-later");
+            .replace("@wrksrc@", "${pkgname/perl-/}-${version}");
     } else if tmpl_type == &PkgType::Gem {
         template_string = template_string
             .replace("@build_style@", "gem")
