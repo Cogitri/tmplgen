@@ -29,7 +29,7 @@ fn test_query_perldist() {
 }
 
 #[test]
-fn test_tmplwriter() {
+fn test_tmplwriter_correctness() {
     Builder::new()
         .filter(Some("tmplgen"), log::LevelFilter::Error)
         .default_format_timestamp(false)
@@ -276,4 +276,51 @@ fn test_xdist_files() {
 fn test_correct_license() {
     assert_eq!(correct_license("GPL-1.0+"), "GPL-1.0-or-later".to_string());
     assert_eq!(correct_license("perl_5"), "Artistic-1.0-Perl, GPL-1.0-or-later".to_string());
+}
+
+#[test]
+fn test_template_updater() {
+    env::set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
+    env::set_var("HOME", "/tmp/tmplgen-tests");
+
+    let pkg_info_good = PkgInfo {
+        pkg_name: "tmplgen".to_string(),
+        version: "0.3.1".to_string(),
+        description: "Void Linux template generator for language-specific package managers"
+            .to_string(),
+        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+        license: vec!["GPL-3.0-or-later".to_string()],
+        dependencies: None,
+        sha: None,
+        download_url: Some(
+            "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
+        ),
+    };
+
+    let pkg_info_bad = PkgInfo {
+        pkg_name: "tmplgen".to_string(),
+        version: "0.2.9".to_string(),
+        description: "gibberish".to_string(),
+        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+        license: vec!["GPL-3.0-or-later".to_string()],
+        dependencies: None,
+        sha: None,
+        download_url: Some(
+            "This Shouldn't be here".to_string(),
+        ),
+    };
+
+    write_template(&pkg_info_bad, true, &PkgType::Crate).unwrap();
+
+    update_template(&pkg_info_good, true).unwrap();
+
+    let mut tmpl_file_crate = File::open("/tmp/tmplgen-tests/srcpkgs/tmplgen/template").unwrap();
+
+    let mut tmpl_string_crate = String::new();
+
+    tmpl_file_crate
+        .read_to_string(&mut tmpl_string_crate)
+        .unwrap();
+
+    assert_eq!(tmpl_string_crate, include_str!("template_test_crate.in"));
 }

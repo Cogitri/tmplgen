@@ -76,46 +76,27 @@ pub fn figure_out_provider(
 
 // Handle getting the necessary info and writing a template for it. Invoked every time a template
 // should be written, useful for recursive deps.
-pub fn template_handler(pkg_name: &str, pkg_type: &PkgType, force_overwrite: bool, is_rec: bool) {
+pub fn template_handler(pkg_info: &PkgInfo, pkg_type: &PkgType,force_overwrite: bool, is_rec: bool) -> Result<(), failure::Error> {
+    let pkg_name = &pkg_info.pkg_name;
+
     info!(
         "Generating template for package {} of type {:?}",
         &pkg_name, pkg_type
     );
 
-    let pkg_info= get_pkginfo(pkg_name, pkg_type);
-
-    if pkg_info.is_none() {
-        // If pkg_info is none that means that this package is built into perl/ruby
-        return;
+    if is_rec {
+        write_template(&pkg_info, force_overwrite, &pkg_type).map_err(|e| warn!("Failed to write the template for dep {}: {}", pkg_name, e)).unwrap_or_default()
     } else {
-        if is_rec {
-            write_template(&pkg_info.unwrap(), force_overwrite, &pkg_type).map_err(|e| warn!("Failed to write the template for dep {}: {}", pkg_name, e)).unwrap_or_default()
-        } else {
-            write_template(&pkg_info.unwrap(), force_overwrite, &pkg_type).expect("Failed to write the template!");
-        }
-
-        if pkg_type == &PkgType::Gem {
-            gem_dep_graph(&pkg_name)
-                .map_err(|e| {
-                    err_handler(&format!(
-                        "Failed to query gem {}: {}",
-                        pkg_name,
-                        e.to_string()
-                    ))
-                })
-                .unwrap();
-        } else if pkg_type == &PkgType::PerlDist {
-            perldist_dep_graph(&pkg_name)
-                .map_err(|e| {
-                    err_handler(&format!(
-                        "Failed to query perldist {}: {}",
-                        pkg_name,
-                        e.to_string()
-                    ))
-                })
-                .unwrap();
-        }
+        write_template(&pkg_info, force_overwrite, &pkg_type)?;
     }
+
+    if pkg_type == &PkgType::Gem {
+        gem_dep_graph(&pkg_name)?;
+    } else if pkg_type == &PkgType::PerlDist {
+        perldist_dep_graph(&pkg_name)?;
+    }
+
+    Ok(())
 }
 
 // Figure out where to write template files with `xdistdir`
@@ -124,7 +105,7 @@ pub fn xdist_files() -> Result<String, failure::Error> {
 
     if !xdistdir.status.success() {
         return Err(format_err!(
-            "xdistdir: exited with a non-0 exit code:\n {}",
+            "xdistdir: exited with a non-0 exit code: {}",
             from_utf8(&xdistdir.stderr).unwrap()
         ));
     }
@@ -143,44 +124,48 @@ pub fn xdist_files() -> Result<String, failure::Error> {
 }
 
 // Generic function to handle recursive deps.
-pub fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) {
+pub fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) -> Result<(), Error> {
     for x in deps {
-        let tmpl_path = if pkg_type == &PkgType::Gem {
-            format!("{}ruby-{}/template", xdistdir, x)
-        } else if pkg_type == &PkgType::PerlDist {
-            // We don't write templates for modules, but only
-            // for distributions. As such we have to convert
-            // the module's name to the distribution's name,
-            // if we're handling a module
-            let perl_client = metacpan_api::SyncClient::new();
+        // We want to ignore built-in deps
+        if !is_built_in(x, pkg_type) {
+            let tmpl_path = if pkg_type == &PkgType::Gem {
+                format!("{}ruby-{}/template", xdistdir, x)
+            } else if pkg_type == &PkgType::PerlDist {
+                // We don't write templates for modules, but only
+                // for distributions. As such we have to convert
+                // the module's name to the distribution's name,
+                // if we're handling a module
+                let perl_client = metacpan_api::SyncClient::new();
 
-            let dist = perl_client.get_dist(&x);
+                let dist = perl_client.get_dist(&x);
 
-            if dist.is_ok() {
-                format!(
-                    "{}perl-{}/template",
-                    xdistdir,
-                    dist.unwrap().replace("::", "-")
-                )
+                if dist.is_ok() {
+                    format!(
+                        "{}perl-{}/template",
+                        xdistdir,
+                        dist.unwrap().replace("::", "-")
+                    )
+                } else {
+                    format!("{}perl-{}/template", xdistdir, x.replace("::", "-"))
+                }
             } else {
-                format!("{}perl-{}/template", xdistdir, x.replace("::", "-"))
+                format!("{}{}/template", xdistdir, x)
+            };
+
+            debug!("Checking for template in {}...", &tmpl_path);
+
+            if !Path::new(&tmpl_path).exists() {
+                info!(
+                    "Dependency {} doesn't exist yet, writing a template for it...",
+                    x
+                );
+                template_handler(&get_pkginfo(&x, pkg_type)?, &pkg_type, false, true)?;
+            } else {
+                debug!("Dependency {} is already satisfied!", x);
             }
-        } else {
-            format!("{}{}/template", xdistdir, x)
-        };
-
-        debug!("Checking for template in {}...", &tmpl_path);
-
-        if !Path::new(&tmpl_path).exists() {
-            info!(
-                "Dependency {} doesn't exist yet, writing a template for it...",
-                x
-            );
-            template_handler(x, &pkg_type, false, true);
-        } else {
-            debug!("Dependency {} is already satisfied!", x);
         }
     }
+    Ok(())
 }
 
 pub fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> String {
@@ -195,6 +180,10 @@ pub fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> Stri
 }
 
 pub fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
+    if pkg_type == &PkgType::Crate {
+        return false;
+    }
+
     let data: BuiltIns = serde_json::from_str(include_str!("built_in.in")).unwrap();
 
     let built_ins = BuiltIns {
@@ -331,46 +320,12 @@ pub fn correct_license(license: &str) -> String {
     license.to_string()
 }
 
-pub fn get_pkginfo(pkg_name: &str, pkg_type: &PkgType) -> Option<PkgInfo> {
+pub fn get_pkginfo(pkg_name: &str, pkg_type: &PkgType) -> Result<PkgInfo, Error> {
     if pkg_type == &PkgType::Crate {
-        return Some(crate_info(&pkg_name)
-            .map_err(|e| {
-                err_handler(&format!(
-                    "Failed to info for the {:?} {}: {} ",
-                    &pkg_type,
-                    &pkg_name,
-                    &e.to_string()
-                ))
-            })
-            .unwrap());
+        crate_info(&pkg_name)
     } else if pkg_type == &PkgType::PerlDist {
-        if is_built_in(pkg_name, pkg_type) {
-            return None;
-        }
-
-        return Some(perldist_info(&pkg_name)
-            .map_err(|e| {
-                err_handler(&format!(
-                    "Failed to info for the {:?} {}: {} ",
-                    &pkg_type,
-                    &pkg_name,
-                    &e.to_string()
-                ))
-            })
-            .unwrap());
+        perldist_info(&pkg_name)
     } else {
-        if is_built_in(pkg_name, pkg_type) {
-            return None;
-        }
-        return Some(gem_info(pkg_name)
-            .map_err(|e| {
-                err_handler(&format!(
-                    "Failed to info for the {:?} {}: {} ",
-                    &pkg_type,
-                    &pkg_name,
-                    &e.to_string()
-                ))
-            })
-            .unwrap());
-    };
+        gem_info(pkg_name)
+    }
 }
