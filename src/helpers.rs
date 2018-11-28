@@ -329,3 +329,22 @@ pub fn get_pkginfo(pkg_name: &str, pkg_type: &PkgType) -> Result<PkgInfo, Error>
         gem_info(pkg_name)
     }
 }
+
+pub fn get_git_author() -> Result<String, Error> {
+    let git_author = Command::new("git")
+        .args(&["config", "user.name"])
+        .output()?;
+    let git_mail = Command::new("git")
+        .args(&["config", "user.email"])
+        .output()?;
+
+    let mut maintainer = format!(
+        "{} <{}>",
+        from_utf8(&git_author.stdout)?,
+        from_utf8(&git_mail.stdout)?,
+    );
+
+    maintainer = maintainer.replace("\n", "");
+
+    Ok(maintainer)
+}
