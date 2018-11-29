@@ -325,6 +325,7 @@ fn test_template_updater() {
     assert_eq!(tmpl_string_crate, include_str!("template_test_crate.in"));
 }
 
-fn set_git_details() {
-
+#[test]
+fn test_get_git_author() {
+    assert!(get_git_author().is_ok());
 }
