@@ -25,7 +25,7 @@ pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     let mut dep_vec_run = Vec::new();
 
     for x in query_result.dependencies.runtime.unwrap() {
-        let dep = determine_gem_run_deps(&x)?;
+        let dep = determine_gem_run_deps(&x);
         dep_vec_run.push(dep);
     }
 
@@ -130,7 +130,7 @@ pub fn tilde_parse(version: String) -> Option<Vec<String>> {
 */
 
 // Determine the run dependencies of a gem. Deals with version requirements.
-pub fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> Result<String, Error> {
+pub fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> String {
     let cmpr = String::from(
         rubygem_dep
             .requirements
@@ -158,5 +158,5 @@ pub fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> Result<
         _ => "ruby-".to_string() + &rubygem_dep.name,
     };
 
-    Ok(ver_req)
+    ver_req
 }

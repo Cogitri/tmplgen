@@ -9,16 +9,10 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
 
     let query_result = match query_result {
         Ok(query_result) => query_result,
-        Err(_error) => client.perl_info(
+        Err(_e) => client.perl_info(
             &client
                 .get_dist(&perldist_name)
-                .map_err(|e| {
-                    err_handler(&format!(
-                        "Failed to info for the PerlDist {}: {} ",
-                        &perldist_name,
-                        &e.to_string()
-                    ))
-                })
+                .map_err(|e| return Error::PerlDist(e.to_string()))
                 .unwrap(),
         )?,
     };

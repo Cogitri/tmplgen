@@ -182,7 +182,7 @@ fn test_gen_dep_string_split() {
         "ruby-rspec-mocks>=3.8.0".to_string(),
     ];
 
-    let dep_gem_string = gen_dep_string(&dep_gem_vec, &PkgType::Gem).unwrap();
+    let dep_gem_string = gen_dep_string(&dep_gem_vec, &PkgType::Gem);
 
     assert_eq!(
         dep_gem_string.lines().last().unwrap(),
@@ -198,7 +198,7 @@ fn test_gen_dep_string_split() {
         "Dist::CheckConflicts".to_string(),
     ];
 
-    let dep_perldist_string = gen_dep_string(&dep_perldist_vec, &PkgType::PerlDist).unwrap();
+    let dep_perldist_string = gen_dep_string(&dep_perldist_vec, &PkgType::PerlDist);
 
     assert_eq!(
         dep_perldist_string.lines().last().unwrap(),
@@ -252,7 +252,7 @@ fn test_determine_gem_run_deps() {
     let mut dep_string = String::new();
 
     for x in rubygem_deps {
-        dep_string.push_str(&determine_gem_run_deps(&x).unwrap());
+        dep_string.push_str(&determine_gem_run_deps(&x));
         dep_string.push_str(" ");
     }
 
@@ -323,4 +323,8 @@ fn test_template_updater() {
         .unwrap();
 
     assert_eq!(tmpl_string_crate, include_str!("template_test_crate.in"));
+}
+
+fn set_git_details() {
+
 }

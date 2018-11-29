@@ -39,7 +39,7 @@ pub fn missing_field_s(field_name: &str) -> String {
 pub fn figure_out_provider(
     tmpl_type: Option<PkgType>,
     pkg_name: &str,
-) -> Result<PkgType, failure::Error> {
+) -> Result<PkgType, Error> {
     if tmpl_type.is_none() {
         let crate_status = crates_io_api::SyncClient::new()
             .get_crate(&pkg_name)
@@ -53,7 +53,7 @@ pub fn figure_out_provider(
             || (crate_status && perldist_status)
             || (gem_status && perldist_status)
         {
-            Err(format_err!("Found a package matching the specified package {} on multiple platforms! Please explicitly choose one via the `-t` parameter!", &pkg_name))
+            Err(Error::AmbPkg(pkg_name.to_string()))
         } else if crate_status {
             debug!("Determined the target package {} to be a crate", &pkg_name);
             Ok(PkgType::Crate)
@@ -67,7 +67,7 @@ pub fn figure_out_provider(
             debug!("Determined the target package to be a perldist");
             Ok(PkgType::PerlDist)
         } else {
-            Err(format_err!("Unable to determine what type of the target package {} is! Make sure you've spelled the package name correctly!", &pkg_name))
+            Err(Error::NoSuchPkg(pkg_name.to_string()))
         }
     } else {
         Ok(tmpl_type.unwrap())
@@ -76,7 +76,7 @@ pub fn figure_out_provider(
 
 // Handle getting the necessary info and writing a template for it. Invoked every time a template
 // should be written, useful for recursive deps.
-pub fn template_handler(pkg_info: &PkgInfo, pkg_type: &PkgType,force_overwrite: bool, is_rec: bool) -> Result<(), failure::Error> {
+pub fn template_handler(pkg_info: &PkgInfo, pkg_type: &PkgType,force_overwrite: bool, is_rec: bool) -> Result<(), Error> {
     let pkg_name = &pkg_info.pkg_name;
 
     info!(
@@ -100,14 +100,11 @@ pub fn template_handler(pkg_info: &PkgInfo, pkg_type: &PkgType,force_overwrite: 
 }
 
 // Figure out where to write template files with `xdistdir`
-pub fn xdist_files() -> Result<String, failure::Error> {
+pub fn xdist_files() -> Result<String, Error> {
     let xdistdir = Command::new("sh").args(&["-c", "xdistdir"]).output()?;
 
     if !xdistdir.status.success() {
-        return Err(format_err!(
-            "xdistdir: exited with a non-0 exit code: {}",
-            from_utf8(&xdistdir.stderr).unwrap()
-        ));
+        return Err(Error::XdistError(from_utf8(&xdistdir.stderr).unwrap().to_string()));
     }
 
     Ok(format!(
@@ -266,7 +263,7 @@ pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool) 
     (crate_name, tmpl_type, force_overwrite, is_verbose, is_debug, update_ver_only, update_all)
 }
 
-pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> Result<String, Error> {
+pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
     let mut dep_string = String::new();
 
     for x in dep_vec {
@@ -295,12 +292,12 @@ pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> Result<String, 
         }
     }
 
-    Ok(dep_string)
+    dep_string
 }
 
 // TODO: Doing it this way means that all error using this function will show up as "ERROR tmplgen::helpers" in env_logger
 pub fn err_handler(err_string: &str) {
-    error!("{:?}", err_string);
+    error!("{}", err_string);
     exit(1);
 }
 
@@ -337,6 +334,14 @@ pub fn get_git_author() -> Result<String, Error> {
     let git_mail = Command::new("git")
         .args(&["config", "user.email"])
         .output()?;
+
+    if ! git_author.status.success() {
+        return Err(Error::GitError(from_utf8(&git_author.stderr)?.to_string()));
+    }
+
+    if ! git_mail.status.success() {
+        return Err(Error::GitError(from_utf8(&git_mail.stderr)?.to_string()));
+    }
 
     let mut maintainer = format!(
         "{} <{}>",
