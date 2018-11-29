@@ -24,7 +24,7 @@ pub fn write_template(
     pkg_info: &PkgInfo,
     force_overwrite: bool,
     tmpl_type: &PkgType,
-) -> Result<(), failure::Error> {
+) -> Result<(), Error> {
     let template_in = include_str!("template.in");
 
     let maintainer= get_git_author()?;
@@ -52,13 +52,13 @@ pub fn write_template(
         .replace(
             "@checksum@",
             pkg_info.sha.as_ref().unwrap_or(&"".to_string()),
-        );;
+        );
 
     if pkg_info.dependencies.is_some() {
         let dependencies = pkg_info.dependencies.as_ref().unwrap();
 
         if dependencies.host.is_some() {
-            let host_depends = gen_dep_string(dependencies.host.as_ref().unwrap(), tmpl_type)?;
+            let host_depends = gen_dep_string(dependencies.host.as_ref().unwrap(), tmpl_type);
             template_string =
                 template_string.replace("@hostmakedepends@", &host_depends.trim_end());
         } else {
@@ -66,13 +66,13 @@ pub fn write_template(
                 template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
         }
         if dependencies.make.is_some() {
-            let make_depends = gen_dep_string(dependencies.make.as_ref().unwrap(), tmpl_type)?;
+            let make_depends = gen_dep_string(dependencies.make.as_ref().unwrap(), tmpl_type);
             template_string = template_string.replace("@makedepends@", &make_depends.trim_end());
         } else {
             template_string = template_string.replace("\nmakedepends=\"@makedepends@\"", "");
         }
         if dependencies.run.is_some() {
-            let run_depends = gen_dep_string(dependencies.run.as_ref().unwrap(), tmpl_type)?;
+            let run_depends = gen_dep_string(dependencies.run.as_ref().unwrap(), tmpl_type);
             template_string = template_string.replace("@depends@", &run_depends.trim_end());
         } else {
             template_string = template_string.replace("\ndepends=\"@depends@\"", "");
@@ -122,10 +122,10 @@ pub fn write_template(
     let xdist_template_path = format!("{}{}", xdist_files()?, &pkg_info.pkg_name);
 
     if Path::new(&format!("{}/template", &xdist_template_path)).exists() && !force_overwrite {
-        return Err(format_err!(
+        return Err(Error::TmplWriter(format!(
             "Won't overwrite existing template '{}/template' without `--force`!",
             &xdist_template_path,
-        ));
+        )));
     }
 
     info!("Writing template to path {}/template", &xdist_template_path);
@@ -138,7 +138,7 @@ pub fn write_template(
     Ok(())
 }
 
-pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), failure::Error> {
+pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), Error> {
     let xdist_template = format!("{}{}/template", xdist_files()?, &pkg_info.pkg_name);
 
     if Path::new(&xdist_template).exists() {
@@ -201,11 +201,9 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), failu
             let mut template_file = File::create(&xdist_template)?;
             template_file.write_all(template_string.as_bytes())?;
 
-        } else {
-            return Err(format_err!("Couldn't retrieve PkgInfo!"));
         }
     } else {
-        return Err(format_err!("Template doesn't exist yet; can't update a non-existant template!"));
+        return Err(Error::TmplUpdater("Template doesn't exist yet; can't update a non-existant template!".to_string()));
     }
 
     Ok(())

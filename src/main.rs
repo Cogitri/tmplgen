@@ -57,8 +57,8 @@ fn main() {
     }
 
     let pkg_type = figure_out_provider(tmpl_type, &pkg_name)
-        .map_err(|e| err_handler(&e.to_string()))
-        .unwrap();
+        .map_err(|e| err_handler(&(e.to_string())))
+            .unwrap();
 
     // We don't want to generate templates for packages that are
     // built-in into perl/ruby
@@ -66,11 +66,17 @@ fn main() {
         return;
     }
 
-    let pkg_info = get_pkginfo(&pkg_name, &pkg_type).map_err(|e| err_handler(&format!("Failed to query package {}: {}", pkg_name, e.to_string()))).unwrap();
+    let pkg_info = get_pkginfo(&pkg_name, &pkg_type)
+        .map_err(|e| err_handler(&(e.to_string())))
+        .unwrap();
 
     if is_update_ver || is_update_all {
-        update_template(&pkg_info, is_update_all).map_err(|e| err_handler(&format!("Failed to update template: {}", e.to_string()))).unwrap();
+        update_template(&pkg_info, is_update_all)
+            .map_err(|e| err_handler(&(e.to_string())))
+            .unwrap();
     } else {
-        template_handler(&pkg_info, &pkg_type, force_overwrite, false).map_err(|e| err_handler(&format!("Failed to write the template for package {} of type {:?}: {}", pkg_name, pkg_type, e.to_string()))).unwrap();
+        template_handler(&pkg_info, &pkg_type, force_overwrite, false)
+            .map_err(|e| err_handler(&(e.to_string())))
+            .unwrap();
     }
 }
