@@ -33,7 +33,7 @@ pub enum Error {
     TmplWriter(String),
     #[fail(display = "Failed to update the template! Error: {:?}", _0)]
     TmplUpdater(String),
-    #[fail(display = "Failed to determine git username/email! Error: {:?}", _0)]
+    #[fail(display = "Failed to determine git username/email from environment or git config! Error: {:?}", _0)]
     GitError(String),
     #[fail(display = "Failed to determine XBPS_XDISTDIR: {:?}", _0)]
     XdistError(String),

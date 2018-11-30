@@ -18,6 +18,7 @@ use crates::*;
 use env_logger::Builder;
 use gems::*;
 use perldist::*;
+use std::env::var_os;
 use std::path::Path;
 use std::process::{exit, Command};
 use std::str::from_utf8;
@@ -328,25 +329,34 @@ pub fn get_pkginfo(pkg_name: &str, pkg_type: &PkgType) -> Result<PkgInfo, Error>
 }
 
 pub fn get_git_author() -> Result<String, Error> {
-    let git_author = Command::new("git")
-        .args(&["config", "user.name"])
-        .output()?;
-    let git_mail = Command::new("git")
-        .args(&["config", "user.email"])
-        .output()?;
+    let git_author_env =  var_os("GIT_AUTHOR_NAME");
+    let git_email_env =  var_os("GIT_AUTHOR_EMAIL");
 
-    if ! git_author.status.success() {
-        return Err(Error::GitError(from_utf8(&git_author.stderr)?.to_string()));
-    }
+    let git_details = if git_author_env.is_some() && git_email_env.is_some() {
+        ( git_author_env.unwrap().to_str().unwrap().to_string(), git_email_env.unwrap().to_str().unwrap().to_string())
+    } else {
+        let git_author = Command::new("git")
+            .args(&["config", "user.name"])
+            .output()?;
+        let git_mail = Command::new("git")
+            .args(&["config", "user.email"])
+            .output()?;
 
-    if ! git_mail.status.success() {
-        return Err(Error::GitError(from_utf8(&git_mail.stderr)?.to_string()));
-    }
+        if !git_author.status.success() {
+            return Err(Error::GitError(from_utf8(&git_author.stderr)?.to_string()));
+        }
+
+        if !git_mail.status.success() {
+            return Err(Error::GitError(from_utf8(&git_mail.stderr)?.to_string()));
+        }
+
+        (from_utf8(&git_author.stdout)?.to_string(), from_utf8(&git_mail.stdout)?.to_string())
+    };
 
     let mut maintainer = format!(
         "{} <{}>",
-        from_utf8(&git_author.stdout)?,
-        from_utf8(&git_mail.stdout)?,
+        git_details.0,
+        git_details.1,
     );
 
     maintainer = maintainer.replace("\n", "");
