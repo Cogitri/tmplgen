@@ -1,8 +1,14 @@
 # TODO
 
-## Error checking
-* Generally don't assume that stuff's going right
-* Make sure that user facing errors are pretty and don't throw a backtrace or similar
+
+## Checksums
+* Display a neat progress bar during downloads
 
 ## Crates
 * Figure out native dependencies for recursive deps
+
+## Doc
+* Add a manpage
+
+## Updating
+* Think of something smart to not download distfiles twice if the template uses a different distfile than pkg_info.download_url
