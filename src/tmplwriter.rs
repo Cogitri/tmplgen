@@ -49,10 +49,7 @@ pub fn write_template(
         .replace("@homepage@", &pkg_info.homepage)
         .replace("@maintainer@", &maintainer)
         .replace("@pkgname@", &pkg_info.pkg_name)
-        .replace(
-            "@checksum@",
-            pkg_info.sha.as_ref().unwrap_or(&"".to_string()),
-        );
+        .replace("@checksum@", &pkg_info.sha);
 
     if pkg_info.dependencies.is_some() {
         let dependencies = pkg_info.dependencies.as_ref().unwrap();

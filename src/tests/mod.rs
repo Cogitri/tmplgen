@@ -54,7 +54,7 @@ fn test_tmplwriter_correctness() {
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: vec!["GPL-3.0-or-later".to_string()],
         dependencies: None,
-        sha: None,
+        sha: "dummy_sha".to_string(),
         download_url: Some(
             "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
         ),
@@ -118,7 +118,7 @@ fn test_tmplwriter_correctness() {
                 "Class::Load".to_string(),
             ]),
         }),
-        sha: None,
+        sha: "dummy_char".to_string(),
         download_url: Some(
             "https://cpan.metacpan.org/authors/id/E/ET/ETHER/Moose-${version}.tar.gz".to_string(),
         ),
@@ -295,7 +295,7 @@ fn test_template_updater() {
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: vec!["GPL-3.0-or-later".to_string()],
         dependencies: None,
-        sha: None,
+        sha: "dummy_sha".to_string(),
         download_url: Some(
             "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
         ),
@@ -308,7 +308,7 @@ fn test_template_updater() {
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: vec!["GPL-3.0-or-later".to_string()],
         dependencies: None,
-        sha: None,
+        sha: "dummy_sha".to_string(),
         download_url: Some(
             "This Shouldn't be here".to_string(),
         ),

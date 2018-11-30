@@ -36,7 +36,7 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
             .license
             .unwrap_or_else(|| vec![missing_field_s("license")]),
         dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())),
-        sha: Some(write_checksum(&query_result.download_url)?),
+        sha: write_checksum(&query_result.download_url)?,
         download_url: Some(download_url),
     };
 

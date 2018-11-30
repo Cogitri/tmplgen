@@ -54,7 +54,7 @@ pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
             make: None,
             run: gem_run_deps,
         }),
-        sha: Some(query_result.sha),
+        sha: query_result.sha,
         download_url: None,
     };
 
