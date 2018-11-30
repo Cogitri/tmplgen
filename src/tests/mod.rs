@@ -4,11 +4,18 @@ use gems::*;
 use helpers::*;
 use perldist::*;
 use rubygems_api::GemRunDeps;
-use std::env;
+use std::env::set_var;
 use std::fs::File;
 use std::io::prelude::*;
 use tmplwriter::*;
 use types::*;
+
+fn set_env() {
+    set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
+    set_var("HOME", "/tmp/tmplgen-tests");
+    set_var("GIT_AUTHOR_NAME", "tmplgentests");
+    set_var("GIT_AUTHOR_EMAIL", "tmplgentests@github.com")
+}
 
 #[test]
 fn test_query_crate() {
@@ -35,6 +42,10 @@ fn test_tmplwriter_correctness() {
         .default_format_timestamp(false)
         .init();
 
+    set_env();
+
+    let test_path = "/tmp/tmplgen-tests";
+
     let pkg_info_crate = PkgInfo {
         pkg_name: "tmplgen".to_string(),
         version: "0.3.1".to_string(),
@@ -48,11 +59,6 @@ fn test_tmplwriter_correctness() {
             "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
         ),
     };
-
-    let test_path = "/tmp/tmplgen-tests";
-
-    env::set_var("XBPS_DISTDIR", test_path);
-    env::set_var("HOME", test_path);
 
     write_template(&pkg_info_crate, true, &PkgType::Crate).unwrap();
 
@@ -217,14 +223,14 @@ fn test_crate_check_native_deps() {
 //TODO: Improve the below test to test recursive deps
 #[test]
 fn test_gem_dep_graph() {
-    env::set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
+    set_env();
     assert!(gem_dep_graph("ffi").is_ok())
 }
 
 //TODO: Improve the below test to test recursive deps
 #[test]
 fn test_perl_dep_graph() {
-    env::set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
+    set_env();
     assert!(perldist_dep_graph("Moose").is_ok())
 }
 
@@ -264,10 +270,9 @@ fn test_determine_gem_run_deps() {
 
 #[test]
 fn test_xdist_files() {
-    let test_path = "/tmp/tmplgen-tests";
+    set_var("XBPS_DISTDIR", "~/test");
+    set_var("HOME", "/tmp/tmplgen-tests");
 
-    env::set_var("XBPS_DISTDIR", "~/test");
-    env::set_var("HOME", test_path);
 
     assert_eq!(xdist_files().unwrap(), "/tmp/tmplgen-tests/test/srcpkgs/")
 }
@@ -280,8 +285,7 @@ fn test_correct_license() {
 
 #[test]
 fn test_template_updater() {
-    env::set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
-    env::set_var("HOME", "/tmp/tmplgen-tests");
+    set_env();
 
     let pkg_info_good = PkgInfo {
         pkg_name: "tmplgen".to_string(),
@@ -327,5 +331,7 @@ fn test_template_updater() {
 
 #[test]
 fn test_get_git_author() {
-    assert!(get_git_author().is_ok());
+    set_env();
+
+    assert_eq!(&get_git_author().unwrap(), "tmplgentests <tmplgentests@github.com>");
 }

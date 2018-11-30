@@ -18,7 +18,7 @@ depends="perl-Devel-PartialDump perl-Data-OptList perl-Class-Load-XS
  perl-Module-Runtime-Conflicts perl-Dist-CheckConflicts perl-strict
  perl-Class-Load"
 short_desc="A postmodern object system for Perl 5"
-maintainer=" <>"
+maintainer="tmplgentests <tmplgentests@github.com>"
 license="Artistic-1.0-Perl, GPL-1.0-or-later"
 homepage="http://moose.perl.org/"
 distfiles="https://cpan.metacpan.org/authors/id/E/ET/ETHER/Moose-${version}.tar.gz"
