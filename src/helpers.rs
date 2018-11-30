@@ -121,9 +121,6 @@ pub fn xdist_files() -> Result<String, Error> {
         from_utf8(&xdistdir.stdout)?.replace("\n", "").replace(
             "~",
             &std::env::var("HOME")
-                .map_err(|_| err_handler(
-                    "Please either replace '~' with your homepath or export HOME"
-                ))
                 .unwrap()
         ),
     ))
@@ -305,8 +302,8 @@ pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
 }
 
 // TODO: Doing it this way means that all error using this function will show up as "ERROR tmplgen::helpers" in env_logger
-pub fn err_handler(err_string: &str) {
-    error!("{}", err_string);
+pub fn err_handler(error: &Error) {
+    error!("{}", error.to_string());
     exit(1);
 }
 

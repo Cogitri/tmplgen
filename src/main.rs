@@ -57,7 +57,7 @@ fn main() {
     }
 
     let pkg_type = figure_out_provider(tmpl_type, &pkg_name)
-        .map_err(|e| err_handler(&(e.to_string())))
+        .map_err(|e| err_handler(&e))
             .unwrap();
 
     // We don't want to generate templates for packages that are
@@ -67,16 +67,16 @@ fn main() {
     }
 
     let pkg_info = get_pkginfo(&pkg_name, &pkg_type)
-        .map_err(|e| err_handler(&(e.to_string())))
+        .map_err(|e| err_handler(&e))
         .unwrap();
 
     if is_update_ver || is_update_all {
         update_template(&pkg_info, is_update_all)
-            .map_err(|e| err_handler(&(e.to_string())))
+            .map_err(|e| err_handler(&e))
             .unwrap();
     } else {
         template_handler(&pkg_info, &pkg_type, force_overwrite, false)
-            .map_err(|e| err_handler(&(e.to_string())))
+            .map_err(|e| err_handler(&e))
             .unwrap();
     }
 }
