@@ -116,14 +116,30 @@ pub fn xdist_files() -> Result<String, Error> {
         return Err(Error::XdistError(from_utf8(&xdistdir.stderr).unwrap().to_string()));
     }
 
-    Ok(format!(
-        "{}/srcpkgs/",
-        from_utf8(&xdistdir.stdout)?.replace("\n", "").replace(
-            "~",
-            &std::env::var("HOME")
-                .unwrap()
+    let xdistdir_string = from_utf8(&xdistdir.stdout)?;
+
+    if xdistdir_string.contains("~") {
+        let home_dir = std::env::var("HOME");
+
+        if home_dir.is_err() {
+            return Err(Error::XdistError("Please either replace '~' with your homepath in XBPS_XDISTDIR or export HOME".to_string()));
+        }
+
+        let xdistdir_path =  &from_utf8(&xdistdir.stdout)?.replace("~", &home_dir.ok().unwrap());
+
+        return Ok(format!(
+            "{}/srcpkgs/",
+            xdistdir_path.replace("\n", ""),
         ),
-    ))
+        );
+    } else {
+        return Ok(format!(
+            "{}/srcpkgs/",
+            xdistdir_string.replace("\n", ""),
+        ),
+        );
+    }
+
 }
 
 // Generic function to handle recursive deps.
