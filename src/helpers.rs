@@ -363,3 +363,15 @@ pub fn get_git_author() -> Result<String, Error> {
 
     Ok(maintainer)
 }
+
+pub fn write_checksum(tmpl_path: &str) -> Result<(), Error> {
+    let xgensum = Command::new("xgensum")
+        .args(&["-i", tmpl_path])
+        .output()?;
+
+    if ! xgensum.status.success() {
+        return Err(Error::XgenError(from_utf8(&xgensum.stderr)?.to_string()))
+    }
+
+    Ok(())
+}
