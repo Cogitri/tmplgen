@@ -11,6 +11,18 @@ pub fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
 
     debug!("crates.io query result: {:?}", query_result,);
 
+    let download_url = format!(
+        "https://static.crates.io/crates/{name}/{name}-${{version}}.crate",
+        name = &crate_name,
+    );
+
+    // We don't want to have $-{version} in our download_url
+    let sha_download_url = format!(
+        "https://static.crates.io/crates/{name}/{name}-{version}.crate",
+        name = &crate_name,
+        version = query_result.max_version,
+    );
+
     let pkg_info = PkgInfo {
         pkg_name: crate_name.to_string(),
         version: query_result.max_version,
@@ -24,11 +36,8 @@ pub fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
             .license
             .unwrap_or_else(|| missing_field_s("license"))],
         dependencies: crate_deps,
-        sha: None,
-        download_url: Some(format!(
-            "https://static.crates.io/crates/{name}/{name}-${{version}}.crate",
-            name = &crate_name,
-        )),
+        sha: Some(write_checksum(&sha_download_url)?),
+        download_url: Some(download_url),
     };
 
     debug!("All pkg related info: {:?}", pkg_info);

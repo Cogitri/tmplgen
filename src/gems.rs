@@ -141,7 +141,7 @@ pub fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> String 
             .collect::<Vec<_>>()[1],
     );
 
-    let ver_req = match cmpr.as_ref() {
+    match cmpr.as_ref() {
         ">" | "<" | "<=" => "ruby-".to_string() + &rubygem_dep.name + &cmpr + &ver,
         ">=" => {
             if ver == "0" {
@@ -152,7 +152,5 @@ pub fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> String 
         }
         "~>" => "ruby-".to_string() + &rubygem_dep.name + ">=" + &ver,
         _ => "ruby-".to_string() + &rubygem_dep.name,
-    };
-
-    ver_req
+    }
 }

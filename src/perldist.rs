@@ -12,8 +12,7 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
         Err(_e) => client.perl_info(
             &client
                 .get_dist(&perldist_name)
-                .map_err(|e| return Error::PerlDist(e.to_string()))
-                .unwrap(),
+                .map_err(|e| Error::PerlDist(e.to_string()))?
         )?,
     };
 
@@ -37,7 +36,7 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
             .license
             .unwrap_or_else(|| vec![missing_field_s("license")]),
         dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())),
-        sha: None,
+        sha: Some(write_checksum(&query_result.download_url)?),
         download_url: Some(download_url),
     };
 
