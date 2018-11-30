@@ -27,6 +27,8 @@ extern crate metacpan_api;
 extern crate serde;
 extern crate serde_json;
 extern crate rubygems_api;
+extern crate sha2;
+extern crate reqwest;
 
 mod crates;
 mod gems;

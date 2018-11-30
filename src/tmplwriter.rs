@@ -85,7 +85,8 @@ pub fn write_template(
 
     if pkg_info.download_url.is_some() {
         template_string =
-            template_string.replace("@distfiles@", &pkg_info.download_url.as_ref().unwrap())
+            template_string.replace("@distfiles@", &pkg_info.download_url.as_ref().unwrap());
+
     } else {
         template_string = template_string.replace("\ndistfiles=\"@distfiles@\"", "")
     }
@@ -135,12 +136,12 @@ pub fn write_template(
 
     file.write_all(template_string.as_bytes())?;
 
-    write_checksum(&format!("{}/template", &xdist_template_path))?;
-
     Ok(())
 }
 
 pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), Error> {
+    info!("Updating template {}", &pkg_info.pkg_name);
+
     let xdist_template = format!("{}{}/template", xdist_files()?, &pkg_info.pkg_name);
 
     if Path::new(&xdist_template).exists() {
@@ -149,11 +150,14 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), Error
         template_file.read_to_string(&mut template_string)?;
 
         let mut orig_ver_string = String::new();
+        let mut orig_checksum_string = String::new();
 
         for x in template_string.lines() {
             if x.contains("version=") {
                 orig_ver_string = x.to_string();
-                break;
+            }
+            if x.contains("checksum=") {
+                orig_checksum_string = x.to_string();
             }
         }
 
@@ -176,6 +180,8 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), Error
         }
 
         template_string = template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
+        template_string = template_string.replace(&orig_checksum_string, &format!("checksum={}", &pkg_info.sha));
+
         if update_all {
             if orig_homepage_string.is_empty() {
                 warn!("Couldn't find 'homepage' string and as such won't update it!");
@@ -202,7 +208,6 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), Error
 
             let mut template_file = File::create(&xdist_template)?;
             template_file.write_all(template_string.as_bytes())?;
-
         }
     } else {
         return Err(Error::TmplUpdater("Template doesn't exist yet; can't update a non-existant template!".to_string()));

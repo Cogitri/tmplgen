@@ -21,6 +21,8 @@ metacpan_api = "^0.3.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 serde = "1.0"
+sha2 = "0.8.0"
+reqwest = "0.9.5"
 
 [dev-dependencies]
 cargo-husky = {version = "^1.2.0", features = ["precommit-hook", "run-cargo-test"]}

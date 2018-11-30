@@ -18,6 +18,7 @@ use crates::*;
 use env_logger::Builder;
 use gems::*;
 use perldist::*;
+use sha2::{Digest, Sha256};
 use std::env::var_os;
 use std::path::Path;
 use std::process::{exit, Command};
@@ -118,7 +119,7 @@ pub fn xdist_files() -> Result<String, Error> {
 
     let xdistdir_string = from_utf8(&xdistdir.stdout)?;
 
-    if xdistdir_string.contains("~") {
+    if xdistdir_string.contains('~') {
         let home_dir = std::env::var("HOME");
 
         if home_dir.is_err() {
@@ -127,17 +128,15 @@ pub fn xdist_files() -> Result<String, Error> {
 
         let xdistdir_path =  &from_utf8(&xdistdir.stdout)?.replace("~", &home_dir.ok().unwrap());
 
-        return Ok(format!(
+        Ok(format!(
             "{}/srcpkgs/",
             xdistdir_path.replace("\n", ""),
-        ),
-        );
+        ))
     } else {
-        return Ok(format!(
+        Ok(format!(
             "{}/srcpkgs/",
             xdistdir_string.replace("\n", ""),
-        ),
-        );
+        ))
     }
 
 }
@@ -298,9 +297,9 @@ pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
         // space to the new line.
         // Otherwise, we want to add a space to the string (to seperate two deps),
         // but we don't want to introduce leading whitespace
-        if &last_line_ln >= &65 {
+        if last_line_ln >= 65 {
             dep_string.push_str("\n ");
-        } else if &last_line_ln > &x.len() {
+        } else if last_line_ln > x.len() {
             dep_string.push_str(" ");
         }
 
@@ -385,14 +384,30 @@ pub fn get_git_author() -> Result<String, Error> {
     Ok(maintainer)
 }
 
-pub fn write_checksum(tmpl_path: &str) -> Result<(), Error> {
-    let xgensum = Command::new("xgensum")
-        .args(&["-i", tmpl_path])
-        .output()?;
+pub fn write_checksum(dwnld_url: &str) -> Result<String, Error> {
+    debug!("GET: {}", dwnld_url);
 
-    if ! xgensum.status.success() {
-        return Err(Error::XgenError(from_utf8(&xgensum.stderr)?.to_string()))
+    let mut hasher = Sha256::new();
+
+    info!("Downloading distfile to generate checksum...");
+
+    let resp = reqwest::get(dwnld_url);
+
+    if resp.is_err() {
+        return Err(Error::ShaError(resp.unwrap_err().to_string()));
     }
 
-    Ok(())
+    let mut hasher = Sha256::new();
+
+    let hash_res = resp.unwrap().copy_to(&mut hasher);
+
+    if hash_res.is_err() {
+        return Err(Error::ShaError(hash_res.unwrap_err().to_string()));
+    }
+
+    let hash = hasher.result();
+
+    debug!("Hash: {:x}", &hash);
+
+    Ok(format!("{:x}", &hash))
 }
