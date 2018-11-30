@@ -157,6 +157,9 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool, force_overwrite: bo
             if x.contains("checksum=") {
                 orig_checksum_string = x.to_string();
             }
+            if x.contains("distfiles=") {
+                orig_distfiles_string = x.to_string();
+            }
         }
 
         if &pkg_info.version == &orig_ver_string.replace("version=", "") {
@@ -167,10 +170,12 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool, force_overwrite: bo
             }
         }
 
-        let mut orig_homepage_string = String::new();
-        let mut orig_description_string = String::new();
+        template_string = template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
 
         if update_all {
+            let mut orig_homepage_string = String::new();
+            let mut orig_description_string = String::new();
+
             for x in template_string.lines() {
                 if x.contains("homepage=") {
                     orig_homepage_string = x.to_string();
@@ -178,15 +183,8 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool, force_overwrite: bo
                 if x.contains("short_desc=") {
                     orig_description_string = x.to_string();
                 }
-                if x.contains("distfiles=") {
-                    orig_distfiles_string = x.to_string();
-                }
             }
-        }
 
-        template_string = template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
-
-        if update_all {
             template_string = template_string.replace(&orig_checksum_string, &format!("checksum={}", &pkg_info.sha));
 
             if orig_homepage_string.is_empty() {
@@ -209,6 +207,16 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool, force_overwrite: bo
             } else {
                 template_string = template_string.replace(&orig_description_string, &format!("short_desc=\"{}\"", &pkg_info.description));
             }
+        } else {
+            // If we don't update all (and as such also update distfiles) we want to download the
+            // file specified in distfiles and write its checksum to the template
+            let tmpl_download_url = &orig_distfiles_string.replace("distfiles=", "").replace("${version}", &pkg_info.version).replace("\"", "");
+
+            if &pkg_info.download_url.as_ref().unwrap_or(&"".to_string()) == &tmpl_download_url {
+                template_string = template_string.replace(&orig_checksum_string, &format!("checksum={}", &pkg_info.sha));
+            } else {
+                template_string = template_string.replace(&orig_checksum_string, &format!("checksum={}", write_checksum(tmpl_download_url)?));
+            };
         }
 
         let mut template_file = File::create(&xdist_template)?;
