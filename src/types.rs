@@ -14,6 +14,7 @@
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
 use failure::Fail;
+use serde_derive::Deserialize;
 
 #[derive(Fail, Debug)]
 pub enum Error {

@@ -13,11 +13,12 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
-use helpers::*;
+use crate::helpers::*;
 use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
 use std::path::Path;
-use types::*;
+use crate::types::*;
+use log::{info, warn};
 
 // Writes the PkgInfo to a file called "template"
 pub fn write_template(

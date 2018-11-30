@@ -13,18 +13,19 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
-use clap::App;
-use crates::*;
+use clap::{load_yaml, App};
+use crate::crates::*;
 use env_logger::Builder;
-use gems::*;
-use perldist::*;
+use crate::gems::*;
+use crate::perldist::*;
 use sha2::{Digest, Sha256};
 use std::env::var_os;
 use std::path::Path;
 use std::process::{exit, Command};
 use std::str::from_utf8;
-use tmplwriter::*;
-use types::*;
+use crate::tmplwriter::*;
+use crate::types::*;
+use log::{debug, error, info, warn};
 
 pub fn missing_field_s(field_name: &str) -> String {
     warn!(

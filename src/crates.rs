@@ -1,5 +1,6 @@
-use helpers::*;
-use types::*;
+use crate::helpers::*;
+use crate::types::*;
+use log::debug;
 
 // Query the crates.io API. Returns a PkgInfo that contains all important info
 pub fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {

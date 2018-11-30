@@ -13,8 +13,9 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
-use helpers::*;
-use types::*;
+use crate::helpers::*;
+use crate::types::*;
+use log::debug;
 
 // Returns a PkgInfo object that contains all the info relevant for us
 pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {

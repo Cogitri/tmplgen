@@ -1,5 +1,6 @@
-use helpers::*;
-use types::*;
+use crate::helpers::*;
+use crate::types::*;
+use log::debug;
 
 // Query the metacpan.org API. Returns a PkgInfo that contains all important info
 pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {

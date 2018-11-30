@@ -9,6 +9,7 @@ readme = "README.md"
 license = "GPL-3.0-or-later"
 keywords = ["binary", "cli", "linux", "void-linux"]
 categories = ["command-line-utilities"]
+edition = "2018"
 
 [dependencies]
 crates_io_api = { path="vendor/crates_io_api", version="0.3.0" }

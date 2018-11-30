@@ -1,14 +1,14 @@
-use crates::*;
+use super::crates::*;
 use env_logger::Builder;
-use gems::*;
-use helpers::*;
-use perldist::*;
+use super::gems::*;
+use super::helpers::*;
+use super::perldist::*;
 use rubygems_api::GemRunDeps;
 use std::env::set_var;
 use std::fs::File;
 use std::io::prelude::*;
-use tmplwriter::*;
-use types::*;
+use super::tmplwriter::*;
+use super::types::*;
 
 fn set_env() {
     set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
