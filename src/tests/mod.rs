@@ -118,7 +118,7 @@ fn test_tmplwriter_correctness() {
                 "Class::Load".to_string(),
             ]),
         }),
-        sha: "dummy_char".to_string(),
+        sha: "dummy_sha".to_string(),
         download_url: Some(
             "https://cpan.metacpan.org/authors/id/E/ET/ETHER/Moose-${version}.tar.gz".to_string(),
         ),
@@ -316,7 +316,7 @@ fn test_template_updater() {
 
     write_template(&pkg_info_bad, true, &PkgType::Crate).unwrap();
 
-    update_template(&pkg_info_good, true).unwrap();
+    update_template(&pkg_info_good, true, false).unwrap();
 
     let mut tmpl_file_crate = File::open("/tmp/tmplgen-tests/srcpkgs/tmplgen/template").unwrap();
 
