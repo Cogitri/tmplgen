@@ -17,29 +17,29 @@ use failure::Fail;
 
 #[derive(Fail, Debug)]
 pub enum Error {
-    #[fail(display = "Failed to read/write the template! Error: {:?}", _0 )]
+    #[fail(display = "Failed to read/write the template! Error: {}", _0 )]
     File(String),
-    #[fail(display = "Failed to query the crate! Error: {:?}", _0)]
+    #[fail(display = "Failed to query the crate! Error: {}", _0)]
     Crate(String),
-    #[fail(display = "Failed to query the gem! Error: {:?}", _0)]
+    #[fail(display = "Failed to query the gem! Error: {}", _0)]
     Gem(String),
-    #[fail(display = "Failed to query the perldist! Error: {:?}", _0)]
+    #[fail(display = "Failed to query the perldist! Error: {}", _0)]
     PerlDist(String),
-    #[fail(display = "Failed to convert UTF-8 to a string! Error: {:?}", _0)]
+    #[fail(display = "Failed to convert UTF-8 to a string! Error: {}", _0)]
     UTF8(String),
-    #[fail(display = "Error: {:?}", _0)]
+    #[fail(display = "Error: {}", _0)]
     Failure(String),
-    #[fail(display = "Failed to write the template! Error: {:?}", _0 )]
+    #[fail(display = "Failed to write the template! Error: {}", _0 )]
     TmplWriter(String),
-    #[fail(display = "Failed to update the template! Error: {:?}", _0)]
+    #[fail(display = "Failed to update the template! Error: {}", _0)]
     TmplUpdater(String),
-    #[fail(display = "Failed to determine git username/email from environment or git config! Error: {:?}", _0)]
+    #[fail(display = "Failed to determine git username/email from environment or git config! Error: {}", _0)]
     GitError(String),
-    #[fail(display = "Failed to determine XBPS_XDISTDIR: {:?}", _0)]
+    #[fail(display = "Failed to determine XBPS_XDISTDIR: {}", _0)]
     XdistError(String),
-    #[fail(display = "Found a package matching the specified package {:?} on multiple platforms! Please explicitly choose one via the `-t` parameter!", _0)]
+    #[fail(display = "Found a package matching the specified package {} on multiple platforms! Please explicitly choose one via the `-t` parameter!", _0)]
     AmbPkg(String),
-    #[fail(display = "Unable to determine what type of the target package {:?} is! Make sure you've spelled the package name correctly!", _0)]
+    #[fail(display = "Unable to determine what type of the target package {} is! Make sure you've spelled the package name correctly!", _0)]
     NoSuchPkg(String),
     #[fail(display = "Failed to write checksum to newly written template! Error: {}", _0)]
     XgenError(String),
