@@ -13,19 +13,19 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
-use clap::{load_yaml, App};
 use crate::crates::*;
-use env_logger::Builder;
 use crate::gems::*;
 use crate::perldist::*;
+use crate::tmplwriter::*;
+use crate::types::*;
+use clap::{load_yaml, App};
+use env_logger::Builder;
+use log::{debug, error, info, warn};
 use sha2::{Digest, Sha256};
 use std::env::var_os;
 use std::path::Path;
 use std::process::{exit, Command};
 use std::str::from_utf8;
-use crate::tmplwriter::*;
-use crate::types::*;
-use log::{debug, error, info, warn};
 
 pub fn missing_field_s(field_name: &str) -> String {
     warn!(
@@ -39,10 +39,7 @@ pub fn missing_field_s(field_name: &str) -> String {
 // Figure out whether we're dealing with a crate or a gem if the user hasn't specified that.
 // Errors out of a package with the name the user gave us can be found on both crates.io and
 // rubygems.org
-pub fn figure_out_provider(
-    tmpl_type: Option<PkgType>,
-    pkg_name: &str,
-) -> Result<PkgType, Error> {
+pub fn figure_out_provider(tmpl_type: Option<PkgType>, pkg_name: &str) -> Result<PkgType, Error> {
     if tmpl_type.is_none() {
         let crate_status = crates_io_api::SyncClient::new()
             .get_crate(&pkg_name)
@@ -79,7 +76,12 @@ pub fn figure_out_provider(
 
 // Handle getting the necessary info and writing a template for it. Invoked every time a template
 // should be written, useful for recursive deps.
-pub fn template_handler(pkg_info: &PkgInfo, pkg_type: &PkgType,force_overwrite: bool, is_rec: bool) -> Result<(), Error> {
+pub fn template_handler(
+    pkg_info: &PkgInfo,
+    pkg_type: &PkgType,
+    force_overwrite: bool,
+    is_rec: bool,
+) -> Result<(), Error> {
     let pkg_name = &pkg_info.pkg_name;
 
     info!(
@@ -88,7 +90,9 @@ pub fn template_handler(pkg_info: &PkgInfo, pkg_type: &PkgType,force_overwrite: 
     );
 
     if is_rec {
-        write_template(&pkg_info, force_overwrite, &pkg_type).map_err(|e| warn!("Failed to write the template for dep {}: {}", pkg_name, e)).unwrap_or_default()
+        write_template(&pkg_info, force_overwrite, &pkg_type)
+            .map_err(|e| warn!("Failed to write the template for dep {}: {}", pkg_name, e))
+            .unwrap_or_default()
     } else {
         write_template(&pkg_info, force_overwrite, &pkg_type)?;
     }
@@ -104,7 +108,11 @@ pub fn template_handler(pkg_info: &PkgInfo, pkg_type: &PkgType,force_overwrite: 
     };
 
     if dep_graph.is_err() {
-        warn!("Failed to write templates for all recursive deps of {}! Error: {}", pkg_name, dep_graph.unwrap_err());
+        warn!(
+            "Failed to write templates for all recursive deps of {}! Error: {}",
+            pkg_name,
+            dep_graph.unwrap_err()
+        );
     }
 
     Ok(())
@@ -115,7 +123,9 @@ pub fn xdist_files() -> Result<String, Error> {
     let xdistdir = Command::new("sh").args(&["-c", "xdistdir"]).output()?;
 
     if !xdistdir.status.success() {
-        return Err(Error::XdistError(from_utf8(&xdistdir.stderr).unwrap().to_string()));
+        return Err(Error::XdistError(
+            from_utf8(&xdistdir.stderr).unwrap().to_string(),
+        ));
     }
 
     let xdistdir_string = from_utf8(&xdistdir.stdout)?;
@@ -124,22 +134,18 @@ pub fn xdist_files() -> Result<String, Error> {
         let home_dir = std::env::var("HOME");
 
         if home_dir.is_err() {
-            return Err(Error::XdistError("Please either replace '~' with your homepath in XBPS_XDISTDIR or export HOME".to_string()));
+            return Err(Error::XdistError(
+                "Please either replace '~' with your homepath in XBPS_XDISTDIR or export HOME"
+                    .to_string(),
+            ));
         }
 
-        let xdistdir_path =  &from_utf8(&xdistdir.stdout)?.replace("~", &home_dir.ok().unwrap());
+        let xdistdir_path = &from_utf8(&xdistdir.stdout)?.replace("~", &home_dir.ok().unwrap());
 
-        Ok(format!(
-            "{}/srcpkgs/",
-            xdistdir_path.replace("\n", ""),
-        ))
+        Ok(format!("{}/srcpkgs/", xdistdir_path.replace("\n", ""),))
     } else {
-        Ok(format!(
-            "{}/srcpkgs/",
-            xdistdir_string.replace("\n", ""),
-        ))
+        Ok(format!("{}/srcpkgs/", xdistdir_string.replace("\n", ""),))
     }
-
 }
 
 // Generic function to handle recursive deps.
@@ -282,7 +288,15 @@ pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool) 
 
     let update_all = matches.is_present("update_all");
 
-    (crate_name, tmpl_type, force_overwrite, is_verbose, is_debug, update_ver_only, update_all)
+    (
+        crate_name,
+        tmpl_type,
+        force_overwrite,
+        is_verbose,
+        is_debug,
+        update_ver_only,
+        update_all,
+    )
 }
 
 pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
@@ -332,7 +346,7 @@ pub fn correct_license(license: &str) -> String {
 
     for x in corrected_vals.licenses {
         if license == x.is {
-           return  x.should.to_string();
+            return x.should.to_string();
         }
     }
 
@@ -350,11 +364,14 @@ pub fn get_pkginfo(pkg_name: &str, pkg_type: &PkgType) -> Result<PkgInfo, Error>
 }
 
 pub fn get_git_author() -> Result<String, Error> {
-    let git_author_env =  var_os("GIT_AUTHOR_NAME");
-    let git_email_env =  var_os("GIT_AUTHOR_EMAIL");
+    let git_author_env = var_os("GIT_AUTHOR_NAME");
+    let git_email_env = var_os("GIT_AUTHOR_EMAIL");
 
     let git_details = if git_author_env.is_some() && git_email_env.is_some() {
-        ( git_author_env.unwrap().to_str().unwrap().to_string(), git_email_env.unwrap().to_str().unwrap().to_string())
+        (
+            git_author_env.unwrap().to_str().unwrap().to_string(),
+            git_email_env.unwrap().to_str().unwrap().to_string(),
+        )
     } else {
         let git_author = Command::new("git")
             .args(&["config", "user.name"])
@@ -371,14 +388,13 @@ pub fn get_git_author() -> Result<String, Error> {
             return Err(Error::GitError(from_utf8(&git_mail.stderr)?.to_string()));
         }
 
-        (from_utf8(&git_author.stdout)?.to_string(), from_utf8(&git_mail.stdout)?.to_string())
+        (
+            from_utf8(&git_author.stdout)?.to_string(),
+            from_utf8(&git_mail.stdout)?.to_string(),
+        )
     };
 
-    let mut maintainer = format!(
-        "{} <{}>",
-        git_details.0,
-        git_details.1,
-    );
+    let mut maintainer = format!("{} <{}>", git_details.0, git_details.1,);
 
     maintainer = maintainer.replace("\n", "");
 

@@ -1,14 +1,14 @@
 use super::crates::*;
-use env_logger::Builder;
 use super::gems::*;
 use super::helpers::*;
 use super::perldist::*;
+use super::tmplwriter::*;
+use super::types::*;
+use env_logger::Builder;
 use rubygems_api::GemRunDeps;
 use std::env::set_var;
 use std::fs::File;
 use std::io::prelude::*;
-use super::tmplwriter::*;
-use super::types::*;
 
 fn set_env() {
     set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
@@ -273,14 +273,16 @@ fn test_xdist_files() {
     set_var("XBPS_DISTDIR", "~/test");
     set_var("HOME", "/tmp/tmplgen-tests");
 
-
     assert_eq!(xdist_files().unwrap(), "/tmp/tmplgen-tests/test/srcpkgs/")
 }
 
 #[test]
 fn test_correct_license() {
     assert_eq!(correct_license("GPL-1.0+"), "GPL-1.0-or-later".to_string());
-    assert_eq!(correct_license("perl_5"), "Artistic-1.0-Perl, GPL-1.0-or-later".to_string());
+    assert_eq!(
+        correct_license("perl_5"),
+        "Artistic-1.0-Perl, GPL-1.0-or-later".to_string()
+    );
 }
 
 #[test]
@@ -309,9 +311,7 @@ fn test_template_updater() {
         license: vec!["GPL-3.0-or-later".to_string()],
         dependencies: None,
         sha: "dummy_sha".to_string(),
-        download_url: Some(
-            "This Shouldn't be here".to_string(),
-        ),
+        download_url: Some("This Shouldn't be here".to_string()),
     };
 
     write_template(&pkg_info_bad, true, &PkgType::Crate).unwrap();
@@ -333,5 +333,8 @@ fn test_template_updater() {
 fn test_get_git_author() {
     set_env();
 
-    assert_eq!(&get_git_author().unwrap(), "tmplgentests <tmplgentests@github.com>");
+    assert_eq!(
+        &get_git_author().unwrap(),
+        "tmplgentests <tmplgentests@github.com>"
+    );
 }

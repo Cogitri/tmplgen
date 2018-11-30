@@ -13,7 +13,7 @@ pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
         Err(_e) => client.perl_info(
             &client
                 .get_dist(&perldist_name)
-                .map_err(|e| Error::PerlDist(e.to_string()))?
+                .map_err(|e| Error::PerlDist(e.to_string()))?,
         )?,
     };
 

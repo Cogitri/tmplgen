@@ -14,11 +14,11 @@
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::helpers::*;
+use crate::types::*;
+use log::{info, warn};
 use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
 use std::path::Path;
-use crate::types::*;
-use log::{info, warn};
 
 // Writes the PkgInfo to a file called "template"
 pub fn write_template(
@@ -28,12 +28,12 @@ pub fn write_template(
 ) -> Result<(), Error> {
     let template_in = include_str!("template.in");
 
-    let maintainer= get_git_author()?;
+    let maintainer = get_git_author()?;
 
     let mut license = String::new();
 
     for x in &pkg_info.license {
-        if ! license.is_empty() {
+        if !license.is_empty() {
             license.push_str(", ");
         }
 
@@ -90,7 +90,6 @@ pub fn write_template(
     if pkg_info.download_url.is_some() {
         template_string =
             template_string.replace("@distfiles@", &pkg_info.download_url.as_ref().unwrap());
-
     } else {
         template_string = template_string.replace("\ndistfiles=\"@distfiles@\"", "")
     }
@@ -143,7 +142,11 @@ pub fn write_template(
     Ok(())
 }
 
-pub fn update_template(pkg_info: &PkgInfo, update_all: bool, force_overwrite: bool) -> Result<(), Error> {
+pub fn update_template(
+    pkg_info: &PkgInfo,
+    update_all: bool,
+    force_overwrite: bool,
+) -> Result<(), Error> {
     info!("Updating template {}", &pkg_info.pkg_name);
 
     let xdist_template = format!("{}{}/template", xdist_files()?, &pkg_info.pkg_name);
@@ -173,11 +176,15 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool, force_overwrite: bo
             if force_overwrite {
                 warn!("Updating already up-to-date template");
             } else {
-                return Err(Error::TmplUpdater("Template is already up-to-date, refusing to overwrite it without `--force`!".to_string()));
+                return Err(Error::TmplUpdater(
+                    "Template is already up-to-date, refusing to overwrite it without `--force`!"
+                        .to_string(),
+                ));
             }
         }
 
-        template_string = template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
+        template_string =
+            template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
 
         if update_all {
             let mut orig_homepage_string = String::new();
@@ -192,12 +199,18 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool, force_overwrite: bo
                 }
             }
 
-            template_string = template_string.replace(&orig_checksum_string, &format!("checksum={}", &pkg_info.sha));
+            template_string = template_string.replace(
+                &orig_checksum_string,
+                &format!("checksum={}", &pkg_info.sha),
+            );
 
             if orig_homepage_string.is_empty() {
                 warn!("Couldn't find 'homepage' string and as such won't update it!");
             } else {
-                template_string = template_string.replace(&orig_homepage_string, &format!("homepage=\"{}\"", &pkg_info.homepage));
+                template_string = template_string.replace(
+                    &orig_homepage_string,
+                    &format!("homepage=\"{}\"", &pkg_info.homepage),
+                );
             }
 
             if orig_distfiles_string.is_empty() {
@@ -206,31 +219,56 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool, force_overwrite: bo
                 // This looks a bit funny because...well, it is. download_url can be empty, but we
                 // want to just remove the previous distfiles, in case the gem downloads some additional
                 // data
-                template_string = template_string.replace(&orig_distfiles_string, &format!("distfiles=\"{}", format!("{}\"", &pkg_info.download_url.as_ref().unwrap_or(&orig_distfiles_string.replace("distfiles=\"", "")))));
+                template_string = template_string.replace(
+                    &orig_distfiles_string,
+                    &format!(
+                        "distfiles=\"{}",
+                        format!(
+                            "{}\"",
+                            &pkg_info
+                                .download_url
+                                .as_ref()
+                                .unwrap_or(&orig_distfiles_string.replace("distfiles=\"", ""))
+                        )
+                    ),
+                );
             }
 
             if orig_description_string.is_empty() {
                 warn!("Couldn't find 'description' string and as such won't update it!");
             } else {
-                template_string = template_string.replace(&orig_description_string, &format!("short_desc=\"{}\"", &pkg_info.description));
+                template_string = template_string.replace(
+                    &orig_description_string,
+                    &format!("short_desc=\"{}\"", &pkg_info.description),
+                );
             }
         } else {
             // If we don't update all (and as such also update distfiles) we want to download the
             // file specified in distfiles and write its checksum to the template
-            let tmpl_download_url = &orig_distfiles_string.replace("distfiles=", "").replace("${version}", &pkg_info.version).replace("\"", "");
+            let tmpl_download_url = &orig_distfiles_string
+                .replace("distfiles=", "")
+                .replace("${version}", &pkg_info.version)
+                .replace("\"", "");
 
             if &pkg_info.download_url.as_ref().unwrap_or(&"".to_string()) == &tmpl_download_url {
-                template_string = template_string.replace(&orig_checksum_string, &format!("checksum={}", &pkg_info.sha));
+                template_string = template_string.replace(
+                    &orig_checksum_string,
+                    &format!("checksum={}", &pkg_info.sha),
+                );
             } else {
-                template_string = template_string.replace(&orig_checksum_string, &format!("checksum={}", write_checksum(tmpl_download_url)?));
+                template_string = template_string.replace(
+                    &orig_checksum_string,
+                    &format!("checksum={}", write_checksum(tmpl_download_url)?),
+                );
             };
         }
 
         let mut template_file = File::create(&xdist_template)?;
         template_file.write_all(template_string.as_bytes())?;
-
     } else {
-        return Err(Error::TmplUpdater("Template doesn't exist yet; can't update a non-existant template!".to_string()));
+        return Err(Error::TmplUpdater(
+            "Template doesn't exist yet; can't update a non-existant template!".to_string(),
+        ));
     }
 
     Ok(())
