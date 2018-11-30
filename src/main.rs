@@ -73,7 +73,7 @@ fn main() {
         .unwrap();
 
     if is_update_ver || is_update_all {
-        update_template(&pkg_info, is_update_all)
+        update_template(&pkg_info, is_update_all, force_overwrite)
             .map_err(|e| err_handler(&e))
             .unwrap();
     } else {

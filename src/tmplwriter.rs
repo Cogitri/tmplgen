@@ -136,7 +136,7 @@ pub fn write_template(
     Ok(())
 }
 
-pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), Error> {
+pub fn update_template(pkg_info: &PkgInfo, update_all: bool, force_overwrite: bool) -> Result<(), Error> {
     info!("Updating template {}", &pkg_info.pkg_name);
 
     let xdist_template = format!("{}{}/template", xdist_files()?, &pkg_info.pkg_name);
@@ -148,6 +148,7 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), Error
 
         let mut orig_ver_string = String::new();
         let mut orig_checksum_string = String::new();
+        let mut orig_distfiles_string = String::new();
 
         for x in template_string.lines() {
             if x.contains("version=") {
@@ -158,8 +159,15 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), Error
             }
         }
 
+        if &pkg_info.version == &orig_ver_string.replace("version=", "") {
+            if force_overwrite {
+                warn!("Updating already up-to-date template");
+            } else {
+                return Err(Error::TmplUpdater("Template is already up-to-date, refusing to overwrite it without `--force`!".to_string()));
+            }
+        }
+
         let mut orig_homepage_string = String::new();
-        let mut orig_distfiles_string = String::new();
         let mut orig_description_string = String::new();
 
         if update_all {
@@ -167,19 +175,20 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), Error
                 if x.contains("homepage=") {
                     orig_homepage_string = x.to_string();
                 }
-                if x.contains("distfiles=") {
-                    orig_distfiles_string = x.to_string();
-                }
                 if x.contains("short_desc=") {
                     orig_description_string = x.to_string();
+                }
+                if x.contains("distfiles=") {
+                    orig_distfiles_string = x.to_string();
                 }
             }
         }
 
         template_string = template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
-        template_string = template_string.replace(&orig_checksum_string, &format!("checksum={}", &pkg_info.sha));
 
         if update_all {
+            template_string = template_string.replace(&orig_checksum_string, &format!("checksum={}", &pkg_info.sha));
+
             if orig_homepage_string.is_empty() {
                 warn!("Couldn't find 'homepage' string and as such won't update it!");
             } else {
@@ -200,12 +209,11 @@ pub fn update_template(pkg_info: &PkgInfo, update_all: bool) -> Result<(), Error
             } else {
                 template_string = template_string.replace(&orig_description_string, &format!("short_desc=\"{}\"", &pkg_info.description));
             }
-
-            info!("Updating template {}: ", &xdist_template);
-
-            let mut template_file = File::create(&xdist_template)?;
-            template_file.write_all(template_string.as_bytes())?;
         }
+
+        let mut template_file = File::create(&xdist_template)?;
+        template_file.write_all(template_string.as_bytes())?;
+
     } else {
         return Err(Error::TmplUpdater("Template doesn't exist yet; can't update a non-existant template!".to_string()));
     }
