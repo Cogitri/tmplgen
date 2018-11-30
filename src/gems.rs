@@ -78,11 +78,7 @@ pub fn gem_dep_graph(gem_name: &str) -> Result<(), Error> {
 
     let xdistdir = xdist_files()?;
 
-    let rc_deps = recursive_deps(&deps_vec, &xdistdir, &PkgType::Gem);
-
-    if rc_deps.is_err() {
-        //TODO: Warn the user here that some deps couldn't be generated!
-    }
+    recursive_deps(&deps_vec, &xdistdir, &PkgType::Gem)?;
 
     Ok(())
 }
