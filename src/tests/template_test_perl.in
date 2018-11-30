@@ -22,4 +22,4 @@ maintainer="tmplgentests <tmplgentests@github.com>"
 license="Artistic-1.0-Perl, GPL-1.0-or-later"
 homepage="http://moose.perl.org/"
 distfiles="https://cpan.metacpan.org/authors/id/E/ET/ETHER/Moose-${version}.tar.gz"
-checksum=
+checksum=dummy_sha

@@ -36,7 +36,7 @@ pub fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
             .license
             .unwrap_or_else(|| missing_field_s("license"))],
         dependencies: crate_deps,
-        sha: Some(write_checksum(&sha_download_url)?),
+        sha: write_checksum(&sha_download_url)?,
         download_url: Some(download_url),
     };
 
