@@ -41,6 +41,8 @@ pub enum Error {
     AmbPkg(String),
     #[fail(display = "Unable to determine what type of the target package {:?} is! Make sure you've spelled the package name correctly!", _0)]
     NoSuchPkg(String),
+    #[fail(display = "Failed to write checksum to newly written template! Error: {}", _0)]
+    XgenError(String),
 }
 
 #[derive(Debug, PartialEq)]

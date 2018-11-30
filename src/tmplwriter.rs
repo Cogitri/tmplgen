@@ -135,6 +135,8 @@ pub fn write_template(
 
     file.write_all(template_string.as_bytes())?;
 
+    write_checksum(&format!("{}/template", &xdist_template_path))?;
+
     Ok(())
 }
 
