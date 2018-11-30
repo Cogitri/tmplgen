@@ -91,10 +91,18 @@ pub fn template_handler(pkg_info: &PkgInfo, pkg_type: &PkgType,force_overwrite: 
         write_template(&pkg_info, force_overwrite, &pkg_type)?;
     }
 
-    if pkg_type == &PkgType::Gem {
-        gem_dep_graph(&pkg_name)?;
-    } else if pkg_type == &PkgType::PerlDist {
-        perldist_dep_graph(&pkg_name)?;
+    if pkg_type == &PkgType::Crate {
+        return Ok(());
+    }
+
+    let dep_graph = if pkg_type == &PkgType::Gem {
+        gem_dep_graph(&pkg_name.replace("ruby-", ""))
+    } else {
+        perldist_dep_graph(&pkg_name.replace("perl-", ""))
+    };
+
+    if dep_graph.is_err() {
+        warn!("Failed to write templates for all recursive deps of {}! Error: {}", pkg_name, dep_graph.unwrap_err());
     }
 
     Ok(())
