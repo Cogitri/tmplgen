@@ -39,6 +39,7 @@ test = false # We test the lib
 
 [profile.release]
 lto = true
+codegen-units = 1 # best optimization
 
 [badges]
 travis-ci = { repository = "Cogitri/tmplgen" }
