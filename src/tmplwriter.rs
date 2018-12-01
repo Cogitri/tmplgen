@@ -103,7 +103,7 @@ pub fn write_template(
         template_string = template_string
             .replace("@build_style@", "gem")
             .replace("\nwrksrc=\"@wrksrc@\"", "")
-            .replace("\nnoarch=@noarch@", "");
+            .replace("\nnoarch=@noarch@", "yes");
     } else {
         template_string = template_string
             .replace("@pkgname@", &pkg_info.pkg_name)
