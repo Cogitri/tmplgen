@@ -13,9 +13,7 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
-use libtmplgen::helpers::*;
-use libtmplgen::tmplwriter::*;
-use libtmplgen::types::*;
+use libtmplgen::*;
 use clap::{App, load_yaml};
 use env_logger::Builder;
 
