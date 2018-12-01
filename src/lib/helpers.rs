@@ -18,11 +18,11 @@ use crate::gems::*;
 use crate::perldist::*;
 use crate::types::*;
 use crate::template_handler;
-use log::{debug, error, info, warn};
+use log::{debug, info, warn};
 use sha2::{Digest, Sha256};
 use std::env::var_os;
 use std::path::Path;
-use std::process::{exit, Command};
+use std::process::Command;
 use std::str::from_utf8;
 
 /// A not so pretty hack to insert an empty string if PkgInfo has a field that can't
@@ -112,19 +112,6 @@ pub(crate) fn xdist_files() -> Result<String, Error> {
 
 /// Generic function to handle recursive deps.
 ///
-/// # Examples
-///
-/// ```
-/// use libtmplgen::helpers::{recursive_deps, xdist_files};
-/// use libtmplgen::types::PkgType;
-///
-/// let deps = ["rspec".to_string(), "rake".to_string()];
-/// let xdistdir = xdist_files().unwrap();
-/// let pkg_type = PkgType::Gem;
-///
-/// recursive_deps(&deps, &xdistdir, &pkg_type);
-/// ```
-///
 /// # Errors
 /// * Errors out if `template_handler` fails to run
 pub(super) fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) -> Result<(), Error> {
@@ -184,15 +171,6 @@ pub(super) fn check_string_len(pkg_name: &str, string: &str, string_type: &str) 
 }
 
 /// Checks if a Gem or PerlDist is built into Ruby/Perl.
-///
-/// # Example
-///
-/// ```
-/// use libtmplgen::types::PkgType;
-/// use libtmplgen::helpers::is_built_in;
-///
-/// assert!(is_built_in("perl", &PkgType::PerlDist));
-/// ```
 pub(crate) fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
     if pkg_type == &PkgType::Crate {
         return false;
@@ -232,17 +210,7 @@ pub(crate) fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
     false
 }
 
-/// Generates a String that we can write to `dependens` in the template
-///
-/// # Example
-/// ```
-/// use libtmplgen::helpers::gen_dep_string;
-/// use libtmplgen::types::PkgType;
-///
-/// let dep_vec = ["dep0>=1".to_string(), "dep1".to_string()];
-///
-/// assert_eq!(&gen_dep_string(&dep_vec, &PkgType::PerlDist), "perl-dep0>=1 perl-dep1");
-/// ```
+/// Generates a String that we can write to `depends` in the template
 pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
     let mut dep_string = String::new();
 
@@ -276,13 +244,6 @@ pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
 }
 
 /// Converts some non-SPDX conform names to SPDX-conform ones (e.g. GPL-2.0+ to GPL-2.0-or-later)
-///
-/// # Examples
-/// ```
-/// use libtmplgen::helpers::correct_license;
-///
-/// assert_eq!(correct_license("GPL-2.0+"), "GPL-2.0-or-later");
-/// ```
 pub(super) fn correct_license(license: &str) -> String {
     let data: CorrectedVals = serde_json::from_str(include_str!("corrected_values.in")).unwrap();
 

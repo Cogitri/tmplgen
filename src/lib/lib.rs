@@ -37,14 +37,12 @@ pub use crate::helpers::*;
 /// # Example
 ///
 /// ```
-/// use libtmplgen::crates::crate_info;
-/// use libtmplgen::types::PkgType;
-/// use libtmplgen::helpers::{figure_out_provider, template_handler};
+/// use libtmplgen::*;
 ///
-/// // Get a PkgInfo struct of this crate
-/// let pkg_info = crate_info("tmplgen").unwrap();
 /// // Get the PkgType of this crate
 /// let pkg_type = figure_out_provider("tmplgen").unwrap();
+/// // Get a PkgInfo struct of this crate
+/// let pkg_info = get_pkginfo("tmplgen", &pkg_type).unwrap();
 /// // Don't overwrite existing templates
 /// let force_overwrite = false;
 /// // This isn't a recursive dep, error out if there's an error

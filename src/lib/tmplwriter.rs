@@ -172,8 +172,8 @@ pub fn write_template(
 ///
 /// # Example
 /// ```
-/// use libtmplgen::types::PkgInfo;
-/// use libtmplgen::tmplwriter::update_template;
+/// use libtmplgen::PkgInfo;
+/// use libtmplgen::update_template;
 ///
 /// let pkg_info_crate = PkgInfo {
 ///        pkg_name: "tmplgen".to_string(),
@@ -192,7 +192,7 @@ pub fn write_template(
 /// // Will update an existing template to 0.6.0 (as specified by pkg_info_crate above)
 /// // Won't update `homepage`, `distfiles` and `short_dec`
 /// // Won't update an existing template
-/// update_template(&pkg_info, false, false);
+/// update_template(&pkg_info_crate, false, false);
 /// ```
 pub fn update_template(
     pkg_info: &PkgInfo,
