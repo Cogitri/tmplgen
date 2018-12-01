@@ -17,7 +17,7 @@ use libtmplgen::*;
 use clap::{App, load_yaml};
 use env_logger::Builder;
 
-use log::warn;
+use log::{error, warn};
 
 fn main() {
     let help_tuple = help_string();
@@ -35,9 +35,13 @@ fn main() {
         warn!("Specified both -u and -U! Will ignore -u");
     }
 
-    let pkg_type = figure_out_provider(tmpl_type, &pkg_name)
-        .map_err(|e| err_handler(&e))
-        .unwrap();
+    let pkg_type = if tmpl_type.is_some() {
+        tmpl_type.unwrap()
+    } else {
+        figure_out_provider(&pkg_name)
+            .map_err(|e| err_handler(&e))
+            .unwrap();
+    };
 
     // We don't want to generate templates for packages that are
     // built-in into perl/ruby
@@ -114,4 +118,9 @@ fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool) {
         update_ver_only,
         update_all,
     )
+}
+
+fn err_handler(error: &Error) {
+    error!("{}", error.to_string());
+    std::process::exit(1);
 }

@@ -43,37 +43,32 @@ pub(super) fn missing_field_s(field_name: &str) -> String {
 /// * Errors out of a package with the name the user gave us can be found multiple platforms
 /// * Errors out if the package can't be found on any platform
 pub fn figure_out_provider( pkg_name: &str) -> Result<PkgType, Error> {
-    if tmpl_type.is_none() {
-        let crate_status = crates_io_api::SyncClient::new()
-            .get_crate(&pkg_name)
-            .is_ok();
+    let crate_status = crates_io_api::SyncClient::new()
+        .get_crate(&pkg_name)
+        .is_ok();
 
-        let gem_status = rubygems_api::SyncClient::new().gem_info(&pkg_name).is_ok();
+    let gem_status = rubygems_api::SyncClient::new().gem_info(&pkg_name).is_ok();
 
-        let perldist_status = metacpan_api::SyncClient::new().perl_info(&pkg_name).is_ok();
+    let perldist_status = metacpan_api::SyncClient::new().perl_info(&pkg_name).is_ok();
 
-        if (crate_status && gem_status)
-            || (crate_status && perldist_status)
-            || (gem_status && perldist_status)
-        {
-            Err(Error::AmbPkg(pkg_name.to_string()))
-        } else if crate_status {
-            debug!("Determined the target package {} to be a crate", &pkg_name);
-            Ok(PkgType::Crate)
-        } else if gem_status {
-            debug!(
-                "Determined the target package {} to be a ruby gem",
-                &pkg_name
-            );
-            Ok(PkgType::Gem)
-        } else if perldist_status {
-            debug!("Determined the target package to be a perldist");
-            Ok(PkgType::PerlDist)
-        } else {
-            Err(Error::NoSuchPkg(pkg_name.to_string()))
-        }
+    if (crate_status && gem_status)
+        || (crate_status && perldist_status)
+        || (gem_status && perldist_status) {
+        Err(Error::AmbPkg(pkg_name.to_string()))
+    } else if crate_status {
+        debug!("Determined the target package {} to be a crate", &pkg_name);
+        Ok(PkgType::Crate)
+    } else if gem_status {
+        debug!(
+            "Determined the target package {} to be a ruby gem",
+            &pkg_name
+        );
+        Ok(PkgType::Gem)
+    } else if perldist_status {
+        debug!("Determined the target package to be a perldist");
+        Ok(PkgType::PerlDist)
     } else {
-        Ok(tmpl_type.unwrap())
+        Err(Error::NoSuchPkg(pkg_name.to_string()))
     }
 }
 

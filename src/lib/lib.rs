@@ -44,7 +44,7 @@ pub use crate::helpers::*;
 /// // Get a PkgInfo struct of this crate
 /// let pkg_info = crate_info("tmplgen").unwrap();
 /// // Get the PkgType of this crate
-/// let pkg_type = figure_out_provider(None, "tmplgen").unwrap();
+/// let pkg_type = figure_out_provider("tmplgen").unwrap();
 /// // Don't overwrite existing templates
 /// let force_overwrite = false;
 /// // This isn't a recursive dep, error out if there's an error
