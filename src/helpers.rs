@@ -387,8 +387,6 @@ pub fn get_git_author() -> Result<String, Error> {
 pub fn write_checksum(dwnld_url: &str) -> Result<String, Error> {
     debug!("GET: {}", dwnld_url);
 
-    let mut hasher = Sha256::new();
-
     info!("Downloading distfile to generate checksum...");
 
     let resp = reqwest::get(dwnld_url);

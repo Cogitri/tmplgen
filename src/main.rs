@@ -16,7 +16,6 @@
 extern crate crates_io_api;
 #[macro_use]
 extern crate clap;
-#[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate log;
