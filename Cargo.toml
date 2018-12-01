@@ -28,6 +28,15 @@ reqwest = "0.9.5"
 [dev-dependencies]
 cargo-husky = {version = "^1.2.0", features = ["precommit-hook", "run-cargo-test"]}
 
+[lib]
+name = "libtmplgen"
+path = "src/lib/lib.rs"
+
+[[bin]]
+name = "tmplgen"
+path = "src/bin/bin.rs"
+test = false # We test the lib
+
 [profile.release]
 lto = true
 

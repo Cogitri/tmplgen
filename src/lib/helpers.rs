@@ -18,8 +18,6 @@ use crate::gems::*;
 use crate::perldist::*;
 use crate::tmplwriter::*;
 use crate::types::*;
-use clap::{load_yaml, App};
-use env_logger::Builder;
 use log::{debug, error, info, warn};
 use sha2::{Digest, Sha256};
 use std::env::var_os;
@@ -241,62 +239,6 @@ pub fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
     }
 
     false
-}
-
-pub fn set_up_logging(is_debug: bool, is_verbose: bool) {
-    let mut builder = Builder::new();
-
-    if is_debug {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Debug);
-    } else if is_verbose {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Info);
-    } else {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Warn);
-    }
-
-    builder.default_format_timestamp(false).init();
-
-    if is_debug && is_verbose {
-        warn!("Specified both --verbose and --debug! Will ignore --verbose.");
-    }
-}
-
-// Print the help script if invoked without arguments or with `--help`/`-h`
-pub fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool) {
-    let help_yaml = load_yaml!("cli.yml");
-    let matches = App::from_yaml(help_yaml).get_matches();
-
-    let tmpl_type = if matches.value_of("tmpltype").unwrap_or_default() == "crate" {
-        Some(PkgType::Crate)
-    } else if matches.value_of("tmpltype").unwrap_or_default() == "gem" {
-        Some(PkgType::Gem)
-    } else if matches.value_of("tmpltype").unwrap_or_default() == "perldist" {
-        Some(PkgType::PerlDist)
-    } else {
-        None
-    };
-
-    let crate_name = String::from(matches.value_of("PKGNAME").unwrap());
-
-    let force_overwrite = matches.is_present("force");
-
-    let is_verbose = matches.is_present("verbose");
-
-    let is_debug = matches.is_present("debug");
-
-    let update_ver_only = matches.is_present("update");
-
-    let update_all = matches.is_present("update_all");
-
-    (
-        crate_name,
-        tmpl_type,
-        force_overwrite,
-        is_verbose,
-        is_debug,
-        update_ver_only,
-        update_all,
-    )
 }
 
 pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
