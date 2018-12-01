@@ -2,7 +2,13 @@ use crate::helpers::*;
 use crate::types::*;
 use log::debug;
 
-// Query the crates.io API. Returns a PkgInfo that contains all important info
+/// Query the crates.io API.
+///
+/// # Errors
+///
+/// * Errors out if crates.io can't be reached
+/// * Errors out if the crate can't be found on crates.io
+/// * Errors if the native deps can't be determined (via `check_native_deps`)
 pub fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
     let client = crates_io_api::SyncClient::new();
 
@@ -58,6 +64,16 @@ fn get_crate_deps(crate_name: &str) -> Result<Vec<crates_io_api::Dependency>, Er
 
 // Check if a crate needs native libs (e.g. libressl-devel)
 // TODO: This only works with direct deps!
+/// Check if a crate needs native dependencies (e.g. openssl-sys needs libressl-devel)
+/// This only works with direct deps as of now.
+///
+/// If the crate has native deps `Some(Dependencies)`
+/// is returned, otherwise None is returned.
+///
+/// # Errors
+///
+/// * Errors out if crates.io can't be queried
+/// * Errors out if the crate can't be found on crates.io
 pub fn check_native_deps(crate_name: &str) -> Result<Option<Dependencies>, Error> {
     let dependencies = get_crate_deps(crate_name)?;
 

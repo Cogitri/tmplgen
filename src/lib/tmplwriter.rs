@@ -20,7 +20,33 @@ use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
 use std::path::Path;
 
-// Writes the PkgInfo to a file called "template"
+/// Writes a PkgInfo to a file called `template`.
+///
+/// # Example
+///
+/// ```
+/// use libtmplgen::tmplwriter::write_template;
+/// use libtmplgen::types::{PkgInfo, PkgType};
+///
+/// let pkg_info_crate = PkgInfo {
+///        pkg_name: "tmplgen".to_string(),
+///        version: "0.6.0".to_string(),
+///        description: "Void Linux template generator for language-specific package managers"
+///            .to_string(),
+///        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+///        license: vec!["GPL-3.0-or-later".to_string()],
+///        dependencies: None,
+///        sha: "afc403bf69ad4da168938961b0f02da86ef29d655967cfcbacc8201e1327aff4".to_string(),
+///        download_url: Some(
+///            "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
+///        ),
+/// };
+///
+/// write_template(&pkg_info_crate, false, &PkgType::Crate);
+/// ```
+///
+/// # Errors
+/// * Errors out if any of the underlying functions fails
 pub fn write_template(
     pkg_info: &PkgInfo,
     force_overwrite: bool,
@@ -142,6 +168,32 @@ pub fn write_template(
     Ok(())
 }
 
+/// Updates the given template
+///
+/// # Example
+/// ```
+/// use libtmplgen::types::PkgInfo;
+/// use libtmplgen::tmplwriter::update_template;
+///
+/// let pkg_info_crate = PkgInfo {
+///        pkg_name: "tmplgen".to_string(),
+///        version: "0.6.0".to_string(),
+///        description: "Void Linux template generator for language-specific package managers"
+///            .to_string(),
+///        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+///        license: vec!["GPL-3.0-or-later".to_string()],
+///        dependencies: None,
+///        sha: "afc403bf69ad4da168938961b0f02da86ef29d655967cfcbacc8201e1327aff4".to_string(),
+///        download_url: Some(
+///            "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
+///        ),
+/// };
+///
+/// // Will update an existing template to 0.6.0 (as specified by pkg_info_crate above)
+/// // Won't update `homepage`, `distfiles` and `short_dec`
+/// // Won't update an existing template
+/// update_template(&pkg_info, false, false);
+/// ```
 pub fn update_template(
     pkg_info: &PkgInfo,
     update_all: bool,

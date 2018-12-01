@@ -2,7 +2,13 @@ use crate::helpers::*;
 use crate::types::*;
 use log::debug;
 
-// Query the metacpan.org API. Returns a PkgInfo that contains all important info
+/// Query the metacpan.org API. If `perldist_name` is the name of a perl module, it will query
+/// the perldist instead.
+///
+/// # Errors
+/// * Errors out if metacpan.org can't be reached
+/// * Errors out if the perldist (or the module it is the parent of) can't be queried.
+/// * Errors out if `write_checksum` Errors.
 pub fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
     let client = metacpan_api::SyncClient::new();
 
@@ -73,6 +79,15 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Dependencies {
     }
 }
 
+/// Figures out recursive deps of a perldist and calls `recursive_deps` to generate templates
+/// for those perldists.
+///
+/// # Errors
+///
+/// * Errors out if metacpan.org can't be reached
+/// * Errors out if the perldist can't be found on metacpan.org
+/// * Errors out if `xdistdir` can't be determined (via `xdist_files`)
+/// * Errors out if `recursive_deps` errors
 pub fn perldist_dep_graph(perldist_name: &str) -> Result<(), Error> {
     let client = metacpan_api::SyncClient::new();
 

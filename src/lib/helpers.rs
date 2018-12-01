@@ -25,6 +25,8 @@ use std::path::Path;
 use std::process::{exit, Command};
 use std::str::from_utf8;
 
+/// A not so pretty hack to insert an empty string if PkgInfo has a field that can't
+/// be determined and an option is to cumbersome to use
 pub fn missing_field_s(field_name: &str) -> String {
     warn!(
         "Couldn't determine field '{}'! Please add it to the template yourself.",
@@ -34,9 +36,12 @@ pub fn missing_field_s(field_name: &str) -> String {
     String::from("")
 }
 
-// Figure out whether we're dealing with a crate or a gem if the user hasn't specified that.
-// Errors out of a package with the name the user gave us can be found on both crates.io and
-// rubygems.org
+/// Figure out whether we're dealing with a crate or a gem if the user hasn't specified that.
+///
+/// # Errors
+///
+/// * Errors out of a package with the name the user gave us can be found multiple platforms
+/// * Errors out if the package can't be found on any platform
 pub fn figure_out_provider(tmpl_type: Option<PkgType>, pkg_name: &str) -> Result<PkgType, Error> {
     if tmpl_type.is_none() {
         let crate_status = crates_io_api::SyncClient::new()
@@ -72,8 +77,32 @@ pub fn figure_out_provider(tmpl_type: Option<PkgType>, pkg_name: &str) -> Result
     }
 }
 
-// Handle getting the necessary info and writing a template for it. Invoked every time a template
-// should be written, useful for recursive deps.
+/// Handle getting the necessary info and writing a template for it. Invoked every time a template
+/// should be written, especially useful for recursive deps.
+///
+/// # Example
+///
+/// ```
+/// use libtmplgen::crates::crate_info;
+/// use libtmplgen::types::PkgType;
+/// use libtmplgen::helpers::{figure_out_provider, template_handler};
+///
+/// // Get a PkgInfo struct of this crate
+/// let pkg_info = crate_info("tmplgen").unwrap();
+/// // Get the PkgType of this crate
+/// let pkg_type = figure_out_provider(None, "tmplgen").unwrap();
+/// // Don't overwrite existing templates
+/// let force_overwrite = false;
+/// // This isn't a recursive dep, error out if there's an error
+/// let is_rec = false;
+///
+/// template_handler(&pkg_info, &pkg_type, force_overwrite, is_rec);
+/// ```
+///
+/// # Errors
+///
+/// * Errors out if `write_template` throws an Error, unless `is_rec` is true - this shouldn't
+///   Error if a template for a recursive dep couldn't be written.
 pub fn template_handler(
     pkg_info: &PkgInfo,
     pkg_type: &PkgType,
@@ -116,7 +145,15 @@ pub fn template_handler(
     Ok(())
 }
 
-// Figure out where to write template files with `xdistdir`
+/// Figure out where to write template files with `xdistdir`
+///
+/// # Errors
+///
+/// * Errors out if `xdistdir` couldn't be run
+/// * Errors out if the UTF-8 `xdistdir` returns can't be converted to a String
+/// * Errors out if the String returned by `xdistdir` contains a `~` and the env
+///   variable `HOME` isn't set. Rust interprets `~` as `./~` instead of as `$HOME`
+///   as shell does.
 pub fn xdist_files() -> Result<String, Error> {
     let xdistdir = Command::new("sh").args(&["-c", "xdistdir"]).output()?;
 
@@ -146,7 +183,23 @@ pub fn xdist_files() -> Result<String, Error> {
     }
 }
 
-// Generic function to handle recursive deps.
+/// Generic function to handle recursive deps.
+///
+/// # Examples
+///
+/// ```
+/// use libtmplgen::helpers::{recursive_deps, xdist_files};
+/// use libtmplgen::types::PkgType;
+///
+/// let deps = ["rspec".to_string(), "rake".to_string()];
+/// let xdistdir = xdist_files().unwrap();
+/// let pkg_type = PkgType::Gem;
+///
+/// recursive_deps(&deps, &xdistdir, &pkg_type);
+/// ```
+///
+/// # Errors
+/// * Errors out if `template_handler` fails to run
 pub fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) -> Result<(), Error> {
     for x in deps {
         // We want to ignore built-in deps
@@ -191,6 +244,7 @@ pub fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) -> Re
     Ok(())
 }
 
+/// Checks the length of a string and prints a warning if it's too long for a template
 pub fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> String {
     if string.len() >= 80 {
         warn!(
@@ -202,6 +256,16 @@ pub fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> Stri
     string.to_string()
 }
 
+/// Checks if a Gem or PerlDist is built into Ruby/Perl.
+///
+/// # Example
+///
+/// ```
+/// use libtmplgen::types::PkgType;
+/// use libtmplgen::helpers::is_built_in;
+///
+/// assert!(is_built_in("perl", &PkgType::PerlDist));
+/// ```
 pub fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
     if pkg_type == &PkgType::Crate {
         return false;
@@ -241,6 +305,17 @@ pub fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
     false
 }
 
+/// Generates a String that we can write to `dependens` in the template
+///
+/// # Example
+/// ```
+/// use libtmplgen::helpers::gen_dep_string;
+/// use libtmplgen::types::PkgType;
+///
+/// let dep_vec = ["dep0>=1".to_string(), "dep1".to_string()];
+///
+/// assert_eq!(&gen_dep_string(&dep_vec, &PkgType::PerlDist), "perl-dep0>=1 perl-dep1");
+/// ```
 pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
     let mut dep_string = String::new();
 
@@ -279,6 +354,14 @@ pub fn err_handler(error: &Error) {
     exit(1);
 }
 
+/// Converts some non-SPDX conform names to SPDX-conform ones (e.g. GPL-2.0+ to GPL-2.0-or-later)
+///
+/// # Examples
+/// ```
+/// use libtmplgen::helpers::correct_license;
+///
+/// assert_eq!(correct_license("GPL-2.0+"), "GPL-2.0-or-later");
+/// ```
 pub fn correct_license(license: &str) -> String {
     let data: CorrectedVals = serde_json::from_str(include_str!("corrected_values.in")).unwrap();
 
@@ -305,6 +388,13 @@ pub fn get_pkginfo(pkg_name: &str, pkg_type: &PkgType) -> Result<PkgInfo, Error>
     }
 }
 
+/// Gets the git author from either the environment or `git config`
+///
+/// # Errors
+///
+/// * Errors if neither `GIT_AUTHOR_NAME` _and_ `GIT_AUTHOR_EMAIL`
+///   are set _and_ the git username & email can't be determined via
+///   `git config`
 pub fn get_git_author() -> Result<String, Error> {
     let git_author_env = var_os("GIT_AUTHOR_NAME");
     let git_email_env = var_os("GIT_AUTHOR_EMAIL");
@@ -343,6 +433,12 @@ pub fn get_git_author() -> Result<String, Error> {
     Ok(maintainer)
 }
 
+/// Download the file specified via dwnld_url and return its checksum
+///
+/// # Errors
+///
+/// * Errors out if the file can't be downloaded
+/// * Errors out if the sha256sum couldn't be determined
 pub fn write_checksum(dwnld_url: &str) -> Result<String, Error> {
     debug!("GET: {}", dwnld_url);
 

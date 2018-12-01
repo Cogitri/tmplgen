@@ -16,7 +16,8 @@
 use failure::Fail;
 use serde_derive::Deserialize;
 
-#[derive(Fail, Debug)]
+/// The Error enum containing all Errors that may occur when running tmplgen
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Fail)]
 pub enum Error {
     #[fail(display = "Failed to read/write the template! Error: {}", _0)]
     File(String),
@@ -58,13 +59,6 @@ pub enum Error {
     ShaError(String),
 }
 
-#[derive(Debug, PartialEq)]
-pub enum PkgType {
-    Crate,
-    Gem,
-    PerlDist,
-}
-
 impl From<crates_io_api::Error> for Error {
     fn from(e: crates_io_api::Error) -> Self {
         Error::Crate(e.to_string())
@@ -101,14 +95,24 @@ impl From<std::io::Error> for Error {
     }
 }
 
-#[derive(Debug)]
+/// The PkgType enum, containing all types of packages tmplgen can handle
+#[derive(Copy, Clone, Eq, Ord, PartialOrd, Hash, Debug, PartialEq)]
+pub enum PkgType {
+    Crate,
+    Gem,
+    PerlDist,
+}
+
+/// The Dependencies struct that contains all dependencies a package might have
+#[derive(Clone, Eq, Ord, PartialOrd, Hash, Default, Debug, PartialEq)]
 pub struct Dependencies {
     pub host: Option<Vec<String>>,
     pub make: Option<Vec<String>>,
     pub run: Option<Vec<String>>,
 }
 
-#[derive(Debug)]
+/// The PkgInfo struct, that contains all info relevant to the package
+#[derive(Clone, Eq, Ord, PartialOrd, Hash, Default, Debug, PartialEq)]
 pub struct PkgInfo {
     pub pkg_name: String,
     pub version: String,

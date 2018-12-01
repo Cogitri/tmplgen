@@ -17,7 +17,12 @@ use crate::helpers::*;
 use crate::types::*;
 use log::debug;
 
-// Returns a PkgInfo object that contains all the info relevant for us
+/// Query the rubygems.org API.
+///
+/// # Errors
+///
+/// * Errors out if rubygems.org can't be reached
+/// * Errors out if the gem can't be found on rubygems.org
 pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     let client = rubygems_api::SyncClient::new();
 
@@ -64,8 +69,15 @@ pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     Ok(pkg_info)
 }
 
-// If the gem has recursive deps, we should also generate templates for those if they
-// don't exist already
+/// Figures out recursive deps of a gem and calls `recursive_deps` to generate templates
+/// for those gems.
+///
+/// # Errors
+///
+/// * Errors out if rubygems.org can't be reached
+/// * Errors out if the gem can't be found on rubygems.org
+/// * Errors out if `xdistdir` can't be determined (via `xdist_files`)
+/// * Errors out if `recursive_deps` errors
 pub fn gem_dep_graph(gem_name: &str) -> Result<(), Error> {
     let client = rubygems_api::SyncClient::new();
 
@@ -126,7 +138,7 @@ pub fn tilde_parse(version: String) -> Option<Vec<String>> {
 }
 */
 
-// Determine the run dependencies of a gem. Deals with version requirements.
+/// Determines the run dependencies of a gem. Deals with version requirements.
 pub fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> String {
     let cmpr = String::from(
         rubygem_dep
