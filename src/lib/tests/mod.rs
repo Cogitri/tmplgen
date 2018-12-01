@@ -141,31 +141,26 @@ fn test_tmplwriter_correctness() {
 #[test]
 fn test_provider_selector() {
     assert_eq!(
-        figure_out_provider(None, "tmplgen").unwrap(),
+        figure_out_provider("tmplgen").unwrap(),
         PkgType::Crate
     );
 
     assert_eq!(
-        figure_out_provider(None, "ruby-progressbar").unwrap(),
+        figure_out_provider("ruby-progressbar").unwrap(),
         PkgType::Gem
     );
 
     assert_eq!(
-        figure_out_provider(None, "Moose").unwrap(),
+        figure_out_provider("Moose").unwrap(),
         PkgType::PerlDist
     );
-
-    assert_eq!(
-        figure_out_provider(Some(PkgType::Crate), "").unwrap(),
-        PkgType::Crate
-    )
 }
 
 #[test]
 #[should_panic]
 fn test_figure_out_provider_panic() {
-    figure_out_provider(None, "ffi").unwrap();
-    figure_out_provider(None, "dioaüsdioüaw").unwrap();
+    figure_out_provider("ffi").unwrap();
+    figure_out_provider("dioaüsdioüaw").unwrap();
 }
 
 #[test]

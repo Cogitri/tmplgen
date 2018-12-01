@@ -27,7 +27,7 @@ use std::str::from_utf8;
 
 /// A not so pretty hack to insert an empty string if PkgInfo has a field that can't
 /// be determined and an option is to cumbersome to use
-pub fn missing_field_s(field_name: &str) -> String {
+pub(super) fn missing_field_s(field_name: &str) -> String {
     warn!(
         "Couldn't determine field '{}'! Please add it to the template yourself.",
         field_name
@@ -42,7 +42,7 @@ pub fn missing_field_s(field_name: &str) -> String {
 ///
 /// * Errors out of a package with the name the user gave us can be found multiple platforms
 /// * Errors out if the package can't be found on any platform
-pub fn figure_out_provider(tmpl_type: Option<PkgType>, pkg_name: &str) -> Result<PkgType, Error> {
+pub fn figure_out_provider( pkg_name: &str) -> Result<PkgType, Error> {
     if tmpl_type.is_none() {
         let crate_status = crates_io_api::SyncClient::new()
             .get_crate(&pkg_name)
@@ -86,7 +86,7 @@ pub fn figure_out_provider(tmpl_type: Option<PkgType>, pkg_name: &str) -> Result
 /// * Errors out if the String returned by `xdistdir` contains a `~` and the env
 ///   variable `HOME` isn't set. Rust interprets `~` as `./~` instead of as `$HOME`
 ///   as shell does.
-pub fn xdist_files() -> Result<String, Error> {
+pub(crate) fn xdist_files() -> Result<String, Error> {
     let xdistdir = Command::new("sh").args(&["-c", "xdistdir"]).output()?;
 
     if !xdistdir.status.success() {
@@ -132,7 +132,7 @@ pub fn xdist_files() -> Result<String, Error> {
 ///
 /// # Errors
 /// * Errors out if `template_handler` fails to run
-pub fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) -> Result<(), Error> {
+pub(super) fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) -> Result<(), Error> {
     for x in deps {
         // We want to ignore built-in deps
         if !is_built_in(x, pkg_type) {
@@ -177,7 +177,7 @@ pub fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) -> Re
 }
 
 /// Checks the length of a string and prints a warning if it's too long for a template
-pub fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> String {
+pub(super) fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> String {
     if string.len() >= 80 {
         warn!(
             "{} of package {} is longer than 80 characters, please cut as you see fit!",
@@ -198,7 +198,7 @@ pub fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> Stri
 ///
 /// assert!(is_built_in("perl", &PkgType::PerlDist));
 /// ```
-pub fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
+pub(crate) fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
     if pkg_type == &PkgType::Crate {
         return false;
     }
@@ -248,7 +248,7 @@ pub fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
 ///
 /// assert_eq!(&gen_dep_string(&dep_vec, &PkgType::PerlDist), "perl-dep0>=1 perl-dep1");
 /// ```
-pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
+pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
     let mut dep_string = String::new();
 
     for x in dep_vec {
@@ -280,12 +280,6 @@ pub fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
     dep_string
 }
 
-// TODO: Doing it this way means that all error using this function will show up as "ERROR tmplgen::helpers" in env_logger
-pub fn err_handler(error: &Error) {
-    error!("{}", error.to_string());
-    exit(1);
-}
-
 /// Converts some non-SPDX conform names to SPDX-conform ones (e.g. GPL-2.0+ to GPL-2.0-or-later)
 ///
 /// # Examples
@@ -294,7 +288,7 @@ pub fn err_handler(error: &Error) {
 ///
 /// assert_eq!(correct_license("GPL-2.0+"), "GPL-2.0-or-later");
 /// ```
-pub fn correct_license(license: &str) -> String {
+pub(super) fn correct_license(license: &str) -> String {
     let data: CorrectedVals = serde_json::from_str(include_str!("corrected_values.in")).unwrap();
 
     let corrected_vals = CorrectedVals {
@@ -310,6 +304,10 @@ pub fn correct_license(license: &str) -> String {
     license.to_string()
 }
 
+/// Convenience function to get PkgInfo for the package `pkg_name` of a certain PkgType
+///
+/// Errors if determining PkgInfo fails, see the doc for [crate_info](crate::crates::crate_info),
+/// [gem_info](crate::gems::gem_info) and [perldist_info](crate::perldist::perldist_info)
 pub fn get_pkginfo(pkg_name: &str, pkg_type: &PkgType) -> Result<PkgInfo, Error> {
     if pkg_type == &PkgType::Crate {
         crate_info(&pkg_name)
@@ -327,7 +325,7 @@ pub fn get_pkginfo(pkg_name: &str, pkg_type: &PkgType) -> Result<PkgInfo, Error>
 /// * Errors if neither `GIT_AUTHOR_NAME` _and_ `GIT_AUTHOR_EMAIL`
 ///   are set _and_ the git username & email can't be determined via
 ///   `git config`
-pub fn get_git_author() -> Result<String, Error> {
+pub(super) fn get_git_author() -> Result<String, Error> {
     let git_author_env = var_os("GIT_AUTHOR_NAME");
     let git_email_env = var_os("GIT_AUTHOR_EMAIL");
 
@@ -371,7 +369,7 @@ pub fn get_git_author() -> Result<String, Error> {
 ///
 /// * Errors out if the file can't be downloaded
 /// * Errors out if the sha256sum couldn't be determined
-pub fn write_checksum(dwnld_url: &str) -> Result<String, Error> {
+pub(super) fn write_checksum(dwnld_url: &str) -> Result<String, Error> {
     debug!("GET: {}", dwnld_url);
 
     info!("Downloading distfile to generate checksum...");

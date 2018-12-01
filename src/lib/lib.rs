@@ -24,10 +24,10 @@ mod tests;
 
 use log::{info, warn};
 
+use crate::perldist::*;
+use crate::gems::*;
+
 pub use crate::types::*;
-pub use crate::crates::*;
-pub use crate::gems::*;
-pub use crate::perldist::*;
 pub use crate::tmplwriter::*;
 pub use crate::helpers::*;
 
