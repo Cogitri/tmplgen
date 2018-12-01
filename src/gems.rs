@@ -138,7 +138,8 @@ pub fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> Result<
         rubygem_dep
             .requirements
             .split_whitespace()
-            .collect::<Vec<_>>()[1],
+            .collect::<Vec<_>>()[1]
+            .replace(",", ""),
     );
 
     let ver_req = match cmpr.as_ref() {
