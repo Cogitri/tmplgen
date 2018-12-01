@@ -25,7 +25,7 @@ pub fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
 
     let mut dep_vec_run = Vec::new();
 
-    for x in query_result.dependencies.runtime.unwrap() {
+    for x in query_result.dependencies.runtime.unwrap_or_default() {
         let dep = determine_gem_run_deps(&x);
         dep_vec_run.push(dep);
     }
