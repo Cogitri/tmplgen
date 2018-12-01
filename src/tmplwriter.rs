@@ -39,11 +39,17 @@ pub fn write_template(
         license.push_str(&correct_license(x));
     }
 
+    let mut description = check_string_len(&pkg_info.pkg_name, &pkg_info.description, "description");
+
+    if description.chars().last().unwrap_or_default() == '.' {
+        description.pop();
+    }
+
     let mut template_string = template_in
         .replace("@version@", &pkg_info.version)
         .replace(
             "@description@",
-            &check_string_len(&pkg_info.pkg_name, &pkg_info.description, "description"),
+            &description,
         )
         .replace("@license@", &license)
         .replace("@homepage@", &pkg_info.homepage)
