@@ -40,14 +40,8 @@ fn main() {
     } else {
         figure_out_provider(&pkg_name)
             .map_err(|e| err_handler(&e))
-            .unwrap();
+            .unwrap()
     };
-
-    // We don't want to generate templates for packages that are
-    // built-in into perl/ruby
-    if is_built_in(&pkg_name, &pkg_type) {
-        return;
-    }
 
     let pkg_info = get_pkginfo(&pkg_name, &pkg_type)
         .map_err(|e| err_handler(&e))

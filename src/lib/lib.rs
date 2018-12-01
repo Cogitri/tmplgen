@@ -90,6 +90,10 @@ pub fn template_handler(
 ) -> Result<(), Error> {
     let pkg_name = &pkg_info.pkg_name;
 
+    if is_built_in(pkg_name, pkg_type) {
+        return Err(Error::BuiltIn(pkg_name.to_string()));
+    }
+
     info!(
         "Generating template for package {} of type {:?}",
         &pkg_name, pkg_type

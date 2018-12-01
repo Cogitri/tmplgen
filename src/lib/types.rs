@@ -35,6 +35,8 @@ pub enum Error {
     TmplWriter(String),
     #[fail(display = "Failed to update the template! Error: {}", _0)]
     TmplUpdater(String),
+    #[fail(display = "Won't write package for built-in template {}", _0)]
+    BuiltIn(String),
     #[fail(
         display = "Failed to determine git username/email from environment or git config! Error: {}",
         _0
