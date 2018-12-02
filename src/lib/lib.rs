@@ -46,6 +46,7 @@ mod perldist;
 pub mod helpers;
 pub mod tmplwriter;
 pub mod types;
+pub mod errors;
 #[cfg(test)]
 mod tests;
 
@@ -57,6 +58,7 @@ use crate::gems::*;
 pub use crate::types::*;
 pub use crate::tmplwriter::*;
 pub use crate::helpers::*;
+pub use crate::errors::*;
 
 /// Handle getting the necessary info and writing a template for it. Invoked every time a template
 /// should be written, especially useful for recursive deps.

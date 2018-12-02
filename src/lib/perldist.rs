@@ -1,3 +1,4 @@
+use crate::errors::Error;
 use crate::helpers::*;
 use crate::types::*;
 use log::debug;

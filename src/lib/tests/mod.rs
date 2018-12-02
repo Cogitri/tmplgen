@@ -302,10 +302,10 @@ fn test_template_updater() {
         pkg_name: "tmplgen".to_string(),
         version: "0.2.9".to_string(),
         description: "gibberish".to_string(),
-        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+        homepage: "htt/ri/tmplgen".to_string(),
         license: vec!["GPL-3.0-or-later".to_string()],
         dependencies: None,
-        sha: "dummy_sha".to_string(),
+        sha: "dummy".to_string(),
         download_url: Some("This Shouldn't be here".to_string()),
     };
 
@@ -322,6 +322,30 @@ fn test_template_updater() {
         .unwrap();
 
     assert_eq!(tmpl_string_crate, include_str!("template_test_crate.in"));
+
+    let pkg_info_ok = PkgInfo {
+        pkg_name: "tmplgen".to_string(),
+        version: "0.2.9".to_string(),
+        description: "Void Linux template generator for language-specific package managers".to_string(),
+        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+        license: vec!["GPL-3.0-or-later".to_string()],
+        dependencies: None,
+        sha: "dummy".to_string(),
+        download_url: Some(
+            "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
+        ),
+    };
+
+
+    write_template(&pkg_info_ok, true, PkgType::Crate).unwrap();
+
+    update_template(&pkg_info_good, false, false).unwrap();
+
+    tmpl_file_crate
+        .read_to_string(&mut tmpl_string_crate)
+        .unwrap();
+
+    assert_eq!(tmpl_string_crate, format!("{}e4edb5de5fe3fdbf8ac2f56325a0762baf724eb7653cd0ce1af502\n", include_str!("template_test_crate.in")));
 }
 
 #[test]
@@ -332,4 +356,26 @@ fn test_get_git_author() {
         &get_git_author().unwrap(),
         "tmplgentests <tmplgentests@github.com>"
     );
+}
+
+#[test]
+#[should_panic]
+fn test_template_updater_panic() {
+    set_env();
+
+    let pkg_info_panic = PkgInfo {
+        pkg_name: "tmplgendsadwadsaijodaioj".to_string(),
+        version: "0.3.1".to_string(),
+        description: "Void Linux template generator for language-specific package managers"
+            .to_string(),
+        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+        license: vec!["GPL-3.0-or-later".to_string()],
+        dependencies: None,
+        sha: "dummy_sha".to_string(),
+        download_url: Some(
+            "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
+        ),
+    };
+
+    update_template(&pkg_info_panic, true, false).unwrap();
 }

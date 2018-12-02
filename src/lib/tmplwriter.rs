@@ -13,6 +13,7 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::errors::Error;
 use crate::helpers::*;
 use crate::types::*;
 use log::{info, warn};

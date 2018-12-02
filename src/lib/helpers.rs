@@ -14,6 +14,7 @@
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::crates::*;
+use crate::errors::Error;
 use crate::gems::*;
 use crate::perldist::*;
 use crate::types::*;
