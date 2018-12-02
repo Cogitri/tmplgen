@@ -14,6 +14,24 @@
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
 use serde_derive::Deserialize;
+use std::io::Read;
+
+pub struct TmplBuilder {
+    pub pkg_name: String,
+    pub pkg_type: Option<PkgType>,
+    pub pkg_info: Option<PkgInfo>,
+    pub deps: Option<Vec<String>>,
+}
+
+pub struct Template {
+    pub inner: String,
+}
+
+impl Read for Template {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.inner.as_bytes().read(buf)
+    }
+}
 
 /// The PkgType enum, containing all types of packages tmplgen can handle
 #[derive(Copy, Clone, Eq, Ord, PartialOrd, Hash, Debug, PartialEq)]

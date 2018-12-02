@@ -13,13 +13,16 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
+use std::path::Path;
+use std::fs::{create_dir_all, File};
+use std::io::prelude::*;
 use libtmplgen::*;
 use clap::{App, load_yaml};
 use env_logger::Builder;
 
 use log::{error, warn};
 
-fn main() {
+fn main() -> Result<(), Error> {
     let help_tuple = help_string();
     let pkg_name = help_tuple.0;
     let tmpl_type = help_tuple.1;
@@ -31,31 +34,73 @@ fn main() {
 
     set_up_logging(is_debug, is_verbose);
 
+    let mut tmpl_builder = TmplBuilder::new(pkg_name);
+
+    if tmpl_type.is_some() {
+        tmpl_builder.set_type(tmpl_type.unwrap());
+    } else {
+        tmpl_builder.get_type()?;
+    }
+
+    if is_built_in(&tmpl_builder.pkg_name, tmpl_builder.pkg_type.unwrap()) {
+        return Err(Error::BuiltIn(tmpl_builder.pkg_name.clone()));
+    }
+
+    tmpl_builder.get_info()?;
+
     if is_update_ver && is_update_all {
         warn!("Specified both -u and -U! Will ignore -u");
     }
 
-    let pkg_type = if tmpl_type.is_some() {
-        tmpl_type.unwrap()
+    let xdist_template_path = format!("{}{}/template", xdist_files()?, tmpl_builder.pkg_info.as_ref().unwrap().pkg_name);
+
+    let template = if is_update_ver || is_update_all {
+        if Path::new(&xdist_template_path).exists() {
+            let mut template_file = File::open(&xdist_template_path)?;
+            let mut template_string = String::new();
+            template_file.read_to_string(&mut template_string)?;
+
+            tmpl_builder.update(&Template { inner: template_string }, is_update_all)
+        } else {
+            return Err(Error::TmplUpdater(format!("Can't update non-existing template {}", &tmpl_builder.pkg_info.unwrap().pkg_name)));
+        }
     } else {
-        figure_out_provider(&pkg_name)
-            .map_err(|e| err_handler(&e))
-            .unwrap()
+        if Path::new(&xdist_template_path).exists() && !force_overwrite {
+            return Err(Error::TmplWriter(format!(
+                "Won't overwrite existing template '{}/template' without `--force`!",
+                &xdist_template_path,
+            )));
+        } else {
+            tmpl_builder.write()
+        }
     };
 
-    let pkg_info = get_pkginfo(&pkg_name, pkg_type)
-        .map_err(|e| err_handler(&e))
-        .unwrap();
+    create_dir_all(&xdist_template_path.replace("/template", ""))?;
 
-    if is_update_ver || is_update_all {
-        update_template(&pkg_info, is_update_all, force_overwrite)
-            .map_err(|e| err_handler(&e))
-            .unwrap();
-    } else {
-        template_handler(&pkg_info, pkg_type, force_overwrite, false)
-            .map_err(|e| err_handler(&e))
-            .unwrap();
+    let mut file = File::create(&xdist_template_path)?;
+    file.write_all(template?.inner.as_bytes())?;
+
+
+    /*
+    if pkg_type == PkgType::Crate {
+        return Ok(());
     }
+
+    let dep_graph = if pkg_type == PkgType::Gem {
+        gem_dep_graph(&pkg_name.replace("ruby-", ""))
+    } else {
+        perldist_dep_graph(&pkg_name.replace("perl-", ""))
+    };
+
+    if dep_graph.is_err() {
+        warn!(
+            "Failed to write templates for all recursive deps of {}! Error: {}",
+            pkg_name,
+            dep_graph.unwrap_err()
+        );
+    }*/
+
+    Ok(())
 }
 
 fn set_up_logging(is_debug: bool, is_verbose: bool) {
@@ -118,3 +163,53 @@ fn err_handler(error: &Error) {
     error!("{}", error.to_string());
     std::process::exit(1);
 }
+
+/*
+/// Generic function to handle recursive deps.
+///
+/// # Errors
+/// * Errors out if `template_handler` fails to run
+pub(super) fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: PkgType) -> Result<(), Error> {
+    for x in deps {
+        // We want to ignore built-in deps
+        if !is_built_in(x, pkg_type) {
+            let tmpl_path = if pkg_type == PkgType::Gem {
+                format!("{}ruby-{}/template", xdistdir, x)
+            } else if pkg_type == PkgType::PerlDist {
+                // We don't write templates for modules, but only
+                // for distributions. As such we have to convert
+                // the module's name to the distribution's name,
+                // if we're handling a module
+                let perl_client = metacpan_api::SyncClient::new();
+
+                let dist = perl_client.get_dist(&x);
+
+                if dist.is_ok() {
+                    format!(
+                        "{}perl-{}/template",
+                        xdistdir,
+                        dist.unwrap().replace("::", "-")
+                    )
+                } else {
+                    format!("{}perl-{}/template", xdistdir, x.replace("::", "-"))
+                }
+            } else {
+                format!("{}{}/template", xdistdir, x)
+            };
+
+            debug!("Checking for template in {}...", &tmpl_path);
+
+            if !Path::new(&tmpl_path).exists() {
+                info!(
+                    "Dependency {} doesn't exist yet, writing a template for it...",
+                    x
+                );
+                template_handler(&get_pkginfo(&x, pkg_type)?, pkg_type, false, true)?;
+            } else {
+                debug!("Dependency {} is already satisfied!", x);
+            }
+        }
+    }
+    Ok(())
+}
+*/

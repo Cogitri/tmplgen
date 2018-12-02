@@ -43,6 +43,8 @@ pub enum Error {
     _0
     )]
     ShaError(String),
+    #[fail(display = "Didn't provide enough info for action {}", _0)]
+    TooLittleInfo(String),
 }
 
 impl From<crates_io_api::Error> for Error {

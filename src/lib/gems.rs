@@ -79,7 +79,7 @@ pub(crate) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
 /// * Errors out if the gem can't be found on rubygems.org
 /// * Errors out if `xdistdir` can't be determined (via `xdist_files`)
 /// * Errors out if `recursive_deps` errors
-pub(crate) fn gem_dep_graph(gem_name: &str) -> Result<(), Error> {
+pub(crate) fn gem_dep_graph(gem_name: &str) -> Result<Vec<String>, Error> {
     let client = rubygems_api::SyncClient::new();
 
     let query_result = client.gem_info(gem_name)?;
@@ -90,11 +90,7 @@ pub(crate) fn gem_dep_graph(gem_name: &str) -> Result<(), Error> {
         deps_vec.push(x.name);
     }
 
-    let xdistdir = xdist_files()?;
-
-    recursive_deps(&deps_vec, &xdistdir, PkgType::Gem)?;
-
-    Ok(())
+    Ok(deps_vec)
 }
 
 /* Can't be used right now we'll just replace it with >=

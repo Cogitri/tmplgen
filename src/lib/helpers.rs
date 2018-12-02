@@ -18,11 +18,9 @@ use crate::errors::Error;
 use crate::gems::*;
 use crate::perldist::*;
 use crate::types::*;
-use crate::template_handler;
 use log::{debug, info, warn};
 use sha2::{Digest, Sha256};
 use std::env::var_os;
-use std::path::Path;
 use std::process::Command;
 use std::str::from_utf8;
 
@@ -43,7 +41,7 @@ pub(super) fn missing_field_s(field_name: &str) -> String {
 ///
 /// * Errors out of a package with the name the user gave us can be found multiple platforms
 /// * Errors out if the package can't be found on any platform
-pub fn figure_out_provider( pkg_name: &str) -> Result<PkgType, Error> {
+pub(crate) fn figure_out_provider( pkg_name: &str) -> Result<PkgType, Error> {
     let crate_status = crates_io_api::SyncClient::new()
         .get_crate(&pkg_name)
         .is_ok();
@@ -82,7 +80,7 @@ pub fn figure_out_provider( pkg_name: &str) -> Result<PkgType, Error> {
 /// * Errors out if the String returned by `xdistdir` contains a `~` and the env
 ///   variable `HOME` isn't set. Rust interprets `~` as `./~` instead of as `$HOME`
 ///   as shell does.
-pub(crate) fn xdist_files() -> Result<String, Error> {
+pub fn xdist_files() -> Result<String, Error> {
     let xdistdir = Command::new("sh").args(&["-c", "xdistdir"]).output()?;
 
     if !xdistdir.status.success() {
@@ -111,54 +109,6 @@ pub(crate) fn xdist_files() -> Result<String, Error> {
     }
 }
 
-/// Generic function to handle recursive deps.
-///
-/// # Errors
-/// * Errors out if `template_handler` fails to run
-pub(super) fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: PkgType) -> Result<(), Error> {
-    for x in deps {
-        // We want to ignore built-in deps
-        if !is_built_in(x, pkg_type) {
-            let tmpl_path = if pkg_type == PkgType::Gem {
-                format!("{}ruby-{}/template", xdistdir, x)
-            } else if pkg_type == PkgType::PerlDist {
-                // We don't write templates for modules, but only
-                // for distributions. As such we have to convert
-                // the module's name to the distribution's name,
-                // if we're handling a module
-                let perl_client = metacpan_api::SyncClient::new();
-
-                let dist = perl_client.get_dist(&x);
-
-                if dist.is_ok() {
-                    format!(
-                        "{}perl-{}/template",
-                        xdistdir,
-                        dist.unwrap().replace("::", "-")
-                    )
-                } else {
-                    format!("{}perl-{}/template", xdistdir, x.replace("::", "-"))
-                }
-            } else {
-                format!("{}{}/template", xdistdir, x)
-            };
-
-            debug!("Checking for template in {}...", &tmpl_path);
-
-            if !Path::new(&tmpl_path).exists() {
-                info!(
-                    "Dependency {} doesn't exist yet, writing a template for it...",
-                    x
-                );
-                template_handler(&get_pkginfo(&x, pkg_type)?, pkg_type, false, true)?;
-            } else {
-                debug!("Dependency {} is already satisfied!", x);
-            }
-        }
-    }
-    Ok(())
-}
-
 /// Checks the length of a string and prints a warning if it's too long for a template
 pub(super) fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> String {
     if string.len() >= 80 {
@@ -172,7 +122,7 @@ pub(super) fn check_string_len(pkg_name: &str, string: &str, string_type: &str) 
 }
 
 /// Checks if a Gem or PerlDist is built into Ruby/Perl.
-pub(crate) fn is_built_in(pkg_name: &str, pkg_type: PkgType) -> bool {
+pub fn is_built_in(pkg_name: &str, pkg_type: PkgType) -> bool {
     if pkg_type == PkgType::Crate {
         return false;
     }
@@ -265,7 +215,7 @@ pub(super) fn correct_license(license: &str) -> String {
 ///
 /// Errors if determining PkgInfo fails, see the doc for [crate_info](crate::crates::crate_info),
 /// [gem_info](crate::gems::gem_info) and [perldist_info](crate::perldist::perldist_info)
-pub fn get_pkginfo(pkg_name: &str, pkg_type: PkgType) -> Result<PkgInfo, Error> {
+pub(crate) fn get_pkginfo(pkg_name: &str, pkg_type: PkgType) -> Result<PkgInfo, Error> {
     if pkg_type == PkgType::Crate {
         crate_info(&pkg_name)
     } else if pkg_type == PkgType::PerlDist {
