@@ -30,13 +30,13 @@
 //! // Get the PkgType of this crate
 //! let pkg_type = figure_out_provider("tmplgen").unwrap();
 //! // Get a PkgInfo struct of this crate
-//! let pkg_info = get_pkginfo("tmplgen", &pkg_type).unwrap();
+//! let pkg_info = get_pkginfo("tmplgen", pkg_type).unwrap();
 //! // Don't overwrite existing templates
 //! let force_overwrite = false;
 //! // This isn't a recursive dep, error out if there's an error
 //! let is_rec = false;
 //!
-//! template_handler(&pkg_info, &pkg_type, force_overwrite, is_rec);
+//! template_handler(&pkg_info, pkg_type, force_overwrite, is_rec);
 //! ```
 
 mod crates;
@@ -69,13 +69,13 @@ pub use crate::helpers::*;
 /// // Get the PkgType of this crate
 /// let pkg_type = figure_out_provider("tmplgen").unwrap();
 /// // Get a PkgInfo struct of this crate
-/// let pkg_info = get_pkginfo("tmplgen", &pkg_type).unwrap();
+/// let pkg_info = get_pkginfo("tmplgen", pkg_type).unwrap();
 /// // Don't overwrite existing templates
 /// let force_overwrite = false;
 /// // This isn't a recursive dep, error out if there's an error
 /// let is_rec = false;
 ///
-/// template_handler(&pkg_info, &pkg_type, force_overwrite, is_rec);
+/// template_handler(&pkg_info, pkg_type, force_overwrite, is_rec);
 /// ```
 ///
 /// # Errors
@@ -84,7 +84,7 @@ pub use crate::helpers::*;
 ///   Error if a template for a recursive dep couldn't be written.
 pub fn template_handler(
     pkg_info: &PkgInfo,
-    pkg_type: &PkgType,
+    pkg_type: PkgType,
     force_overwrite: bool,
     is_rec: bool,
 ) -> Result<(), Error> {
@@ -100,18 +100,18 @@ pub fn template_handler(
     );
 
     if is_rec {
-        write_template(&pkg_info, force_overwrite, &pkg_type)
+        write_template(&pkg_info, force_overwrite, pkg_type)
             .map_err(|e| warn!("Failed to write the template for dep {}: {}", pkg_name, e))
             .unwrap_or_default()
     } else {
-        write_template(&pkg_info, force_overwrite, &pkg_type)?;
+        write_template(&pkg_info, force_overwrite, pkg_type)?;
     }
 
-    if pkg_type == &PkgType::Crate {
+    if pkg_type == PkgType::Crate {
         return Ok(());
     }
 
-    let dep_graph = if pkg_type == &PkgType::Gem {
+    let dep_graph = if pkg_type == PkgType::Gem {
         gem_dep_graph(&pkg_name.replace("ruby-", ""))
     } else {
         perldist_dep_graph(&pkg_name.replace("perl-", ""))

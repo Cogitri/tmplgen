@@ -43,7 +43,7 @@ fn main() {
             .unwrap()
     };
 
-    let pkg_info = get_pkginfo(&pkg_name, &pkg_type)
+    let pkg_info = get_pkginfo(&pkg_name, pkg_type)
         .map_err(|e| err_handler(&e))
         .unwrap();
 
@@ -52,7 +52,7 @@ fn main() {
             .map_err(|e| err_handler(&e))
             .unwrap();
     } else {
-        template_handler(&pkg_info, &pkg_type, force_overwrite, false)
+        template_handler(&pkg_info, pkg_type, force_overwrite, false)
             .map_err(|e| err_handler(&e))
             .unwrap();
     }

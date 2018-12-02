@@ -91,7 +91,7 @@ pub(crate) fn gem_dep_graph(gem_name: &str) -> Result<(), Error> {
 
     let xdistdir = xdist_files()?;
 
-    recursive_deps(&deps_vec, &xdistdir, &PkgType::Gem)?;
+    recursive_deps(&deps_vec, &xdistdir, PkgType::Gem)?;
 
     Ok(())
 }
@@ -140,20 +140,16 @@ pub fn tilde_parse(version: String) -> Option<Vec<String>> {
 
 /// Determines the run dependencies of a gem. Deals with version requirements.
 pub(crate) fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> String {
-    let cmpr = String::from(
-        rubygem_dep
+    let cmpr = rubygem_dep
             .requirements
             .split_whitespace()
-            .collect::<Vec<_>>()[0],
-    );
+            .collect::<Vec<_>>()[0];
 
-    let ver = String::from(
-        rubygem_dep
+    let ver = rubygem_dep
             .requirements
             .split_whitespace()
             .collect::<Vec<_>>()[1]
-            .replace(",", ""),
-    );
+            .replace(",", "");
 
     match cmpr.as_ref() {
         ">" | "<" | "<=" => "ruby-".to_string() + &rubygem_dep.name + &cmpr + &ver,

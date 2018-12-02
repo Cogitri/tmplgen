@@ -112,7 +112,7 @@ pub(crate) fn perldist_dep_graph(perldist_name: &str) -> Result<(), Error> {
 
     let xdistdir = xdist_files()?;
 
-    recursive_deps(&deps_vec, &xdistdir, &PkgType::PerlDist)?;
+    recursive_deps(&deps_vec, &xdistdir, PkgType::PerlDist)?;
 
     Ok(())
 }

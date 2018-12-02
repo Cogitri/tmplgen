@@ -60,7 +60,7 @@ fn test_tmplwriter_correctness() {
         ),
     };
 
-    write_template(&pkg_info_crate, true, &PkgType::Crate).unwrap();
+    write_template(&pkg_info_crate, true, PkgType::Crate).unwrap();
 
     let mut tmpl_file_crate =
         File::open(format!("{}/srcpkgs/tmplgen/template", test_path)).unwrap();
@@ -124,7 +124,7 @@ fn test_tmplwriter_correctness() {
         ),
     };
 
-    write_template(&pkg_info_perl, true, &PkgType::PerlDist).unwrap();
+    write_template(&pkg_info_perl, true, PkgType::PerlDist).unwrap();
 
     let mut tmpl_file_perl =
         File::open(format!("{}/srcpkgs/perl-Moose/template", test_path)).unwrap();
@@ -165,7 +165,7 @@ fn test_figure_out_provider_panic() {
 
 #[test]
 fn test_built_in() {
-    assert_eq!(is_built_in("File::Basename", &PkgType::PerlDist), true)
+    assert_eq!(is_built_in("File::Basename", PkgType::PerlDist), true)
 }
 
 #[test]
@@ -183,7 +183,7 @@ fn test_gen_dep_string_split() {
         "ruby-rspec-mocks>=3.8.0".to_string(),
     ];
 
-    let dep_gem_string = gen_dep_string(&dep_gem_vec, &PkgType::Gem);
+    let dep_gem_string = gen_dep_string(&dep_gem_vec, PkgType::Gem);
 
     assert_eq!(
         dep_gem_string.lines().last().unwrap(),
@@ -199,7 +199,7 @@ fn test_gen_dep_string_split() {
         "Dist::CheckConflicts".to_string(),
     ];
 
-    let dep_perldist_string = gen_dep_string(&dep_perldist_vec, &PkgType::PerlDist);
+    let dep_perldist_string = gen_dep_string(&dep_perldist_vec, PkgType::PerlDist);
 
     assert_eq!(
         dep_perldist_string.lines().last().unwrap(),
@@ -309,7 +309,7 @@ fn test_template_updater() {
         download_url: Some("This Shouldn't be here".to_string()),
     };
 
-    write_template(&pkg_info_bad, true, &PkgType::Crate).unwrap();
+    write_template(&pkg_info_bad, true, PkgType::Crate).unwrap();
 
     update_template(&pkg_info_good, true, false).unwrap();
 

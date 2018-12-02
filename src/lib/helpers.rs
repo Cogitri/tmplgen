@@ -114,13 +114,13 @@ pub(crate) fn xdist_files() -> Result<String, Error> {
 ///
 /// # Errors
 /// * Errors out if `template_handler` fails to run
-pub(super) fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType) -> Result<(), Error> {
+pub(super) fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: PkgType) -> Result<(), Error> {
     for x in deps {
         // We want to ignore built-in deps
         if !is_built_in(x, pkg_type) {
-            let tmpl_path = if pkg_type == &PkgType::Gem {
+            let tmpl_path = if pkg_type == PkgType::Gem {
                 format!("{}ruby-{}/template", xdistdir, x)
-            } else if pkg_type == &PkgType::PerlDist {
+            } else if pkg_type == PkgType::PerlDist {
                 // We don't write templates for modules, but only
                 // for distributions. As such we have to convert
                 // the module's name to the distribution's name,
@@ -149,7 +149,7 @@ pub(super) fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: &PkgType
                     "Dependency {} doesn't exist yet, writing a template for it...",
                     x
                 );
-                template_handler(&get_pkginfo(&x, pkg_type)?, &pkg_type, false, true)?;
+                template_handler(&get_pkginfo(&x, pkg_type)?, pkg_type, false, true)?;
             } else {
                 debug!("Dependency {} is already satisfied!", x);
             }
@@ -171,8 +171,8 @@ pub(super) fn check_string_len(pkg_name: &str, string: &str, string_type: &str) 
 }
 
 /// Checks if a Gem or PerlDist is built into Ruby/Perl.
-pub(crate) fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
-    if pkg_type == &PkgType::Crate {
+pub(crate) fn is_built_in(pkg_name: &str, pkg_type: PkgType) -> bool {
+    if pkg_type == PkgType::Crate {
         return false;
     }
 
@@ -183,7 +183,7 @@ pub(crate) fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
         ruby: data.ruby,
     };
 
-    if pkg_type == &PkgType::Gem {
+    if pkg_type == PkgType::Gem {
         for x in built_ins.ruby {
             if pkg_name == x.name {
                 warn!(
@@ -193,7 +193,7 @@ pub(crate) fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
                 return true;
             }
         }
-    } else if pkg_type == &PkgType::PerlDist {
+    } else if pkg_type == PkgType::PerlDist {
         let pkg_name = pkg_name.replace("::", "-");
 
         for x in built_ins.perl {
@@ -211,7 +211,7 @@ pub(crate) fn is_built_in(pkg_name: &str, pkg_type: &PkgType) -> bool {
 }
 
 /// Generates a String that we can write to `depends` in the template
-pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
+pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: PkgType) -> String {
     let mut dep_string = String::new();
 
     for x in dep_vec {
@@ -230,7 +230,7 @@ pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: &PkgType) -> String {
             dep_string.push_str(" ");
         }
 
-        if pkg_type == &PkgType::PerlDist {
+        if pkg_type == PkgType::PerlDist {
             if x == "perl" {
             } else {
                 dep_string.push_str(&("perl-".to_string() + &x.replace("::", "-")));
@@ -264,10 +264,10 @@ pub(super) fn correct_license(license: &str) -> String {
 ///
 /// Errors if determining PkgInfo fails, see the doc for [crate_info](crate::crates::crate_info),
 /// [gem_info](crate::gems::gem_info) and [perldist_info](crate::perldist::perldist_info)
-pub fn get_pkginfo(pkg_name: &str, pkg_type: &PkgType) -> Result<PkgInfo, Error> {
-    if pkg_type == &PkgType::Crate {
+pub fn get_pkginfo(pkg_name: &str, pkg_type: PkgType) -> Result<PkgInfo, Error> {
+    if pkg_type == PkgType::Crate {
         crate_info(&pkg_name)
-    } else if pkg_type == &PkgType::PerlDist {
+    } else if pkg_type == PkgType::PerlDist {
         perldist_info(&pkg_name)
     } else {
         gem_info(pkg_name)

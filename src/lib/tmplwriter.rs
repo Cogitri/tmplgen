@@ -42,7 +42,7 @@ use std::path::Path;
 ///        ),
 /// };
 ///
-/// write_template(&pkg_info_crate, false, &PkgType::Crate);
+/// write_template(&pkg_info_crate, false, PkgType::Crate);
 /// ```
 ///
 /// # Errors
@@ -50,7 +50,7 @@ use std::path::Path;
 pub fn write_template(
     pkg_info: &PkgInfo,
     force_overwrite: bool,
-    tmpl_type: &PkgType,
+    tmpl_type: PkgType,
 ) -> Result<(), Error> {
     let template_in = include_str!("template.in");
 
@@ -120,12 +120,12 @@ pub fn write_template(
         template_string = template_string.replace("\ndistfiles=\"@distfiles@\"", "")
     }
 
-    if tmpl_type == &PkgType::PerlDist {
+    if tmpl_type == PkgType::PerlDist {
         template_string = template_string
             .replace("@build_style@", "perl-module")
             .replace("@noarch@", "yes")
             .replace("@wrksrc@", "${pkgname/perl-/}-${version}");
-    } else if tmpl_type == &PkgType::Gem {
+    } else if tmpl_type == PkgType::Gem {
         template_string = template_string
             .replace("@build_style@", "gem")
             .replace("\nwrksrc=\"@wrksrc@\"", "")
@@ -224,7 +224,7 @@ pub fn update_template(
             }
         }
 
-        if &pkg_info.version == &orig_ver_string.replace("version=", "") {
+        if pkg_info.version == orig_ver_string.replace("version=", "") {
             if force_overwrite {
                 warn!("Updating already up-to-date template");
             } else {
