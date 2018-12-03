@@ -22,7 +22,13 @@ use env_logger::Builder;
 
 use log::{error, warn};
 
-fn main() -> Result<(), Error> {
+fn main() {
+    // This isn't so very pretty, especially since main() can return Result since Rust 2018,
+    // but we need this for pretty error messages via `env_logger`.
+    actual_work().map_err(|e| error!("{}", e.to_string())).unwrap_or_default();
+}
+
+fn actual_work() -> Result<(), Error> {
     let help_tuple = help_string();
     let pkg_name = help_tuple.0;
     let tmpl_type = help_tuple.1;
@@ -33,6 +39,10 @@ fn main() -> Result<(), Error> {
     let is_update_all = help_tuple.6;
 
     set_up_logging(is_debug, is_verbose);
+
+    if is_update_ver && is_update_all {
+        warn!("Specified both -u and -U! Will ignore -u");
+    }
 
     let mut tmpl_builder = TmplBuilder::new(pkg_name);
 
@@ -46,12 +56,6 @@ fn main() -> Result<(), Error> {
         return Err(Error::BuiltIn(tmpl_builder.pkg_name.clone()));
     }
 
-    tmpl_builder.get_info()?;
-
-    if is_update_ver && is_update_all {
-        warn!("Specified both -u and -U! Will ignore -u");
-    }
-
     let xdist_template_path = format!("{}{}/template", xdist_files()?, tmpl_builder.pkg_info.as_ref().unwrap().pkg_name);
 
     let template = if is_update_ver || is_update_all {
@@ -60,7 +64,7 @@ fn main() -> Result<(), Error> {
             let mut template_string = String::new();
             template_file.read_to_string(&mut template_string)?;
 
-            tmpl_builder.update(&Template { inner: template_string }, is_update_all)
+            tmpl_builder.get_info()?.update(&Template { inner: template_string }, is_update_all)
         } else {
             return Err(Error::TmplUpdater(format!("Can't update non-existing template {}", &tmpl_builder.pkg_info.unwrap().pkg_name)));
         }
@@ -71,7 +75,7 @@ fn main() -> Result<(), Error> {
                 &xdist_template_path,
             )));
         } else {
-            tmpl_builder.write()
+            tmpl_builder.get_info()?.write()
         }
     };
 
@@ -107,11 +111,22 @@ fn set_up_logging(is_debug: bool, is_verbose: bool) {
     let mut builder = Builder::new();
 
     if is_debug {
-        builder.filter(Some("libtmplgen"), log::LevelFilter::Debug);
+        builder
+            .filter_module("libtmplgen", log::LevelFilter::Debug)
+            .filter_module("tmplgen", log::LevelFilter::Debug)
+            // Also include what GET requests the below modules do, which
+            // get the data we need for PkgInfo
+            .filter_module("crates_io_api", log::LevelFilter::Trace)
+            .filter_module("rubygems_api", log::LevelFilter::Debug)
+            .filter_module("metacpan_api", log::LevelFilter::Debug);
     } else if is_verbose {
-        builder.filter(Some("libtmplgen"), log::LevelFilter::Info);
+        builder
+            .filter_module("libtmplgen", log::LevelFilter::Info)
+            .filter_module("tmplgen", log::LevelFilter::Info);
     } else {
-        builder.filter(Some("libtmplgen"), log::LevelFilter::Warn);
+        builder
+            .filter_module("libtmplgen", log::LevelFilter::Warn)
+            .filter_module("tmplgen", log::LevelFilter::Warn);
     }
 
     builder.default_format_timestamp(false).init();
@@ -157,11 +172,6 @@ fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool) {
         update_ver_only,
         update_all,
     )
-}
-
-fn err_handler(error: &Error) {
-    error!("{}", error.to_string());
-    std::process::exit(1);
 }
 
 /*
