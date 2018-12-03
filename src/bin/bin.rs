@@ -53,7 +53,7 @@ fn actual_work() -> Result<(), Error> {
         tmpl_builder.get_type()?;
     }
 
-    if is_built_in(&tmpl_builder.pkg_name, tmpl_builder.pkg_type.unwrap()) {
+    if tmpl_builder.is_built_in()? {
         return Err(Error::BuiltIn(tmpl_builder.pkg_name.clone()));
     }
 

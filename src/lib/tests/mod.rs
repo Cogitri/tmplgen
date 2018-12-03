@@ -140,7 +140,7 @@ fn test_figure_out_provider_panic() {
 
 #[test]
 fn test_built_in() {
-    assert_eq!(is_built_in("File::Basename", PkgType::PerlDist), true)
+    assert_eq!(TmplBuilder::new("File::Basename").set_type(PkgType::PerlDist).is_built_in().unwrap(), true)
 }
 
 #[test]

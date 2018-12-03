@@ -83,6 +83,47 @@ impl TmplBuilder {
         Ok(self)
     }
 
+    /// Checks if a Gem or PerlDist is built into Ruby/Perl.
+    pub fn is_built_in(&self) -> Result<bool, Error> {
+        if self.pkg_type.is_some() {
+            let data: BuiltIns = serde_json::from_str(include_str!("built_in.in")).unwrap();
+
+            let built_ins = BuiltIns {
+                perl: data.perl,
+                ruby: data.ruby,
+            };
+
+            if self.pkg_type.unwrap() == PkgType::Gem {
+                for x in built_ins.ruby {
+                    if self.pkg_name == x.name {
+                        warn!(
+                            "Gem {} is part of ruby, won't write a template for it!",
+                            self.pkg_name
+                        );
+                        return Ok(true);
+                    }
+                }
+            } else if self.pkg_type.unwrap() == PkgType::PerlDist {
+                let pkg_name = self.pkg_name.replace("::", "-");
+
+                for x in built_ins.perl {
+                    if pkg_name == x.name {
+                        warn!(
+                            "Perl distribution {} is part of perl, won't write a template for it!",
+                            pkg_name
+                        );
+                        return Ok(true);
+                    }
+                }
+            }
+
+            // Crates can't be built in
+            Ok(false)
+        } else {
+            Err(Error::TooLittleInfo("Can't check if Pkg is built in without setting/getting PkgType first!".to_string()))
+        }
+    }
+
     /// Updates a [Template](crate::types::Template)
     ///
     /// # Example

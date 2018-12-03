@@ -83,46 +83,6 @@ pub(super) fn check_string_len(pkg_name: &str, string: &str, string_type: &str) 
     string.to_string()
 }
 
-/// Checks if a Gem or PerlDist is built into Ruby/Perl.
-pub fn is_built_in(pkg_name: &str, pkg_type: PkgType) -> bool {
-    if pkg_type == PkgType::Crate {
-        return false;
-    }
-
-    let data: BuiltIns = serde_json::from_str(include_str!("built_in.in")).unwrap();
-
-    let built_ins = BuiltIns {
-        perl: data.perl,
-        ruby: data.ruby,
-    };
-
-    if pkg_type == PkgType::Gem {
-        for x in built_ins.ruby {
-            if pkg_name == x.name {
-                warn!(
-                    "Gem {} is part of ruby, won't write a template for it!",
-                    pkg_name
-                );
-                return true;
-            }
-        }
-    } else if pkg_type == PkgType::PerlDist {
-        let pkg_name = pkg_name.replace("::", "-");
-
-        for x in built_ins.perl {
-            if pkg_name == x.name {
-                warn!(
-                    "Perl distribution {} is part of perl, won't write a template for it!",
-                    pkg_name
-                );
-                return true;
-            }
-        }
-    }
-
-    false
-}
-
 /// Generates a String that we can write to `depends` in the template
 pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: PkgType) -> String {
     let mut dep_string = String::new();
