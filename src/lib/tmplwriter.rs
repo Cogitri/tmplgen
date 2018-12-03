@@ -21,25 +21,29 @@ use crate::gems::gem_dep_graph;
 use log::{info, warn};
 
 impl TmplBuilder {
-    pub fn new(pkg_name: String) -> TmplBuilder {
+    /// Initializes a new TmplBuilder with nothing but pkg_name set.
+    pub fn new(pkg_name: &str) -> TmplBuilder {
         TmplBuilder {
-            pkg_name,
+            pkg_name: pkg_name.to_owned(),
             pkg_type: None,
             pkg_info: None,
             deps: None,
         }
     }
 
+    /// Gets the PkgType of the package of the TmplBuilder that's passed into the function
     pub fn get_type(&mut self) -> Result<&mut TmplBuilder, Error> {
         self.pkg_type = Some(figure_out_provider(&self.pkg_name)?);
         Ok(self)
     }
 
+    /// Sets the PkgType of the package of the TmplBuilder that's passed into the function
     pub fn set_type(&mut self, pkg_type: PkgType) -> &mut TmplBuilder {
         self.pkg_type = Some(pkg_type);
         self
     }
 
+    /// Gets the PkgInfo of the package of the TmplBuilder that's passed into the function
     pub fn get_info(&mut self) -> Result<&mut TmplBuilder, Error> {
         if self.pkg_type.is_some() {
             self.pkg_info = Some(get_pkginfo(&self.pkg_name, self.pkg_type.unwrap())?);
@@ -49,11 +53,13 @@ impl TmplBuilder {
         }
     }
 
+    /// Sets the PkgInfo of the package of the TmplBuilder that's passed into the function
     pub fn set_info(&mut self, pkg_info: PkgInfo) -> &mut TmplBuilder {
         self.pkg_info = Some(pkg_info);
         self
     }
 
+    /// Gets the dependencies of the TmplBuilder that's passed into the function
     pub fn get_deps(&mut self) -> Result<&mut TmplBuilder, Error> {
         self.deps = if self.pkg_type == Some(PkgType::PerlDist) {
             Some(perldist_dep_graph(&self.pkg_name)?)
@@ -186,12 +192,15 @@ impl TmplBuilder {
                         .replace("${version}", &pkg_info.version)
                         .replace("\"", "");
 
+                    // If the download url we determined matches the one we pulled from the template
+                    // we can just use the sha we already know
                     if &pkg_info.download_url.as_ref().unwrap_or(&"".to_string()) == &tmpl_download_url {
                         template_string = template_string.replace(
                             &orig_checksum_string,
                             &format!("checksum={}", &pkg_info.sha),
                         );
                     } else {
+                        // If it doesn't match we have to download the distfile and get its sha sum
                         template_string = template_string.replace(
                             &orig_checksum_string,
                             &format!("checksum={}", write_checksum(tmpl_download_url)?),
