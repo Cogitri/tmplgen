@@ -49,6 +49,11 @@ impl TmplBuilder {
         }
     }
 
+    pub fn set_info(&mut self, pkg_info: PkgInfo) -> &mut TmplBuilder {
+        self.pkg_info = Some(pkg_info);
+        self
+    }
+
     pub fn get_deps(&mut self) -> Result<&mut TmplBuilder, Error> {
         self.deps = if self.pkg_type == Some(PkgType::PerlDist) {
             Some(perldist_dep_graph(&self.pkg_name)?)
