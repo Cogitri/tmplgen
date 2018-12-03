@@ -2,13 +2,9 @@ use super::crates::*;
 use super::gems::*;
 use super::helpers::*;
 use super::perldist::*;
-use super::tmplwriter::*;
 use super::types::*;
-use env_logger::Builder;
 use rubygems_api::GemRunDeps;
 use std::env::set_var;
-use std::fs::File;
-use std::io::prelude::*;
 
 fn set_env() {
     set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
@@ -19,32 +15,28 @@ fn set_env() {
 
 #[test]
 fn test_query_crate() {
-    let pkg_info = crate_info("rubygems_api").unwrap();
-    assert_eq!(pkg_info.homepage, "https://github.com/Cogitri/rubygems_api");
+    let mut tmpl_builder = TmplBuilder::new("rubygems_api");
+    tmpl_builder.set_type(PkgType::Crate).get_info().unwrap();
+    assert_eq!(tmpl_builder.pkg_info.unwrap().homepage, "https://github.com/Cogitri/rubygems_api");
 }
 
 #[test]
 fn test_query_gem() {
-    let pkg_info = gem_info("ffi").unwrap();
-    assert_eq!(pkg_info.license[0], "BSD-3-Clause");
+    let mut tmpl_builder = TmplBuilder::new("ffi");
+    tmpl_builder.set_type(PkgType::Gem).get_info().unwrap();
+    assert_eq!(tmpl_builder.pkg_info.unwrap().license[0], "BSD-3-Clause");
 }
 
 #[test]
 fn test_query_perldist() {
-    let pkg_info = perldist_info("Moose").unwrap();
-    assert_eq!(pkg_info.pkg_name, "perl-Moose")
+    let mut tmpl_builder = TmplBuilder::new("Moose");
+    tmpl_builder.set_type(PkgType::PerlDist).get_info().unwrap();
+    assert_eq!(tmpl_builder.pkg_info.unwrap().pkg_name, "perl-Moose")
 }
 
 #[test]
 fn test_tmplwriter_correctness() {
-    Builder::new()
-        .filter(Some("tmplgen"), log::LevelFilter::Error)
-        .default_format_timestamp(false)
-        .init();
-
     set_env();
-
-    let test_path = "/tmp/tmplgen-tests";
 
     let pkg_info_crate = PkgInfo {
         pkg_name: "tmplgen".to_string(),
@@ -60,18 +52,9 @@ fn test_tmplwriter_correctness() {
         ),
     };
 
-    write_template(&pkg_info_crate, true, PkgType::Crate).unwrap();
+    let tmpl_string_crate = TmplBuilder::from_pkg_info(pkg_info_crate).set_type(PkgType::Crate).write().unwrap();
 
-    let mut tmpl_file_crate =
-        File::open(format!("{}/srcpkgs/tmplgen/template", test_path)).unwrap();
-
-    let mut tmpl_string_crate = String::new();
-
-    tmpl_file_crate
-        .read_to_string(&mut tmpl_string_crate)
-        .unwrap();
-
-    assert_eq!(tmpl_string_crate, include_str!("template_test_crate.in"));
+    assert_eq!(tmpl_string_crate.inner, include_str!("template_test_crate.in"));
 
     let pkg_info_perl = PkgInfo {
         pkg_name: "perl-Moose".to_string(),
@@ -124,34 +107,26 @@ fn test_tmplwriter_correctness() {
         ),
     };
 
-    write_template(&pkg_info_perl, true, PkgType::PerlDist).unwrap();
+    let tmpl_string_perl = TmplBuilder::from_pkg_info(pkg_info_perl).set_type(PkgType::PerlDist).write().unwrap();
 
-    let mut tmpl_file_perl =
-        File::open(format!("{}/srcpkgs/perl-Moose/template", test_path)).unwrap();
-
-    let mut tmpl_string_perl = String::new();
-
-    tmpl_file_perl
-        .read_to_string(&mut tmpl_string_perl)
-        .unwrap();
-
-    assert_eq!(tmpl_string_perl, include_str!("template_test_perl.in"));
+    assert_eq!(tmpl_string_perl.inner, include_str!("template_test_perl.in"));
 }
 
 #[test]
 fn test_provider_selector() {
+
     assert_eq!(
-        figure_out_provider("tmplgen").unwrap(),
+        TmplBuilder::new("tmplgen").get_type().unwrap().pkg_type.unwrap(),
         PkgType::Crate
     );
 
     assert_eq!(
-        figure_out_provider("ruby-progressbar").unwrap(),
+        TmplBuilder::new("ruby-progressbar").get_type().unwrap().pkg_type.unwrap(),
         PkgType::Gem
     );
 
     assert_eq!(
-        figure_out_provider("Moose").unwrap(),
+        TmplBuilder::new("Moose").get_type().unwrap().pkg_type.unwrap(),
         PkgType::PerlDist
     );
 }
@@ -159,8 +134,8 @@ fn test_provider_selector() {
 #[test]
 #[should_panic]
 fn test_figure_out_provider_panic() {
-    figure_out_provider("ffi").unwrap();
-    figure_out_provider("dioaüsdioüaw").unwrap();
+    TmplBuilder::new("ffi").get_type().unwrap().pkg_type.unwrap();
+    TmplBuilder::new("hdusapiduwipa").get_type().unwrap().pkg_type.unwrap();
 }
 
 #[test]
@@ -170,9 +145,10 @@ fn test_built_in() {
 
 #[test]
 fn test_empty_gem_dep() {
-    let pkg_info = gem_info("ffi").unwrap();
+    let mut pkg_info = TmplBuilder::new("ffi");
+    let pkg_info = pkg_info.set_type(PkgType::Gem).get_info().unwrap().pkg_info.as_ref().unwrap();
 
-    assert_eq!(pkg_info.dependencies.unwrap().run, None);
+    assert_eq!(pkg_info.dependencies.as_ref().unwrap().run, None);
 }
 
 #[test]
@@ -309,19 +285,11 @@ fn test_template_updater() {
         download_url: Some("This Shouldn't be here".to_string()),
     };
 
-    write_template(&pkg_info_bad, true, PkgType::Crate).unwrap();
+    let bad_tmpl = TmplBuilder::from_pkg_info(pkg_info_bad).set_type(PkgType::Crate).write().unwrap();
 
-    update_template(&pkg_info_good, true, false).unwrap();
+    let good_template = TmplBuilder::from_pkg_info(pkg_info_good.clone()).set_type(PkgType::Crate).update(&bad_tmpl, true).unwrap();
 
-    let mut tmpl_file_crate = File::open("/tmp/tmplgen-tests/srcpkgs/tmplgen/template").unwrap();
-
-    let mut tmpl_string_crate = String::new();
-
-    tmpl_file_crate
-        .read_to_string(&mut tmpl_string_crate)
-        .unwrap();
-
-    assert_eq!(tmpl_string_crate, include_str!("template_test_crate.in"));
+    assert_eq!(good_template.inner, include_str!("template_test_crate.in"));
 
     let pkg_info_ok = PkgInfo {
         pkg_name: "tmplgen".to_string(),
@@ -337,15 +305,11 @@ fn test_template_updater() {
     };
 
 
-    write_template(&pkg_info_ok, true, PkgType::Crate).unwrap();
+    let ok_tmpl = TmplBuilder::from_pkg_info(pkg_info_ok).set_type(PkgType::Crate).write().unwrap();
 
-    update_template(&pkg_info_good, false, false).unwrap();
+    let good_templ = TmplBuilder::from_pkg_info(pkg_info_good).set_type(PkgType::Crate).update(&ok_tmpl, false).unwrap();
 
-    tmpl_file_crate
-        .read_to_string(&mut tmpl_string_crate)
-        .unwrap();
-
-    assert_eq!(tmpl_string_crate, format!("{}e4edb5de5fe3fdbf8ac2f56325a0762baf724eb7653cd0ce1af502\n", include_str!("template_test_crate.in")));
+    assert_eq!(good_templ.inner, include_str!("template_test_crate.in"));
 }
 
 #[test]
@@ -358,6 +322,7 @@ fn test_get_git_author() {
     );
 }
 
+/*
 #[test]
 #[should_panic]
 fn test_template_updater_panic() {
@@ -378,4 +343,4 @@ fn test_template_updater_panic() {
     };
 
     update_template(&pkg_info_panic, true, false).unwrap();
-}
+}*/
