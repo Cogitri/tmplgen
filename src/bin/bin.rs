@@ -75,7 +75,7 @@ fn actual_work() -> Result<(), Error> {
                 &xdist_template_path,
             )));
         } else {
-            tmpl_builder.get_info()?.write()
+            tmpl_builder.get_info()?.generate()
         }
     };
 

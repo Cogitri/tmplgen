@@ -256,9 +256,9 @@ impl TmplBuilder {
     ///        ),
     /// };
     ///
-    /// // Use TmplBuilder::new("tmplgen").get_type.write() to do this automatically instead of
+    /// // Use TmplBuilder::new("tmplgen").get_type.generate() to do this automatically instead of
     /// // setting PkgInfo and PkgType manually
-    /// let template = TmplBuilder::from_pkg_info(pkg_info_crate).set_type(PkgType::Crate).write().unwrap();
+    /// let template = TmplBuilder::from_pkg_info(pkg_info_crate).set_type(PkgType::Crate).generate().unwrap();
     ///
     /// // Write the [Template](crate::types::Template) to `./template`
     /// let mut file = File::create("./template").unwrap();
@@ -267,7 +267,7 @@ impl TmplBuilder {
     ///
     /// # Errors
     /// * Errors out if any of the underlying functions fails
-    pub fn write(&self) -> Result<Template, Error> {
+    pub fn generate(&self) -> Result<Template, Error> {
 
 
         let pkg_info = if self.pkg_info.is_some() {

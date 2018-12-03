@@ -52,7 +52,7 @@ fn test_tmplwriter_correctness() {
         ),
     };
 
-    let tmpl_string_crate = TmplBuilder::from_pkg_info(pkg_info_crate).set_type(PkgType::Crate).write().unwrap();
+    let tmpl_string_crate = TmplBuilder::from_pkg_info(pkg_info_crate).set_type(PkgType::Crate).generate().unwrap();
 
     assert_eq!(tmpl_string_crate.inner, include_str!("template_test_crate.in"));
 
@@ -107,7 +107,7 @@ fn test_tmplwriter_correctness() {
         ),
     };
 
-    let tmpl_string_perl = TmplBuilder::from_pkg_info(pkg_info_perl).set_type(PkgType::PerlDist).write().unwrap();
+    let tmpl_string_perl = TmplBuilder::from_pkg_info(pkg_info_perl).set_type(PkgType::PerlDist).generate().unwrap();
 
     assert_eq!(tmpl_string_perl.inner, include_str!("template_test_perl.in"));
 }
@@ -285,7 +285,7 @@ fn test_template_updater() {
         download_url: Some("This Shouldn't be here".to_string()),
     };
 
-    let bad_tmpl = TmplBuilder::from_pkg_info(pkg_info_bad).set_type(PkgType::Crate).write().unwrap();
+    let bad_tmpl = TmplBuilder::from_pkg_info(pkg_info_bad).set_type(PkgType::Crate).generate().unwrap();
 
     let good_template = TmplBuilder::from_pkg_info(pkg_info_good.clone()).set_type(PkgType::Crate).update(&bad_tmpl, true).unwrap();
 
@@ -305,7 +305,7 @@ fn test_template_updater() {
     };
 
 
-    let ok_tmpl = TmplBuilder::from_pkg_info(pkg_info_ok).set_type(PkgType::Crate).write().unwrap();
+    let ok_tmpl = TmplBuilder::from_pkg_info(pkg_info_ok).set_type(PkgType::Crate).generate().unwrap();
 
     let good_templ = TmplBuilder::from_pkg_info(pkg_info_good).set_type(PkgType::Crate).update(&ok_tmpl, false).unwrap();
 
