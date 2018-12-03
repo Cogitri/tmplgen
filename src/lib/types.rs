@@ -63,23 +63,23 @@ pub struct PkgInfo {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct BuiltIns {
+pub(crate) struct BuiltIns {
     pub perl: Vec<BuiltInDep>,
     pub ruby: Vec<BuiltInDep>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct BuiltInDep {
+pub(crate) struct BuiltInDep {
     pub name: String,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct CorrectedVals {
+pub(crate) struct CorrectedVals {
     pub licenses: Vec<CorrectedLicenses>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct CorrectedLicenses {
+pub(crate) struct CorrectedLicenses {
     pub is: String,
     pub should: String,
 }
