@@ -82,13 +82,15 @@ impl TmplBuilder {
         Ok(self)
     }
 
-    /// Updates the given template
+    /// Updates a [Template](crate::types::Template)
     ///
     /// # Example
     /// ```
-    /// use libtmplgen::PkgInfo;
-    /// use libtmplgen::update_template;
+    /// use libtmplgen::{PkgInfo, Template, TmplBuilder};
+    /// use std::fs::File;
+    /// use std::io::prelude::*;
     ///
+    /// // Do note that we only manually create a PkgInfo here to make the example easier to understand
     /// let pkg_info_crate = PkgInfo {
     ///        pkg_name: "tmplgen".to_string(),
     ///        version: "0.6.0".to_string(),
@@ -103,10 +105,20 @@ impl TmplBuilder {
     ///        ),
     /// };
     ///
-    /// // Will update an existing template to 0.6.0 (as specified by pkg_info_crate above)
-    /// // Won't update `homepage`, `distfiles` and `short_dec`
-    /// // Won't update an existing template
-    /// update_template(&pkg_info_crate, false, false);
+    /// let mut old_template = Template { inner: String::new() };
+    /// // Open whatever file you want to below. You can use the helper function
+    /// // [xdist_files](crate::helpers::xdist_files) to get the value of XBPS_DISTDIR
+    /// let mut file = File::open("src/lib/tests/template_test_crate.in").unwrap();
+    /// file.read_to_string(&mut old_template.inner).unwrap();
+    ///
+    /// // This will return a [Template](crate::types::Template), which is updated to 0.6.0 (as specified by pkg_info_crate above)
+    /// // Use TmplBuilder::new("tmplgen").get_info() to manually get the info we manually set in pkg_info_crate!
+    /// // Won't update `homepage`, `distfiles` and `short_desc`, set the second argument to `true` for that
+    /// let template_updated = TmplBuilder::from_pkg_info(pkg_info_crate).get_type().unwrap().update(&old_template, false).unwrap();
+    ///
+    /// // Write the [Template](crate::types::Template) to `./template`
+    /// let mut file = File::create("./template").unwrap();
+    /// file.write_all(template_updated.inner.as_bytes()).unwrap();
     /// ```
     pub fn update(&self, old_template: &Template, update_all: bool) -> Result<Template, Error> {
             let pkg_info = if self.pkg_info.is_some() {
@@ -220,14 +232,16 @@ impl TmplBuilder {
             Ok(Template { inner: template_string.to_owned() })
     }
 
-    /// Writes a PkgInfo to a file called `template`.
+    /// Generates a new [Template](crate::types::Template)
     ///
     /// # Example
     ///
     /// ```
-    /// use libtmplgen::tmplwriter::write_template;
-    /// use libtmplgen::types::{PkgInfo, PkgType};
+    /// use libtmplgen::{PkgInfo, PkgType, TmplBuilder};
+    /// use std::fs::File;
+    /// use std::io::prelude::*;
     ///
+    /// // Do note that we only manually create a PkgInfo here to make the example easier to understand
     /// let pkg_info_crate = PkgInfo {
     ///        pkg_name: "tmplgen".to_string(),
     ///        version: "0.6.0".to_string(),
@@ -242,7 +256,13 @@ impl TmplBuilder {
     ///        ),
     /// };
     ///
-    /// write_template(&pkg_info_crate, false, PkgType::Crate);
+    /// // Use TmplBuilder::new("tmplgen").get_type.write() to do this automatically instead of
+    /// // setting PkgInfo and PkgType manually
+    /// let template = TmplBuilder::from_pkg_info(pkg_info_crate).set_type(PkgType::Crate).write().unwrap();
+    ///
+    /// // Write the [Template](crate::types::Template) to `./template`
+    /// let mut file = File::create("./template").unwrap();
+    /// file.write_all(template.inner.as_bytes()).unwrap();
     /// ```
     ///
     /// # Errors

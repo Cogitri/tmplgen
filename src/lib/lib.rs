@@ -26,18 +26,38 @@
 //!
 //! ```
 //! use libtmplgen::*;
+//! use std::fs::File;
+//! use std::io::prelude::*;
 //!
-//! // Get the PkgType of this crate
-//! let pkg_type = figure_out_provider("tmplgen").unwrap();
-//! // Get a PkgInfo struct of this crate
-//! let pkg_info = get_pkginfo("tmplgen", pkg_type).unwrap();
-//! // Don't overwrite existing templates
-//! let force_overwrite = false;
-//! // This isn't a recursive dep, error out if there's an error
-//! let is_rec = false;
+//! let template = TmplBuilder::new("tmplgen").get_type().unwrap().get_info().unwrap().write().unwrap();
 //!
-//! template_handler(&pkg_info, pkg_type, force_overwrite, is_rec);
+//! let mut file = File::create("./template").unwrap();
+//! file.write_all(template.inner.as_bytes()).unwrap();
 //! ```
+//!
+//! *Wait. What?*
+//! Here's a step-by-step example:
+//! ```
+//! use libtmplgen::*;
+//! use std::fs::File;
+//! use std::io::prelude::*;
+//!
+//! // Creates a new TmplBuilder for the pkg "tmplgen"
+//! let mut tmpl_builder = TmplBuilder::new("tmplgen");
+//! // Get the PkgType of this crate
+//! tmpl_builder.get_type().unwrap();
+//! // Get a PkgInfo struct of this crate
+//! tmpl_builder.get_info().unwrap();
+//! // Generate a [Template](crate::types::Template) which we can write later on
+//! let template = tmpl_builder.write().unwrap();
+//!
+//! // Create a file called "template" in the current dir
+//! let mut file = File::create("./template").unwrap();
+//! // Write the [Template](crate::types::Template) to the file we just created
+//! file.write_all(template.inner.as_bytes()).unwrap();
+//! ```
+//!
+//! See [TmplBuilder](crate::types::TmplBuilder) for most of the exciting other stuff.
 
 mod crates;
 mod gems;
