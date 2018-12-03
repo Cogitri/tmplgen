@@ -24,7 +24,7 @@ use log::debug;
 ///
 /// * Errors out if rubygems.org can't be reached
 /// * Errors out if the gem can't be found on rubygems.org
-pub(crate) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
+pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     let client = rubygems_api::SyncClient::new();
 
     let query_result = client.gem_info(gem_name)?;
@@ -79,7 +79,7 @@ pub(crate) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
 /// * Errors out if the gem can't be found on rubygems.org
 /// * Errors out if `xdistdir` can't be determined (via `xdist_files`)
 /// * Errors out if `recursive_deps` errors
-pub(crate) fn gem_dep_graph(gem_name: &str) -> Result<Vec<String>, Error> {
+pub(super) fn gem_dep_graph(gem_name: &str) -> Result<Vec<String>, Error> {
     let client = rubygems_api::SyncClient::new();
 
     let query_result = client.gem_info(gem_name)?;
@@ -136,7 +136,7 @@ pub fn tilde_parse(version: String) -> Option<Vec<String>> {
 */
 
 /// Determines the run dependencies of a gem. Deals with version requirements.
-pub(crate) fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> String {
+pub(super) fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> String {
     let cmpr = rubygem_dep
             .requirements
             .split_whitespace()

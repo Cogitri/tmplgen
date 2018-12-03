@@ -41,7 +41,7 @@ pub(super) fn missing_field_s(field_name: &str) -> String {
 ///
 /// * Errors out of a package with the name the user gave us can be found multiple platforms
 /// * Errors out if the package can't be found on any platform
-pub(crate) fn figure_out_provider( pkg_name: &str) -> Result<PkgType, Error> {
+pub(super) fn figure_out_provider( pkg_name: &str) -> Result<PkgType, Error> {
     let crate_status = crates_io_api::SyncClient::new()
         .get_crate(&pkg_name)
         .is_ok();
@@ -215,7 +215,7 @@ pub(super) fn correct_license(license: &str) -> String {
 ///
 /// Errors if determining PkgInfo fails, see the doc for [crate_info](crate::crates::crate_info),
 /// [gem_info](crate::gems::gem_info) and [perldist_info](crate::perldist::perldist_info)
-pub(crate) fn get_pkginfo(pkg_name: &str, pkg_type: PkgType) -> Result<PkgInfo, Error> {
+pub(super) fn get_pkginfo(pkg_name: &str, pkg_type: PkgType) -> Result<PkgInfo, Error> {
     if pkg_type == PkgType::Crate {
         crate_info(&pkg_name)
     } else if pkg_type == PkgType::PerlDist {

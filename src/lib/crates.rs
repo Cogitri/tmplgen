@@ -10,7 +10,7 @@ use log::debug;
 /// * Errors out if crates.io can't be reached
 /// * Errors out if the crate can't be found on crates.io
 /// * Errors if the native deps can't be determined (via `check_native_deps`)
-pub(crate) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
+pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
     let client = crates_io_api::SyncClient::new();
 
     let query_result = client.full_crate(crate_name, false)?;
@@ -75,7 +75,7 @@ fn get_crate_deps(crate_name: &str) -> Result<Vec<crates_io_api::Dependency>, Er
 ///
 /// * Errors out if crates.io can't be queried
 /// * Errors out if the crate can't be found on crates.io
-pub(crate) fn check_native_deps(crate_name: &str) -> Result<Option<Dependencies>, Error> {
+pub(super) fn check_native_deps(crate_name: &str) -> Result<Option<Dependencies>, Error> {
     let dependencies = get_crate_deps(crate_name)?;
 
     debug!("Crate dependencies: {:?}", dependencies);
