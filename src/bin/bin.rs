@@ -19,6 +19,7 @@ use std::io::prelude::*;
 use libtmplgen::*;
 use clap::{App, load_yaml};
 use env_logger::Builder;
+use std::os::unix::ffi::OsStrExt;
 
 use log::{error, warn};
 
@@ -56,7 +57,15 @@ fn actual_work() -> Result<(), Error> {
         return Err(Error::BuiltIn(tmpl_builder.pkg_name.clone()));
     }
 
-    let xdist_template_path = format!("{}{}/template", xdist_files()?, tmpl_builder.pkg_info.as_ref().unwrap().pkg_name);
+    let xdist_env = std::env::var_os("XBPS_DISTDIR");
+
+    let xdist_dir = if xdist_env.is_some() {
+        Ok(std::str::from_utf8(xdist_env.unwrap().as_bytes())?.to_string())
+    } else {
+        Err(libtmplgen::Error::XdistError("Couldn't get XBPS_DISTDIR variable, please set it to where you want to write the template to!".to_string()))
+    };
+
+    let xdist_template_path = format!("{}{}/template", xdist_dir?, tmpl_builder.pkg_info.as_ref().unwrap().pkg_name);
 
     let template = if is_update_ver || is_update_all {
         if Path::new(&xdist_template_path).exists() {

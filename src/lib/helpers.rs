@@ -71,44 +71,6 @@ pub(super) fn figure_out_provider( pkg_name: &str) -> Result<PkgType, Error> {
     }
 }
 
-/// Figure out where to write template files with `xdistdir`
-///
-/// # Errors
-///
-/// * Errors out if `xdistdir` couldn't be run
-/// * Errors out if the UTF-8 `xdistdir` returns can't be converted to a String
-/// * Errors out if the String returned by `xdistdir` contains a `~` and the env
-///   variable `HOME` isn't set. Rust interprets `~` as `./~` instead of as `$HOME`
-///   as shell does.
-pub fn xdist_files() -> Result<String, Error> {
-    let xdistdir = Command::new("sh").args(&["-c", "xdistdir"]).output()?;
-
-    if !xdistdir.status.success() {
-        return Err(Error::XdistError(
-            from_utf8(&xdistdir.stderr).unwrap().to_string(),
-        ));
-    }
-
-    let xdistdir_string = from_utf8(&xdistdir.stdout)?;
-
-    if xdistdir_string.contains('~') {
-        let home_dir = std::env::var("HOME");
-
-        if home_dir.is_err() {
-            return Err(Error::XdistError(
-                "Please either replace '~' with your homepath in XBPS_XDISTDIR or export HOME"
-                    .to_string(),
-            ));
-        }
-
-        let xdistdir_path = &from_utf8(&xdistdir.stdout)?.replace("~", &home_dir.ok().unwrap());
-
-        Ok(format!("{}/srcpkgs/", xdistdir_path.replace("\n", ""),))
-    } else {
-        Ok(format!("{}/srcpkgs/", xdistdir_string.replace("\n", ""),))
-    }
-}
-
 /// Checks the length of a string and prints a warning if it's too long for a template
 pub(super) fn check_string_len(pkg_name: &str, string: &str, string_type: &str) -> String {
     if string.len() >= 80 {

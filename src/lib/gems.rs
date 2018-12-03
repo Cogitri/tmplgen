@@ -77,7 +77,6 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
 ///
 /// * Errors out if rubygems.org can't be reached
 /// * Errors out if the gem can't be found on rubygems.org
-/// * Errors out if `xdistdir` can't be determined (via `xdist_files`)
 /// * Errors out if `recursive_deps` errors
 pub(super) fn gem_dep_graph(gem_name: &str) -> Result<Vec<String>, Error> {
     let client = rubygems_api::SyncClient::new();

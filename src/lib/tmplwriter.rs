@@ -18,6 +18,7 @@ use crate::helpers::*;
 use crate::types::*;
 use crate::perldist::perldist_dep_graph;
 use crate::gems::gem_dep_graph;
+
 use log::{info, warn};
 
 impl TmplBuilder {
@@ -106,8 +107,7 @@ impl TmplBuilder {
     /// };
     ///
     /// let mut old_template = Template { inner: String::new() };
-    /// // Open whatever file you want to below. You can use the helper function
-    /// // [xdist_files](crate::helpers::xdist_files) to get the value of XBPS_DISTDIR
+    /// // Open whatever file you want to below.
     /// let mut file = File::open("src/lib/tests/template_test_crate.in").unwrap();
     /// file.read_to_string(&mut old_template.inner).unwrap();
     ///

@@ -240,14 +240,6 @@ fn test_determine_gem_run_deps() {
 }
 
 #[test]
-fn test_xdist_files() {
-    set_var("XBPS_DISTDIR", "~/test");
-    set_var("HOME", "/tmp/tmplgen-tests");
-
-    assert_eq!(xdist_files().unwrap(), "/tmp/tmplgen-tests/test/srcpkgs/")
-}
-
-#[test]
 fn test_correct_license() {
     assert_eq!(correct_license("GPL-1.0+"), "GPL-1.0-or-later".to_string());
     assert_eq!(

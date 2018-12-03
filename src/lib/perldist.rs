@@ -87,7 +87,6 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Dependencies {
 ///
 /// * Errors out if metacpan.org can't be reached
 /// * Errors out if the perldist can't be found on metacpan.org
-/// * Errors out if `xdistdir` can't be determined (via `xdist_files`)
 /// * Errors out if `recursive_deps` errors
 pub(super) fn perldist_dep_graph(perldist_name: &str) -> Result<Vec<String>, Error> {
     let client = metacpan_api::SyncClient::new();
