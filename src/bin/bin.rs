@@ -107,11 +107,11 @@ fn set_up_logging(is_debug: bool, is_verbose: bool) {
     let mut builder = Builder::new();
 
     if is_debug {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Debug);
+        builder.filter(Some("libtmplgen"), log::LevelFilter::Debug);
     } else if is_verbose {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Info);
+        builder.filter(Some("libtmplgen"), log::LevelFilter::Info);
     } else {
-        builder.filter(Some("tmplgen"), log::LevelFilter::Warn);
+        builder.filter(Some("libtmplgen"), log::LevelFilter::Warn);
     }
 
     builder.default_format_timestamp(false).init();
