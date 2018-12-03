@@ -1,18 +1,22 @@
 use std::process::Command;
 use assert_cmd::prelude::*;
-use std::env;
+use tempfile::tempdir;
 
 #[test]
 fn test_bin_run() {
+    let dir = tempdir().unwrap();
+
     Command::main_binary()
         .unwrap()
         .args(&["tmplgen"])
         .env_clear()
-        .env("XBPS_DISTDIR", format!("{:?}/tmplgen-tests", env::temp_dir()))
+        .env("XBPS_DISTDIR", dir.path().join("tmplgen-tests/"))
         .env("GIT_AUTHOR_NAME", "tmplgentests")
         .env("GIT_AUTHOR_EMAIL", "tmplgen@tests.de")
         .assert()
         .success();
+
+    dir.close().unwrap();
 }
 
 #[test]
