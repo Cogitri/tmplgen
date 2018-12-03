@@ -1,5 +1,5 @@
-use std::process::Command;
 use assert_cmd::prelude::*;
+use std::process::Command;
 use tempfile::tempdir;
 
 #[test]
@@ -22,7 +22,8 @@ fn test_bin_run() {
 #[test]
 #[should_panic]
 fn test_bad_env() {
-    Command::cargo_bin("tmplgen").unwrap()
+    Command::cargo_bin("tmplgen")
+        .unwrap()
         .args(&["tmplgen"])
         .env_clear()
         .assert()

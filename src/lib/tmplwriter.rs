@@ -14,10 +14,10 @@
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::errors::Error;
-use crate::helpers::*;
-use crate::types::*;
-use crate::perldist::perldist_dep_graph;
 use crate::gems::gem_dep_graph;
+use crate::helpers::*;
+use crate::perldist::perldist_dep_graph;
+use crate::types::*;
 
 use log::{info, warn};
 
@@ -60,7 +60,9 @@ impl TmplBuilder {
             self.pkg_info = Some(get_pkginfo(&self.pkg_name, self.pkg_type.unwrap())?);
             Ok(self)
         } else {
-            Err(Error::TooLittleInfo("Can't get PkgInfo without setting/getting PkgType first!".to_string()))
+            Err(Error::TooLittleInfo(
+                "Can't get PkgInfo without setting/getting PkgType first!".to_string(),
+            ))
         }
     }
 
@@ -120,7 +122,9 @@ impl TmplBuilder {
             // Crates can't be built in
             Ok(false)
         } else {
-            Err(Error::TooLittleInfo("Can't check if Pkg is built in without setting/getting PkgType first!".to_string()))
+            Err(Error::TooLittleInfo(
+                "Can't check if Pkg is built in without setting/getting PkgType first!".to_string(),
+            ))
         }
     }
 
@@ -162,115 +166,119 @@ impl TmplBuilder {
     /// file.write_all(template_updated.inner.as_bytes()).unwrap();
     /// ```
     pub fn update(&self, old_template: &Template, update_all: bool) -> Result<Template, Error> {
-            let pkg_info = if self.pkg_info.is_some() {
-                Ok(self.pkg_info.clone().unwrap())
+        let pkg_info = if self.pkg_info.is_some() {
+            Ok(self.pkg_info.clone().unwrap())
+        } else {
+            Err(Error::TooLittleInfo(
+                "Can't update template without setting PkgInfo first!".to_string(),
+            ))
+        }?;
+
+        info!("Updating template {}", &pkg_info.pkg_name);
+
+        let mut template_string = old_template.inner.clone();
+
+        let mut orig_ver_string = String::new();
+        let mut orig_checksum_string = String::new();
+        let mut orig_distfiles_string = String::new();
+
+        for x in template_string.lines() {
+            if x.contains("version=") {
+                orig_ver_string = x.to_string();
+            }
+            if x.contains("checksum=") {
+                orig_checksum_string = x.to_string();
+            }
+            if x.contains("distfiles=") {
+                orig_distfiles_string = x.to_string();
+            }
+        }
+
+        template_string =
+            template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
+
+        if update_all {
+            let mut orig_homepage_string = String::new();
+            let mut orig_description_string = String::new();
+
+            for x in template_string.lines() {
+                if x.contains("homepage=") {
+                    orig_homepage_string = x.to_string();
+                }
+                if x.contains("short_desc=") {
+                    orig_description_string = x.to_string();
+                }
+            }
+
+            template_string = template_string.replace(
+                &orig_checksum_string,
+                &format!("checksum={}", &pkg_info.sha),
+            );
+
+            if orig_homepage_string.is_empty() {
+                warn!("Couldn't find 'homepage' string and as such won't update it!");
             } else {
-                Err(Error::TooLittleInfo("Can't update template without setting PkgInfo first!".to_string()))
-            }?;
+                template_string = template_string.replace(
+                    &orig_homepage_string,
+                    &format!("homepage=\"{}\"", &pkg_info.homepage),
+                );
+            }
 
-            info!("Updating template {}", &pkg_info.pkg_name);
+            if orig_distfiles_string.is_empty() {
+                warn!("Couldn't find 'distfiles' string and as such won't update it!");
+            } else {
+                // This looks a bit funny because...well, it is. download_url can be empty, but we
+                // want to just remove the previous distfiles, in case the gem downloads some additional
+                // data
+                template_string = template_string.replace(
+                    &orig_distfiles_string,
+                    &format!(
+                        "distfiles=\"{}",
+                        format!(
+                            "{}\"",
+                            &pkg_info
+                                .download_url
+                                .as_ref()
+                                .unwrap_or(&orig_distfiles_string.replace("distfiles=\"", ""))
+                        )
+                    ),
+                );
+            }
 
-                let mut template_string = old_template.inner.clone();
+            if orig_description_string.is_empty() {
+                warn!("Couldn't find 'description' string and as such won't update it!");
+            } else {
+                template_string = template_string.replace(
+                    &orig_description_string,
+                    &format!("short_desc=\"{}\"", &pkg_info.description),
+                );
+            }
+        } else {
+            // If we don't update all (and as such also update distfiles) we want to download the
+            // file specified in distfiles and write its checksum to the template
+            let tmpl_download_url = &orig_distfiles_string
+                .replace("distfiles=", "")
+                .replace("\"", "");
 
-                let mut orig_ver_string = String::new();
-                let mut orig_checksum_string = String::new();
-                let mut orig_distfiles_string = String::new();
+            // If the download url we determined matches the one we pulled from the template
+            // we can just use the sha we already know
+            if pkg_info.download_url.as_ref().unwrap_or(&"".to_string()) == tmpl_download_url {
+                template_string = template_string.replace(
+                    &orig_checksum_string,
+                    &format!("checksum={}", &pkg_info.sha),
+                );
+            } else {
+                // If it doesn't match we have to download the distfile and get its sha sum
+                template_string = template_string.replace(
+                    &orig_checksum_string,
+                    &format!("checksum={}", gen_checksum(tmpl_download_url)?),
+                );
+            };
+        }
 
-                for x in template_string.lines() {
-                    if x.contains("version=") {
-                        orig_ver_string = x.to_string();
-                    }
-                    if x.contains("checksum=") {
-                        orig_checksum_string = x.to_string();
-                    }
-                    if x.contains("distfiles=") {
-                        orig_distfiles_string = x.to_string();
-                    }
-                }
-
-                template_string =
-                    template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
-
-                if update_all {
-                    let mut orig_homepage_string = String::new();
-                    let mut orig_description_string = String::new();
-
-                    for x in template_string.lines() {
-                        if x.contains("homepage=") {
-                            orig_homepage_string = x.to_string();
-                        }
-                        if x.contains("short_desc=") {
-                            orig_description_string = x.to_string();
-                        }
-                    }
-
-                    template_string = template_string.replace(
-                        &orig_checksum_string,
-                        &format!("checksum={}", &pkg_info.sha),
-                    );
-
-                    if orig_homepage_string.is_empty() {
-                        warn!("Couldn't find 'homepage' string and as such won't update it!");
-                    } else {
-                        template_string = template_string.replace(
-                            &orig_homepage_string,
-                            &format!("homepage=\"{}\"", &pkg_info.homepage),
-                        );
-                    }
-
-                    if orig_distfiles_string.is_empty() {
-                        warn!("Couldn't find 'distfiles' string and as such won't update it!");
-                    } else {
-                        // This looks a bit funny because...well, it is. download_url can be empty, but we
-                        // want to just remove the previous distfiles, in case the gem downloads some additional
-                        // data
-                        template_string = template_string.replace(
-                            &orig_distfiles_string,
-                            &format!(
-                                "distfiles=\"{}",
-                                format!(
-                                    "{}\"",
-                                    &pkg_info
-                                        .download_url
-                                        .as_ref()
-                                        .unwrap_or(&orig_distfiles_string.replace("distfiles=\"", ""))
-                                )
-                            ),
-                        );
-                    }
-
-                    if orig_description_string.is_empty() {
-                        warn!("Couldn't find 'description' string and as such won't update it!");
-                    } else {
-                        template_string = template_string.replace(
-                            &orig_description_string,
-                            &format!("short_desc=\"{}\"", &pkg_info.description),
-                        );
-                    }
-                } else {
-                    // If we don't update all (and as such also update distfiles) we want to download the
-                    // file specified in distfiles and write its checksum to the template
-                    let tmpl_download_url = &orig_distfiles_string
-                        .replace("distfiles=", "")
-                        .replace("\"", "");
-
-                    // If the download url we determined matches the one we pulled from the template
-                    // we can just use the sha we already know
-                    if pkg_info.download_url.as_ref().unwrap_or(&"".to_string()) == tmpl_download_url {
-                        template_string = template_string.replace(
-                            &orig_checksum_string,
-                            &format!("checksum={}", &pkg_info.sha),
-                        );
-                    } else {
-                        // If it doesn't match we have to download the distfile and get its sha sum
-                        template_string = template_string.replace(
-                            &orig_checksum_string,
-                            &format!("checksum={}", gen_checksum(tmpl_download_url)?),
-                        );
-                    };
-                }
-
-            Ok(Template { inner: template_string.to_owned() })
+        Ok(Template {
+            inner: template_string.to_owned(),
+        })
     }
 
     /// Generates a new [Template](crate::types::Template)
@@ -309,12 +317,12 @@ impl TmplBuilder {
     /// # Errors
     /// * Errors out if any of the underlying functions fails
     pub fn generate(&self) -> Result<Template, Error> {
-
-
         let pkg_info = if self.pkg_info.is_some() {
             Ok(self.pkg_info.clone().unwrap())
         } else {
-            Err(Error::TooLittleInfo("Can't write a new template without setting PkgInfo first!".to_string()))
+            Err(Error::TooLittleInfo(
+                "Can't write a new template without setting PkgInfo first!".to_string(),
+            ))
         }?;
 
         // Can't have pkg_info without pkg_type, so we only have to check for pkg_info's existance
@@ -334,7 +342,8 @@ impl TmplBuilder {
             license.push_str(&correct_license(x));
         }
 
-        let mut description = check_string_len(&pkg_info.pkg_name, &pkg_info.description, "description");
+        let mut description =
+            check_string_len(&pkg_info.pkg_name, &pkg_info.description, "description");
 
         if description.chars().last().unwrap_or_default() == '.' {
             description.pop();
@@ -342,10 +351,7 @@ impl TmplBuilder {
 
         let mut template_string = template_in
             .replace("@version@", &pkg_info.version)
-            .replace(
-                "@description@",
-                &description,
-            )
+            .replace("@description@", &description)
             .replace("@license@", &license)
             .replace("@homepage@", &pkg_info.homepage)
             .replace("@maintainer@", &maintainer)
@@ -365,7 +371,8 @@ impl TmplBuilder {
             }
             if dependencies.make.is_some() {
                 let make_depends = gen_dep_string(dependencies.make.as_ref().unwrap(), tmpl_type);
-                template_string = template_string.replace("@makedepends@", &make_depends.trim_end());
+                template_string =
+                    template_string.replace("@makedepends@", &make_depends.trim_end());
             } else {
                 template_string = template_string.replace("\nmakedepends=\"@makedepends@\"", "");
             }
@@ -378,7 +385,8 @@ impl TmplBuilder {
         } else {
             template_string = template_string.replace("\ndepends=\"@depends@\"", "");
             template_string = template_string.replace("\nmakedepends=\"@makedepends@\"", "");
-            template_string = template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
+            template_string =
+                template_string.replace("\nhostmakedepends=\"@hostmakedepends@\"", "");
         }
 
         if pkg_info.download_url.is_some() {
@@ -411,12 +419,14 @@ impl TmplBuilder {
         if license.contains(&"MIT".to_string())
             || license.contains(&"ISC".to_string())
             || license.contains(&"BSD".to_string())
-            {
-                template_string.push_str("\n\npost_install() {\n\tvlicense LICENSE\n}");
-            }
+        {
+            template_string.push_str("\n\npost_install() {\n\tvlicense LICENSE\n}");
+        }
 
         template_string.push_str("\n");
 
-        Ok(Template { inner: template_string })
+        Ok(Template {
+            inner: template_string,
+        })
     }
 }

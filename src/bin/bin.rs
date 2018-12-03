@@ -13,13 +13,13 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::path::Path;
+use clap::{load_yaml, App};
+use env_logger::Builder;
+use libtmplgen::*;
 use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
-use libtmplgen::*;
-use clap::{App, load_yaml};
-use env_logger::Builder;
 use std::os::unix::ffi::OsStrExt;
+use std::path::Path;
 
 use log::{error, warn};
 
@@ -29,12 +29,12 @@ mod tests;
 fn main() {
     // This isn't so very pretty, especially since main() can return Result since Rust 2018,
     // but we need this for pretty error messages via `env_logger`.
-    actual_work().map_err(
-        |e| {
+    actual_work()
+        .map_err(|e| {
             error!("{}", e.to_string());
             std::process::exit(1);
-        }
-    ).unwrap();
+        })
+        .unwrap();
 }
 
 fn actual_work() -> Result<(), Error> {
@@ -65,7 +65,11 @@ fn actual_work() -> Result<(), Error> {
         return Err(Error::BuiltIn(tmpl_builder.pkg_name.clone()));
     }
 
-    let xdist_template_path = format!("{}/srcpkgs/{}/template", xdist_dir()?, tmpl_builder.get_info()?.pkg_info.as_ref().unwrap().pkg_name);
+    let xdist_template_path = format!(
+        "{}/srcpkgs/{}/template",
+        xdist_dir()?,
+        tmpl_builder.get_info()?.pkg_info.as_ref().unwrap().pkg_name
+    );
 
     let template = if is_update_ver || is_update_all {
         if Path::new(&xdist_template_path).exists() {
@@ -73,9 +77,17 @@ fn actual_work() -> Result<(), Error> {
             let mut template_string = String::new();
             template_file.read_to_string(&mut template_string)?;
 
-            tmpl_builder.update(&Template { inner: template_string }, is_update_all)
+            tmpl_builder.update(
+                &Template {
+                    inner: template_string,
+                },
+                is_update_all,
+            )
         } else {
-            return Err(Error::TmplUpdater(format!("Can't update non-existing template {}", &tmpl_builder.pkg_info.unwrap().pkg_name)));
+            return Err(Error::TmplUpdater(format!(
+                "Can't update non-existing template {}",
+                &tmpl_builder.pkg_info.unwrap().pkg_name
+            )));
         }
     } else if Path::new(&xdist_template_path).exists() && !force_overwrite {
         return Err(Error::TmplWriter(format!(
@@ -90,7 +102,6 @@ fn actual_work() -> Result<(), Error> {
 
     let mut file = File::create(&xdist_template_path)?;
     file.write_all(template?.inner.as_bytes())?;
-
 
     /*
     if pkg_type == PkgType::Crate {
@@ -188,22 +199,22 @@ fn xdist_dir() -> Result<String, Error> {
         return Err(libtmplgen::Error::XdistError("Couldn't get XBPS_DISTDIR variable, please set it to where you want to write the template to!".to_string()));
     }
 
-        let unclean_dir = std::str::from_utf8(xdist_env.unwrap().as_bytes())?.to_string();
+    let unclean_dir = std::str::from_utf8(xdist_env.unwrap().as_bytes())?.to_string();
 
-        if unclean_dir.contains('~') {
-            let home_dir = std::env::var("HOME");
+    if unclean_dir.contains('~') {
+        let home_dir = std::env::var("HOME");
 
-            if home_dir.is_ok() {
-                return Ok(unclean_dir.replace("~", &home_dir.unwrap()));
-            } else {
-                return Err(Error::XdistError(
-                    "Please either replace '~' with your homepath in XBPS_XDISTDIR or export HOME"
-                        .to_string(),
-                ));
-            };
+        if home_dir.is_ok() {
+            return Ok(unclean_dir.replace("~", &home_dir.unwrap()));
         } else {
-            return Ok(unclean_dir);
-        }
+            return Err(Error::XdistError(
+                "Please either replace '~' with your homepath in XBPS_XDISTDIR or export HOME"
+                    .to_string(),
+            ));
+        };
+    } else {
+        return Ok(unclean_dir);
+    }
 }
 
 /*

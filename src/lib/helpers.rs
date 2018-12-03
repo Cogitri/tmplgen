@@ -41,7 +41,7 @@ pub(super) fn missing_field_s(field_name: &str) -> String {
 ///
 /// * Errors out of a package with the name the user gave us can be found multiple platforms
 /// * Errors out if the package can't be found on any platform
-pub(super) fn figure_out_provider( pkg_name: &str) -> Result<PkgType, Error> {
+pub(super) fn figure_out_provider(pkg_name: &str) -> Result<PkgType, Error> {
     let crate_status = crates_io_api::SyncClient::new()
         .get_crate(&pkg_name)
         .is_ok();
@@ -52,7 +52,8 @@ pub(super) fn figure_out_provider( pkg_name: &str) -> Result<PkgType, Error> {
 
     if (crate_status && gem_status)
         || (crate_status && perldist_status)
-        || (gem_status && perldist_status) {
+        || (gem_status && perldist_status)
+    {
         Err(Error::AmbPkg(pkg_name.to_string()))
     } else if crate_status {
         debug!("Determined the target package {} to be a crate", &pkg_name);

@@ -20,25 +20,25 @@ pub enum Error {
     #[fail(display = "Won't write package for built-in template {}", _0)]
     BuiltIn(String),
     #[fail(
-    display = "Failed to determine git username/email from environment or git config! Error: {}",
-    _0
+        display = "Failed to determine git username/email from environment or git config! Error: {}",
+        _0
     )]
     GitError(String),
     #[fail(display = "Failed to determine XBPS_XDISTDIR: {}", _0)]
     XdistError(String),
     #[fail(
-    display = "Found a package matching the specified package {} on multiple platforms! Please explicitly choose one via the `-t` parameter!",
-    _0
+        display = "Found a package matching the specified package {} on multiple platforms! Please explicitly choose one via the `-t` parameter!",
+        _0
     )]
     AmbPkg(String),
     #[fail(
-    display = "Unable to determine what type of the target package {} is! Make sure you've spelled the package name correctly!",
-    _0
+        display = "Unable to determine what type of the target package {} is! Make sure you've spelled the package name correctly!",
+        _0
     )]
     NoSuchPkg(String),
     #[fail(
-    display = "Failed to write checksum to the newly written template! Error: {}",
-    _0
+        display = "Failed to write checksum to the newly written template! Error: {}",
+        _0
     )]
     ShaError(String),
     #[fail(display = "Didn't provide enough info for action {}", _0)]

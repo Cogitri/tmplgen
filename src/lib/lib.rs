@@ -61,15 +61,15 @@
 
 mod crates;
 mod gems;
-mod perldist;
 mod helpers;
+mod perldist;
 #[cfg(test)]
 mod tests;
 
+pub mod errors;
 pub mod tmplwriter;
 pub mod types;
-pub mod errors;
 
-pub use crate::types::*;
-pub use crate::tmplwriter::*;
 pub use crate::errors::*;
+pub use crate::tmplwriter::*;
+pub use crate::types::*;

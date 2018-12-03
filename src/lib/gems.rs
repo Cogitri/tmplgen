@@ -137,15 +137,15 @@ pub fn tilde_parse(version: String) -> Option<Vec<String>> {
 /// Determines the run dependencies of a gem. Deals with version requirements.
 pub(super) fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> String {
     let cmpr = rubygem_dep
-            .requirements
-            .split_whitespace()
-            .collect::<Vec<_>>()[0];
+        .requirements
+        .split_whitespace()
+        .collect::<Vec<_>>()[0];
 
     let ver = rubygem_dep
-            .requirements
-            .split_whitespace()
-            .collect::<Vec<_>>()[1]
-            .replace(",", "");
+        .requirements
+        .split_whitespace()
+        .collect::<Vec<_>>()[1]
+        .replace(",", "");
 
     match cmpr {
         ">" | "<" | "<=" => "ruby-".to_string() + &rubygem_dep.name + cmpr + &ver,
