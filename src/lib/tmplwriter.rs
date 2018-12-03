@@ -31,6 +31,16 @@ impl TmplBuilder {
         }
     }
 
+    /// Initializes a new TmplBuilder from a PkgInfo. Useful for testing or as a shortcut
+    pub fn from_pkg_info(pkg_info: PkgInfo) -> TmplBuilder {
+        TmplBuilder {
+            pkg_name: pkg_info.pkg_name.clone(),
+            pkg_type: None,
+            pkg_info: Some(pkg_info),
+            deps: None,
+        }
+    }
+
     /// Gets the PkgType of the package of the TmplBuilder that's passed into the function
     pub fn get_type(&mut self) -> Result<&mut TmplBuilder, Error> {
         self.pkg_type = Some(figure_out_provider(&self.pkg_name)?);
