@@ -29,7 +29,12 @@ mod tests;
 fn main() {
     // This isn't so very pretty, especially since main() can return Result since Rust 2018,
     // but we need this for pretty error messages via `env_logger`.
-    actual_work().map_err(|e| error!("{}", e.to_string())).unwrap_or_default();
+    actual_work().map_err(
+        |e| {
+            error!("{}", e.to_string());
+            std::process::exit(1);
+        }
+    ).unwrap();
 }
 
 fn actual_work() -> Result<(), Error> {
