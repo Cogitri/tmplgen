@@ -23,6 +23,9 @@ use std::os::unix::ffi::OsStrExt;
 
 use log::{error, warn};
 
+#[cfg(test)]
+mod tests;
+
 fn main() {
     // This isn't so very pretty, especially since main() can return Result since Rust 2018,
     // but we need this for pretty error messages via `env_logger`.
@@ -65,7 +68,7 @@ fn actual_work() -> Result<(), Error> {
         Err(libtmplgen::Error::XdistError("Couldn't get XBPS_DISTDIR variable, please set it to where you want to write the template to!".to_string()))
     };
 
-    let xdist_template_path = format!("{}{}/template", xdist_dir?, tmpl_builder.pkg_info.as_ref().unwrap().pkg_name);
+    let xdist_template_path = format!("{}{}/template", xdist_dir?, tmpl_builder.get_info()?.pkg_info.as_ref().unwrap().pkg_name);
 
     let template = if is_update_ver || is_update_all {
         if Path::new(&xdist_template_path).exists() {
@@ -73,7 +76,7 @@ fn actual_work() -> Result<(), Error> {
             let mut template_string = String::new();
             template_file.read_to_string(&mut template_string)?;
 
-            tmpl_builder.get_info()?.update(&Template { inner: template_string }, is_update_all)
+            tmpl_builder.update(&Template { inner: template_string }, is_update_all)
         } else {
             return Err(Error::TmplUpdater(format!("Can't update non-existing template {}", &tmpl_builder.pkg_info.unwrap().pkg_name)));
         }
@@ -83,7 +86,7 @@ fn actual_work() -> Result<(), Error> {
             &xdist_template_path,
         )));
     } else {
-        tmpl_builder.get_info()?.generate()
+        tmpl_builder.generate()
     };
 
     create_dir_all(&xdist_template_path.replace("/template", ""))?;
