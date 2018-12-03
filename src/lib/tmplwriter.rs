@@ -199,7 +199,6 @@ impl TmplBuilder {
                     // file specified in distfiles and write its checksum to the template
                     let tmpl_download_url = &orig_distfiles_string
                         .replace("distfiles=", "")
-                        .replace("${version}", &pkg_info.version)
                         .replace("\"", "");
 
                     // If the download url we determined matches the one we pulled from the template
