@@ -65,15 +65,7 @@ fn actual_work() -> Result<(), Error> {
         return Err(Error::BuiltIn(tmpl_builder.pkg_name.clone()));
     }
 
-    let xdist_env = std::env::var_os("XBPS_DISTDIR");
-
-    let xdist_dir = if xdist_env.is_some() {
-        Ok(std::str::from_utf8(xdist_env.unwrap().as_bytes())?.to_string())
-    } else {
-        Err(libtmplgen::Error::XdistError("Couldn't get XBPS_DISTDIR variable, please set it to where you want to write the template to!".to_string()))
-    };
-
-    let xdist_template_path = format!("{}{}/template", xdist_dir?, tmpl_builder.get_info()?.pkg_info.as_ref().unwrap().pkg_name);
+    let xdist_template_path = format!("{}/srcpkgs/{}/template", xdist_dir()?, tmpl_builder.get_info()?.pkg_info.as_ref().unwrap().pkg_name);
 
     let template = if is_update_ver || is_update_all {
         if Path::new(&xdist_template_path).exists() {
@@ -87,7 +79,7 @@ fn actual_work() -> Result<(), Error> {
         }
     } else if Path::new(&xdist_template_path).exists() && !force_overwrite {
         return Err(Error::TmplWriter(format!(
-            "Won't overwrite existing template '{}/template' without `--force`!",
+            "Won't overwrite existing template '{}' without `--force`!",
             &xdist_template_path,
         )));
     } else {
@@ -187,6 +179,31 @@ fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool) {
         update_ver_only,
         update_all,
     )
+}
+
+fn xdist_dir() -> Result<String, Error> {
+    let xdist_env = std::env::var_os("XBPS_DISTDIR");
+
+    if xdist_env.is_none() {
+        return Err(libtmplgen::Error::XdistError("Couldn't get XBPS_DISTDIR variable, please set it to where you want to write the template to!".to_string()));
+    }
+
+        let unclean_dir = std::str::from_utf8(xdist_env.unwrap().as_bytes())?.to_string();
+
+        if unclean_dir.contains('~') {
+            let home_dir = std::env::var("HOME");
+
+            if home_dir.is_ok() {
+                return Ok(unclean_dir.replace("~", &home_dir.unwrap()));
+            } else {
+                return Err(Error::XdistError(
+                    "Please either replace '~' with your homepath in XBPS_XDISTDIR or export HOME"
+                        .to_string(),
+                ));
+            };
+        } else {
+            return Ok(unclean_dir);
+        }
 }
 
 /*
