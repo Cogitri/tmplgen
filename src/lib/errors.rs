@@ -13,8 +13,6 @@ pub enum Error {
     PerlDist(String),
     #[fail(display = "Failed to convert UTF-8 to a string! Error: {}", _0)]
     UTF8(String),
-    #[fail(display = "Error: {}", _0)]
-    Failure(String),
     #[fail(display = "Failed to write the template! Error: {}", _0)]
     TmplWriter(String),
     #[fail(display = "Failed to update the template! Error: {}", _0)]
@@ -68,12 +66,6 @@ impl From<metacpan_api::Error> for Error {
 impl From<std::str::Utf8Error> for Error {
     fn from(e: std::str::Utf8Error) -> Self {
         Error::UTF8(e.to_string())
-    }
-}
-
-impl From<failure::Error> for Error {
-    fn from(e: failure::Error) -> Self {
-        Error::Failure(e.to_string())
     }
 }
 
