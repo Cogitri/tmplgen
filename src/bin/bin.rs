@@ -77,15 +77,13 @@ fn actual_work() -> Result<(), Error> {
         } else {
             return Err(Error::TmplUpdater(format!("Can't update non-existing template {}", &tmpl_builder.pkg_info.unwrap().pkg_name)));
         }
+    } else if Path::new(&xdist_template_path).exists() && !force_overwrite {
+        return Err(Error::TmplWriter(format!(
+            "Won't overwrite existing template '{}/template' without `--force`!",
+            &xdist_template_path,
+        )));
     } else {
-        if Path::new(&xdist_template_path).exists() && !force_overwrite {
-            return Err(Error::TmplWriter(format!(
-                "Won't overwrite existing template '{}/template' without `--force`!",
-                &xdist_template_path,
-            )));
-        } else {
-            tmpl_builder.get_info()?.generate()
-        }
+        tmpl_builder.get_info()?.generate()
     };
 
     create_dir_all(&xdist_template_path.replace("/template", ""))?;

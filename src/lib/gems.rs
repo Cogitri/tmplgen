@@ -147,13 +147,13 @@ pub(super) fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> 
             .collect::<Vec<_>>()[1]
             .replace(",", "");
 
-    match cmpr.as_ref() {
-        ">" | "<" | "<=" => "ruby-".to_string() + &rubygem_dep.name + &cmpr + &ver,
+    match cmpr {
+        ">" | "<" | "<=" => "ruby-".to_string() + &rubygem_dep.name + cmpr + &ver,
         ">=" => {
             if ver == "0" {
                 "ruby-".to_string() + &rubygem_dep.name
             } else {
-                "ruby-".to_string() + &rubygem_dep.name + &cmpr + &ver
+                "ruby-".to_string() + &rubygem_dep.name + cmpr + &ver
             }
         }
         "~>" => "ruby-".to_string() + &rubygem_dep.name + ">=" + &ver,

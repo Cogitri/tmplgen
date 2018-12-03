@@ -215,7 +215,7 @@ impl TmplBuilder {
 
                     // If the download url we determined matches the one we pulled from the template
                     // we can just use the sha we already know
-                    if &pkg_info.download_url.as_ref().unwrap_or(&"".to_string()) == &tmpl_download_url {
+                    if pkg_info.download_url.as_ref().unwrap_or(&"".to_string()) == tmpl_download_url {
                         template_string = template_string.replace(
                             &orig_checksum_string,
                             &format!("checksum={}", &pkg_info.sha),
