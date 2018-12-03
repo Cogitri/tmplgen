@@ -44,7 +44,7 @@ fn actual_work() -> Result<(), Error> {
         warn!("Specified both -u and -U! Will ignore -u");
     }
 
-    let mut tmpl_builder = TmplBuilder::new(pkg_name);
+    let mut tmpl_builder = TmplBuilder::new(&pkg_name);
 
     if tmpl_type.is_some() {
         tmpl_builder.set_type(tmpl_type.unwrap());
