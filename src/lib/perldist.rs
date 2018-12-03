@@ -9,7 +9,7 @@ use log::debug;
 /// # Errors
 /// * Errors out if metacpan.org can't be reached
 /// * Errors out if the perldist (or the module it is the parent of) can't be queried.
-/// * Errors out if `write_checksum` Errors.
+/// * Errors out if `gen_checksum` Errors.
 pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
     let client = metacpan_api::SyncClient::new();
 
@@ -44,7 +44,7 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
             .license
             .unwrap_or_else(|| vec![missing_field_s("license")]),
         dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())),
-        sha: write_checksum(&query_result.download_url)?,
+        sha: gen_checksum(&query_result.download_url)?,
         download_url: Some(download_url),
     };
 

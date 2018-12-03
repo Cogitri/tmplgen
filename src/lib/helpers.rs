@@ -276,7 +276,7 @@ pub(super) fn get_git_author() -> Result<String, Error> {
 ///
 /// * Errors out if the file can't be downloaded
 /// * Errors out if the sha256sum couldn't be determined
-pub(super) fn write_checksum(dwnld_url: &str) -> Result<String, Error> {
+pub(super) fn gen_checksum(dwnld_url: &str) -> Result<String, Error> {
     debug!("GET: {}", dwnld_url);
 
     info!("Downloading distfile to generate checksum...");
