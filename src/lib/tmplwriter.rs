@@ -128,6 +128,33 @@ impl TmplBuilder {
         }
     }
 
+    /// Helper function to get a Vec<[Template](crate::types::Template)> of all dependencies a
+    /// package has. Also includes recursive dependencies
+    // TODO: Make this prettier so we don't needlessly generate templates twice if dep x and y both depend on z
+    pub fn gen_deps(&self) -> Result<Vec<Template>, Error> {
+        if self.deps.is_some() {
+            let mut tmpl_vec = Vec::new();
+
+            for x in self.deps.as_ref().unwrap() {
+                let mut tmpl_builder = TmplBuilder::new(x);
+
+                if tmpl_builder.get_type()?.is_built_in()? {
+                    warn!("Won't write template for built-in package {}", x);
+                    continue;
+                }
+
+                tmpl_vec.push(tmpl_builder.get_info()?.generate()?);
+
+                tmpl_vec.append(&mut TmplBuilder::new(x).set_type(self.pkg_type.unwrap()).gen_deps().unwrap_or_default())
+            }
+            return Ok(tmpl_vec);
+        } else {
+            return Err(Error::TooLittleInfo(
+                "Can't create Templates for deps without getting the dependencies of the package first!".to_string(),
+            ))
+        }
+    }
+
 /// Updates a [Template](crate::types::Template)
 ///
 /// # Example
@@ -278,6 +305,7 @@ if update_all {
 
 Ok(Template {
     inner: template_string.to_owned(),
+    name: pkg_info.pkg_name,
 })
 }
 
@@ -427,6 +455,7 @@ template_string.push_str("\n");
 
 Ok(Template {
     inner: template_string,
+    name: pkg_info.pkg_name,
 })
 }
 }

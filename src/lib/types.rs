@@ -16,6 +16,7 @@
 use serde_derive::Deserialize;
 use std::io::Read;
 
+/// The TemplateBuilder struct, which is used to build a [Template](crate::types::Template)
 pub struct TmplBuilder {
     pub pkg_name: String,
     pub pkg_type: Option<PkgType>,
@@ -25,6 +26,7 @@ pub struct TmplBuilder {
 
 pub struct Template {
     pub inner: String,
+    pub name: String,
 }
 
 impl Read for Template {

@@ -80,6 +80,7 @@ fn actual_work() -> Result<(), Error> {
             tmpl_builder.update(
                 &Template {
                     inner: template_string,
+                    name: pkg_name.clone(),
                 },
                 is_update_all,
             )
@@ -103,24 +104,35 @@ fn actual_work() -> Result<(), Error> {
     let mut file = File::create(&xdist_template_path)?;
     file.write_all(template?.inner.as_bytes())?;
 
-    /*
-    if pkg_type == PkgType::Crate {
-        return Ok(());
-    }
 
-    let dep_graph = if pkg_type == PkgType::Gem {
-        gem_dep_graph(&pkg_name.replace("ruby-", ""))
+    let deps = tmpl_builder.get_deps();
+
+    if deps.is_ok() {
+        let deps_vec = &deps.as_ref().unwrap().deps;
+        if deps_vec.is_some() {
+            let dep_template_vec = deps.as_ref().unwrap().gen_deps();
+            if dep_template_vec.is_ok() {
+                for x in dep_template_vec.unwrap() {
+                    let xdist_template_path = format!(
+                        "{}/srcpkgs/{}/template",
+                        xdist_dir()?,
+                        x.name,
+                    );
+
+                    create_dir_all(&xdist_template_path.replace("/template", ""))?;
+
+                    let mut file = File::create(&xdist_template_path)?;
+                    file.write_all(x.inner.as_bytes())?;
+                }
+            } else {
+                return Err(Error::RecDeps {pkg_name, err: deps.err().unwrap().to_string()});
+            }
+        } else {
+            return Ok(());
+        }
     } else {
-        perldist_dep_graph(&pkg_name.replace("perl-", ""))
-    };
-
-    if dep_graph.is_err() {
-        warn!(
-            "Failed to write templates for all recursive deps of {}! Error: {}",
-            pkg_name,
-            dep_graph.unwrap_err()
-        );
-    }*/
+        return Err(Error::RecDeps{pkg_name, err: deps.err().unwrap().to_string()});
+    }
 
     Ok(())
 }
@@ -216,53 +228,3 @@ fn xdist_dir() -> Result<String, Error> {
         return Ok(unclean_dir);
     }
 }
-
-/*
-/// Generic function to handle recursive deps.
-///
-/// # Errors
-/// * Errors out if `template_handler` fails to run
-pub(super) fn recursive_deps(deps: &[String], xdistdir: &str, pkg_type: PkgType) -> Result<(), Error> {
-    for x in deps {
-        // We want to ignore built-in deps
-        if !is_built_in(x, pkg_type) {
-            let tmpl_path = if pkg_type == PkgType::Gem {
-                format!("{}ruby-{}/template", xdistdir, x)
-            } else if pkg_type == PkgType::PerlDist {
-                // We don't write templates for modules, but only
-                // for distributions. As such we have to convert
-                // the module's name to the distribution's name,
-                // if we're handling a module
-                let perl_client = metacpan_api::SyncClient::new();
-
-                let dist = perl_client.get_dist(&x);
-
-                if dist.is_ok() {
-                    format!(
-                        "{}perl-{}/template",
-                        xdistdir,
-                        dist.unwrap().replace("::", "-")
-                    )
-                } else {
-                    format!("{}perl-{}/template", xdistdir, x.replace("::", "-"))
-                }
-            } else {
-                format!("{}{}/template", xdistdir, x)
-            };
-
-            debug!("Checking for template in {}...", &tmpl_path);
-
-            if !Path::new(&tmpl_path).exists() {
-                info!(
-                    "Dependency {} doesn't exist yet, writing a template for it...",
-                    x
-                );
-                template_handler(&get_pkginfo(&x, pkg_type)?, pkg_type, false, true)?;
-            } else {
-                debug!("Dependency {} is already satisfied!", x);
-            }
-        }
-    }
-    Ok(())
-}
-*/
