@@ -104,20 +104,19 @@ fn actual_work() -> Result<(), Error> {
     let mut file = File::create(&xdist_template_path)?;
     file.write_all(template?.inner.as_bytes())?;
 
-
     let deps = tmpl_builder.get_deps();
 
     if deps.is_ok() {
         let deps_vec = &deps.as_ref().unwrap().deps;
         if deps_vec.is_some() {
-            let dep_template_vec = deps.as_ref().unwrap().gen_deps(Some(&format!("{}/srcpkgs", xdist_dir()?)));
+            let dep_template_vec = deps
+                .as_ref()
+                .unwrap()
+                .gen_deps(Some(&format!("{}/srcpkgs", xdist_dir()?)));
             if dep_template_vec.is_ok() {
                 for x in dep_template_vec.unwrap() {
-                    let xdist_template_path = format!(
-                        "{}/srcpkgs/{}/template",
-                        xdist_dir()?,
-                        x.name,
-                    );
+                    let xdist_template_path =
+                        format!("{}/srcpkgs/{}/template", xdist_dir()?, x.name,);
 
                     create_dir_all(&xdist_template_path.replace("/template", ""))?;
 
@@ -125,13 +124,19 @@ fn actual_work() -> Result<(), Error> {
                     file.write_all(x.inner.as_bytes())?;
                 }
             } else {
-                return Err(Error::RecDeps {pkg_name, err: deps.err().unwrap().to_string()});
+                return Err(Error::RecDeps {
+                    pkg_name,
+                    err: deps.err().unwrap().to_string(),
+                });
             }
         } else {
             return Ok(());
         }
     } else {
-        return Err(Error::RecDeps{pkg_name, err: deps.err().unwrap().to_string()});
+        return Err(Error::RecDeps {
+            pkg_name,
+            err: deps.err().unwrap().to_string(),
+        });
     }
 
     Ok(())

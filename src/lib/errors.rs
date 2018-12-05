@@ -43,11 +43,11 @@ pub enum Error {
     ShaError(String),
     #[fail(display = "Didn't provide enough info for action {}", _0)]
     TooLittleInfo(String),
-    #[fail(display="Failed to write templates for all recursive deps of {}! Error: {}", pkg_name, err)]
-    RecDeps {
-        pkg_name: String,
-        err: String,
-    }
+    #[fail(
+        display = "Failed to write templates for all recursive deps of {}! Error: {}",
+        pkg_name, err
+    )]
+    RecDeps { pkg_name: String, err: String },
 }
 
 impl From<crates_io_api::Error> for Error {
