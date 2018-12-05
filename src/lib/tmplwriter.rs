@@ -43,19 +43,30 @@ impl TmplBuilder {
         }
     }
 
-    /// Gets the PkgType of the package of the TmplBuilder that's passed into the function
+    /// Gets the PkgType of the package of the TmplBuilder that's passed into the method
+    ///
+    /// # Errors
+    ///
+    /// * If a package with the name of (self.pkg_name)[crate::TmplBuilder.pkg_name] can be
+    ///   found on multiple platforms (e.g. on both (crates.io)[https://crates.io] and (rubygems.org)[https://rubygems.org])
+    /// * If the package can't be found on any of the platforms
     pub fn get_type(&mut self) -> Result<&mut TmplBuilder, Error> {
         self.pkg_type = Some(figure_out_provider(&self.pkg_name)?);
         Ok(self)
     }
 
-    /// Sets the PkgType of the package of the TmplBuilder that's passed into the function
+    /// Sets the PkgType of the package of the TmplBuilder that's passed into the method
     pub fn set_type(&mut self, pkg_type: PkgType) -> &mut TmplBuilder {
         self.pkg_type = Some(pkg_type);
         self
     }
 
-    /// Gets the PkgInfo of the package of the TmplBuilder that's passed into the function
+    /// Gets the PkgInfo of the package of the TmplBuilder that's passed into the method
+    ///
+    /// # Errors
+    ///
+    /// * If you try to call this method without setting/getting pkg_type first via either
+    ///   (self.get_type)[crate::tmplwriter::TmplBuilder::get_type] or (self.set_type)[crate::tmplwriter::TmplBuilder::set_type]
     pub fn get_info(&mut self) -> Result<&mut TmplBuilder, Error> {
         if self.pkg_type.is_some() {
             self.pkg_info = Some(get_pkginfo(&self.pkg_name, self.pkg_type.unwrap())?);
@@ -67,13 +78,18 @@ impl TmplBuilder {
         }
     }
 
-    /// Sets the PkgInfo of the package of the TmplBuilder that's passed into the function
+    /// Sets the PkgInfo of the package of the TmplBuilder that's passed into the method
     pub fn set_info(&mut self, pkg_info: PkgInfo) -> &mut TmplBuilder {
         self.pkg_info = Some(pkg_info);
         self
     }
 
-    /// Gets the dependencies of the TmplBuilder that's passed into the function
+    /// Gets the dependencies of the TmplBuilder that's passed into the method
+    ///
+    /// # Errors:
+    ///
+    /// * If metacpan.org/rubygems.org can't be reached
+    /// * If the perldist/gem can't be found on metacpan.org/rubygems.org
     pub fn get_deps(&mut self) -> Result<&mut TmplBuilder, Error> {
         self.deps = if self.pkg_type == Some(PkgType::PerlDist) {
             Some(perldist_dep_graph(&self.pkg_name)?)
@@ -87,6 +103,11 @@ impl TmplBuilder {
     }
 
     /// Checks if a Gem or PerlDist is built into Ruby/Perl.
+    ///
+    /// # Errors
+    ///
+    /// * If you try to call this method without setting/getting pkg_type first via either
+    ///   (self.get_type)[crate::tmplwriter::TmplBuilder::get_type] or (self.set_type)[crate::tmplwriter::TmplBuilder::set_type]
     pub fn is_built_in(&self) -> Result<bool, Error> {
         if self.pkg_type.is_some() {
             let data: BuiltIns = serde_json::from_str(include_str!("built_in.in")).unwrap();
@@ -129,8 +150,19 @@ impl TmplBuilder {
         }
     }
 
-    /// Helper function to get a Vec<[Template](crate::types::Template)> of all dependencies a
-    /// package has. Also includes recursive dependencies
+    /// Helper method to get a Vec<[Template](crate::types::Template)> of all dependencies a
+    /// package has. Also includes recursive dependencies.
+    ///
+    /// # Arguments
+    ///
+    /// Takes the optional argument 'tmpl_path', which is used to check if a template exists already
+    /// and as such not unnecessarily return a Template struct for a template we don't need (because
+    /// it exists already)
+    ///
+    /// # Errors:
+    ///
+    /// * If you try to call this method without actually getting the deps via [get_deps](crate::TmplBuilder::get_deps) first
+    /// * If something went wrong while generating Templates for all dependencies of [self.pkg_name](crate::TmplBuilder.pkg_name)
     // TODO: Make this prettier so we don't needlessly generate templates twice if dep x and y both depend on z
     pub fn gen_deps(&self, tmpl_path: Option<&str>) -> Result<Vec<Template>, Error> {
         if self.deps.is_some() {
@@ -206,6 +238,11 @@ impl TmplBuilder {
 /// let mut file = File::create("./template").unwrap();
 /// file.write_all(template_updated.inner.as_bytes()).unwrap();
 /// ```
+///
+/// # Errors
+///
+/// * If you try to call this method without setting/getting pkg_info first via either
+///   (self.get_info)[crate::tmplwriter::TmplBuilder::get_info] or (self.set_type)[crate::tmplwriter::TmplBuilder::set_info]
 pub fn update(&self, old_template: &Template, update_all: bool) -> Result<Template, Error> {
 let pkg_info = if self.pkg_info.is_some() {
     Ok(self.pkg_info.clone().unwrap())
@@ -356,8 +393,8 @@ Ok(Template {
 /// file.write_all(template.inner.as_bytes()).unwrap();
 /// ```
 ///
-/// # Errors
-/// * Errors out if any of the underlying functions fails
+/// * If you try to call this method without setting/getting pkg_info first via either
+///   (self.get_info)[crate::tmplwriter::TmplBuilder::get_info] or (self.set_info)[crate::tmplwriter::TmplBuilder::set_info]
 pub fn generate(&self) -> Result<Template, Error> {
 let pkg_info = if self.pkg_info.is_some() {
     Ok(self.pkg_info.clone().unwrap())
