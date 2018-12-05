@@ -18,6 +18,7 @@ use crate::gems::gem_dep_graph;
 use crate::helpers::*;
 use crate::perldist::perldist_dep_graph;
 use crate::types::*;
+use std::path::Path;
 
 use log::{info, warn};
 
@@ -131,7 +132,7 @@ impl TmplBuilder {
     /// Helper function to get a Vec<[Template](crate::types::Template)> of all dependencies a
     /// package has. Also includes recursive dependencies
     // TODO: Make this prettier so we don't needlessly generate templates twice if dep x and y both depend on z
-    pub fn gen_deps(&self) -> Result<Vec<Template>, Error> {
+    pub fn gen_deps(&self, tmpl_path: Option<&str>) -> Result<Vec<Template>, Error> {
         if self.deps.is_some() {
             let mut tmpl_vec = Vec::new();
 
@@ -141,11 +142,24 @@ impl TmplBuilder {
                 if tmpl_builder.get_type()?.is_built_in()? {
                     warn!("Won't write template for built-in package {}", x);
                     continue;
+                } else if tmpl_path.is_some() {
+                    let tmpl_path_exists = if self.pkg_type.unwrap() == PkgType::Gem {
+                        Path::new(&format!("{}/ruby-{}/template", tmpl_path.unwrap_or_default(), x)).exists()
+                    } else if self.pkg_type.unwrap() == PkgType::PerlDist {
+                        Path::new(&format!("{}/perl-{}/template", tmpl_path.unwrap_or_default(), x)).exists()
+                    } else {
+                        Path::new(&format!("{}/{}/template", tmpl_path.unwrap_or_default(), x)).exists()
+                    };
+
+                    if tmpl_path_exists {
+                        warn!("Won't overwrite already existing template {}", x);
+                        continue;
+                    }
                 }
 
                 tmpl_vec.push(tmpl_builder.get_info()?.generate()?);
 
-                tmpl_vec.append(&mut TmplBuilder::new(x).set_type(self.pkg_type.unwrap()).gen_deps().unwrap_or_default())
+                tmpl_vec.append(&mut TmplBuilder::new(x).set_type(self.pkg_type.unwrap()).gen_deps(tmpl_path).unwrap_or_default())
             }
             return Ok(tmpl_vec);
         } else {

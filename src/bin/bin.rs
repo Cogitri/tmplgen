@@ -110,7 +110,7 @@ fn actual_work() -> Result<(), Error> {
     if deps.is_ok() {
         let deps_vec = &deps.as_ref().unwrap().deps;
         if deps_vec.is_some() {
-            let dep_template_vec = deps.as_ref().unwrap().gen_deps();
+            let dep_template_vec = deps.as_ref().unwrap().gen_deps(Some(&format!("{}/srcpkgs", xdist_dir()?)));
             if dep_template_vec.is_ok() {
                 for x in dep_template_vec.unwrap() {
                     let xdist_template_path = format!(
