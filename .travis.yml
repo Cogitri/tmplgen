@@ -12,9 +12,6 @@ rust:
 env:
   - RUST_BACKTRACE=1
 cache: cargo
-matrix:
-  allow_failures:
-    - rust: stable
 
 before_cache: |
   if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
