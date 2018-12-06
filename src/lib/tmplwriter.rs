@@ -171,7 +171,7 @@ impl TmplBuilder {
             for x in self.deps.as_ref().unwrap() {
                 let mut tmpl_builder = TmplBuilder::new(x);
 
-                if tmpl_builder.get_type()?.is_built_in()? {
+                if tmpl_builder.set_type(self.pkg_type.unwrap()).is_built_in()? {
                     warn!("Won't write template for built-in package {}", x);
                     continue;
                 } else if tmpl_path.is_some() {
