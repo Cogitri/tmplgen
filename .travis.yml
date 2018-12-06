@@ -25,7 +25,6 @@ script:
 
 before_install:
   - mkdir vendor && cd vendor && git clone https://github.com/Cogitri/crates_io_api
-  - git clone https://github.com/chneukirchen/xtools $HOME/bin
 
 after_success: |
   if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
