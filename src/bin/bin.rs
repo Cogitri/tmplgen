@@ -138,7 +138,7 @@ fn actual_work() -> Result<(), Error> {
             } else {
                 return Err(Error::RecDeps {
                     pkg_name,
-                    err: deps.err().unwrap().to_string(),
+                    err: dep_template_vec.err().unwrap().to_string(),
                 });
             }
         } else {
