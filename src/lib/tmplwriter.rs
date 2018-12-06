@@ -209,11 +209,11 @@ impl TmplBuilder {
                         .unwrap_or_default(),
                 )
             }
-            return Ok(tmpl_vec);
+            Ok(tmpl_vec)
         } else {
-            return Err(Error::TooLittleInfo(
+            Err(Error::TooLittleInfo(
                 "Can't create Templates for deps without getting the dependencies of the package first!".to_string(),
-            ));
+            ))
         }
     }
 

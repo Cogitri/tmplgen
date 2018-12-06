@@ -237,14 +237,14 @@ fn xdist_dir() -> Result<String, Error> {
         let home_dir = std::env::var("HOME");
 
         if home_dir.is_ok() {
-            return Ok(unclean_dir.replace("~", &home_dir.unwrap()));
+            Ok(unclean_dir.replace("~", &home_dir.unwrap()))
         } else {
-            return Err(Error::XdistError(
+            Err(Error::XdistError(
                 "Please either replace '~' with your homepath in XBPS_XDISTDIR or export HOME"
                     .to_string(),
-            ));
-        };
+            ))
+        }
     } else {
-        return Ok(unclean_dir);
+        Ok(unclean_dir)
     }
 }
