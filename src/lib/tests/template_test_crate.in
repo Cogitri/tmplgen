@@ -1,7 +1,8 @@
-# Template file for 'tmplgen'
-pkgname=tmplgen
+# Template file for 'rust-tmplgen'
+pkgname=rust-tmplgen
 version=0.3.1
 revision=1
+wrksrc="${pkgname/rust-/}-${version}"
 build_style=cargo
 short_desc="Void Linux template generator for language-specific package managers"
 maintainer="tmplgentests <tmplgentests@github.com>"

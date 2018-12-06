@@ -190,7 +190,7 @@ impl TmplBuilder {
                         ))
                         .exists()
                     } else {
-                        Path::new(&format!("{}/{}/template", tmpl_path.unwrap_or_default(), x))
+                        Path::new(&format!("{}/rust-{}/template", tmpl_path.unwrap_or_default(), x))
                             .exists()
                     };
 
@@ -506,7 +506,7 @@ impl TmplBuilder {
                 .replace("@pkgname@", &pkg_info.pkg_name)
                 .replace("\ndepends=\"@depends@\"", "")
                 .replace("@build_style@", "cargo")
-                .replace("\nwrksrc=\"@wrksrc@\"", "")
+                .replace("@wrksrc@", "${pkgname/rust-/}-${version}")
                 .replace("\nnoarch=@noarch@", "");
         }
 

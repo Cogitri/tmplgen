@@ -32,7 +32,7 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
     );
 
     let pkg_info = PkgInfo {
-        pkg_name: crate_name.to_string(),
+        pkg_name: format!("rust-{}", crate_name),
         version: query_result.max_version,
         description: query_result
             .description

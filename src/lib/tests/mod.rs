@@ -42,7 +42,7 @@ fn test_tmplwriter_correctness() {
     set_env();
 
     let pkg_info_crate = PkgInfo {
-        pkg_name: "tmplgen".to_string(),
+        pkg_name: "rust-tmplgen".to_string(),
         version: "0.3.1".to_string(),
         description: "Void Linux template generator for language-specific package managers"
             .to_string(),
@@ -299,7 +299,7 @@ fn test_template_updater() {
     set_env();
 
     let pkg_info_good = PkgInfo {
-        pkg_name: "tmplgen".to_string(),
+        pkg_name: "rust-tmplgen".to_string(),
         version: "0.3.1".to_string(),
         description: "Void Linux template generator for language-specific package managers"
             .to_string(),
@@ -313,7 +313,7 @@ fn test_template_updater() {
     };
 
     let pkg_info_bad = PkgInfo {
-        pkg_name: "tmplgen".to_string(),
+        pkg_name: "rust-tmplgen".to_string(),
         version: "0.2.9".to_string(),
         description: "gibberish".to_string(),
         homepage: "htt/ri/tmplgen".to_string(),
@@ -336,7 +336,7 @@ fn test_template_updater() {
     assert_eq!(good_template.inner, include_str!("template_test_crate.in"));
 
     let pkg_info_ok = PkgInfo {
-        pkg_name: "tmplgen".to_string(),
+        pkg_name: "rust-tmplgen".to_string(),
         version: "0.2.9".to_string(),
         description: "Void Linux template generator for language-specific package managers"
             .to_string(),
