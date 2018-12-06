@@ -200,7 +200,7 @@ impl TmplBuilder {
                     }
                 }
 
-                tmpl_vec.push(tmpl_builder.get_info()?.generate()?);
+                tmpl_vec.push(tmpl_builder.get_info()?.generate(true)?);
 
                 tmpl_vec.append(
                     &mut TmplBuilder::new(x)
@@ -402,7 +402,9 @@ impl TmplBuilder {
     ///
     /// // Use TmplBuilder::new("tmplgen").get_type.generate() to do this automatically instead of
     /// // setting PkgInfo and PkgType manually
-    /// let template = TmplBuilder::from_pkg_info(pkg_info_crate).set_type(PkgType::Crate).generate().unwrap();
+    /// // You generally want "prefix" to be true, unless you want to generate a template without
+    /// // the language- prefix.
+    /// let template = TmplBuilder::from_pkg_info(pkg_info_crate).set_type(PkgType::Crate).generate(true).unwrap();
     ///
     /// // Write the [Template](crate::types::Template) to `./template`
     /// let mut file = File::create("./template").unwrap();
@@ -411,7 +413,7 @@ impl TmplBuilder {
     ///
     /// * If you try to call this method without setting/getting pkg_info first via either
     ///   (self.get_info)[crate::tmplwriter::TmplBuilder::get_info] or (self.set_info)[crate::tmplwriter::TmplBuilder::set_info]
-    pub fn generate(&self) -> Result<Template, Error> {
+    pub fn generate(&self, prefix: bool) -> Result<Template, Error> {
         let pkg_info = if self.pkg_info.is_some() {
             Ok(self.pkg_info.clone().unwrap())
         } else {
@@ -494,8 +496,14 @@ impl TmplBuilder {
         if tmpl_type == PkgType::PerlDist {
             template_string = template_string
                 .replace("@build_style@", "perl-module")
-                .replace("@noarch@", "yes")
-                .replace("@wrksrc@", "${pkgname/perl-/}-${version}");
+                .replace("@noarch@", "yes");
+            if prefix {
+                template_string = template_string
+                    .replace("@wrksrc@", "${pkgname/perl-/}-${version}");
+            } else {
+                template_string = template_string
+                    .replace("\nwrksrc=\"@wrksrc@\"", "");
+            }
         } else if tmpl_type == PkgType::Gem {
             template_string = template_string
                 .replace("@build_style@", "gem")
@@ -508,6 +516,21 @@ impl TmplBuilder {
                 .replace("@build_style@", "cargo")
                 .replace("@wrksrc@", "${pkgname/rust-/}-${version}")
                 .replace("\nnoarch=@noarch@", "");
+        }
+
+        if ! prefix {
+            let prefix = if tmpl_type == PkgType::Crate {
+                "rust-"
+            } else if tmpl_type == PkgType::Gem {
+                "ruby-"
+            } else {
+                "perl-"
+            };
+
+            let wrksrc = format!("${{pkgname/{}/}}-${{version}}", prefix);
+
+            template_string = template_string
+                .replace(&format!("\nwrksrc=\"{}\"", wrksrc), "");
         }
 
         let license = &pkg_info.license.join(", ");

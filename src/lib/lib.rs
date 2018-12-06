@@ -29,7 +29,7 @@
 //! use std::fs::File;
 //! use std::io::prelude::*;
 //!
-//! let template = TmplBuilder::new("tmplgen").get_type().unwrap().get_info().unwrap().generate().unwrap();
+//! let template = TmplBuilder::new("tmplgen").get_type().unwrap().get_info().unwrap().generate(true).unwrap();
 //!
 //! let mut file = File::create("./template").unwrap();
 //! file.write_all(template.inner.as_bytes()).unwrap();
@@ -49,7 +49,8 @@
 //! // Get a PkgInfo struct of this crate
 //! tmpl_builder.get_info().unwrap();
 //! // Generate a [Template](crate::types::Template) which we can write later on
-//! let template = tmpl_builder.generate().unwrap();
+//! // The bool sets if we want the template to be prefixed with {perl-,ruby-,rust-}
+//! let template = tmpl_builder.generate(true).unwrap();
 //!
 //! // Create a file called "template" in the current dir
 //! let mut file = File::create("./template").unwrap();

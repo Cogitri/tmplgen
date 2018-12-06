@@ -57,7 +57,7 @@ fn test_tmplwriter_correctness() {
 
     let tmpl_string_crate = TmplBuilder::from_pkg_info(pkg_info_crate)
         .set_type(PkgType::Crate)
-        .generate()
+        .generate(true)
         .unwrap();
 
     assert_eq!(
@@ -118,7 +118,7 @@ fn test_tmplwriter_correctness() {
 
     let tmpl_string_perl = TmplBuilder::from_pkg_info(pkg_info_perl)
         .set_type(PkgType::PerlDist)
-        .generate()
+        .generate(true)
         .unwrap();
 
     assert_eq!(
@@ -325,7 +325,7 @@ fn test_template_updater() {
 
     let bad_tmpl = TmplBuilder::from_pkg_info(pkg_info_bad)
         .set_type(PkgType::Crate)
-        .generate()
+        .generate(true)
         .unwrap();
 
     let good_template = TmplBuilder::from_pkg_info(pkg_info_good.clone())
@@ -351,7 +351,7 @@ fn test_template_updater() {
 
     let ok_tmpl = TmplBuilder::from_pkg_info(pkg_info_ok)
         .set_type(PkgType::Crate)
-        .generate()
+        .generate(true)
         .unwrap();
 
     let good_templ = TmplBuilder::from_pkg_info(pkg_info_good)

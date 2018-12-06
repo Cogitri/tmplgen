@@ -11,6 +11,10 @@ args:
       short: f
       long: force
       help: Overwrite template, if it already exists
+  - no_prefix:
+      short: n
+      long: no-prefix
+      help: Don't prefix the package name with {perl-,ruby-,rust-}. Useful for updating existing packages which aren't prefixed.
   - tmpltype:
       short: t
       long: tmpltype

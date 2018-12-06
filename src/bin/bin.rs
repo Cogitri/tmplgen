@@ -46,6 +46,7 @@ fn actual_work() -> Result<(), Error> {
     let is_debug = help_tuple.4;
     let is_update_ver = help_tuple.5;
     let is_update_all = help_tuple.6;
+    let no_prefix = help_tuple.7;
 
     set_up_logging(is_debug, is_verbose);
 
@@ -65,10 +66,21 @@ fn actual_work() -> Result<(), Error> {
         return Err(Error::BuiltIn(tmpl_builder.pkg_name.clone()));
     }
 
+    if no_prefix {
+        let mut pkg_info = tmpl_builder.get_info()?.pkg_info.clone().unwrap();
+        pkg_info.pkg_name = pkg_info.pkg_name
+            .replace("perl-", "")
+            .replace("ruby-", "")
+            .replace("rust-", "");
+        tmpl_builder.set_info(pkg_info.to_owned());
+    } else {
+        tmpl_builder.get_info()?;
+    }
+
     let xdist_template_path = format!(
         "{}/srcpkgs/{}/template",
         xdist_dir()?,
-        tmpl_builder.get_info()?.pkg_info.as_ref().unwrap().pkg_name
+        tmpl_builder.pkg_info.as_ref().unwrap().pkg_name
     );
 
     let template = if is_update_ver || is_update_all {
@@ -96,7 +108,7 @@ fn actual_work() -> Result<(), Error> {
             &xdist_template_path,
         )));
     } else {
-        tmpl_builder.generate()
+        tmpl_builder.generate(!no_prefix)
     };
 
     create_dir_all(&xdist_template_path.replace("/template", ""))?;
@@ -172,7 +184,7 @@ fn set_up_logging(is_debug: bool, is_verbose: bool) {
 }
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
-fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool) {
+fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool, bool) {
     let help_yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(help_yaml).get_matches();
 
@@ -198,6 +210,8 @@ fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool) {
 
     let update_all = matches.is_present("update_all");
 
+    let no_prefix = matches.is_present("no_prefix");
+
     (
         crate_name,
         tmpl_type,
@@ -206,6 +220,7 @@ fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool) {
         is_debug,
         update_ver_only,
         update_all,
+        no_prefix,
     )
 }
 
