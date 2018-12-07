@@ -229,10 +229,10 @@ impl TmplBuilder {
     /// let pkg_info_crate = PkgInfo {
     ///        pkg_name: "tmplgen".to_string(),
     ///        version: "0.6.0".to_string(),
-    ///        description: "Void Linux template generator for language-specific package managers"
-    ///            .to_string(),
-    ///        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
-    ///        license: vec!["GPL-3.0-or-later".to_string()],
+    ///        description: Some("Void Linux template generator for language-specific package managers"
+    ///            .to_string()),
+    ///        homepage: Some("https://github.com/Cogitri/tmplgen".to_string()),
+    ///        license: Some(vec!["GPL-3.0-or-later".to_string()]),
     ///        dependencies: None,
     ///        sha: "afc403bf69ad4da168938961b0f02da86ef29d655967cfcbacc8201e1327aff4".to_string(),
     ///        download_url: Some(
@@ -311,10 +311,14 @@ impl TmplBuilder {
 
             if orig_homepage_string.is_empty() {
                 warn!("Couldn't find 'homepage' string and as such won't update it!");
-            } else {
+            } else if &pkg_info.homepage.is_some()  == &true {
                 template_string = template_string.replace(
                     &orig_homepage_string,
-                    &format!("homepage=\"{}\"", &pkg_info.homepage),
+                    &format!("homepage=\"{}\"", &pkg_info.homepage.unwrap()),
+                );
+            } else {
+                warn!(
+                    "Couldn't determine field 'homepage'! Won't update it.",
                 );
             }
 
@@ -341,10 +345,14 @@ impl TmplBuilder {
 
             if orig_description_string.is_empty() {
                 warn!("Couldn't find 'description' string and as such won't update it!");
-            } else {
+            } else if &pkg_info.description.is_some() == &true {
                 template_string = template_string.replace(
                     &orig_description_string,
-                    &format!("short_desc=\"{}\"", &pkg_info.description),
+                    &format!("short_desc=\"{}\"", &pkg_info.description.unwrap()),
+                );
+            } else {
+                warn!(
+                    "Couldn't determine field 'description'! Won't update it.",
                 );
             }
         } else {
@@ -389,10 +397,10 @@ impl TmplBuilder {
     /// let pkg_info_crate = PkgInfo {
     ///        pkg_name: "tmplgen".to_string(),
     ///        version: "0.6.0".to_string(),
-    ///        description: "Void Linux template generator for language-specific package managers"
-    ///            .to_string(),
-    ///        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
-    ///        license: vec!["GPL-3.0-or-later".to_string()],
+    ///        description: Some("Void Linux template generator for language-specific package managers"
+    ///            .to_string()),
+    ///        homepage: Some("https://github.com/Cogitri/tmplgen".to_string()),
+    ///        license: Some(vec!["GPL-3.0-or-later".to_string()]),
     ///        dependencies: None,
     ///        sha: "afc403bf69ad4da168938961b0f02da86ef29d655967cfcbacc8201e1327aff4".to_string(),
     ///        download_url: Some(
@@ -429,31 +437,52 @@ impl TmplBuilder {
 
         let maintainer = get_git_author()?;
 
-        let mut license = String::new();
-
-        for x in &pkg_info.license {
-            if !license.is_empty() {
-                license.push_str(", ");
-            }
-
-            license.push_str(&correct_license(x));
-        }
-
-        let mut description =
-            check_string_len(&pkg_info.pkg_name, &pkg_info.description, "description");
-
-        if description.chars().last().unwrap_or_default() == '.' {
-            description.pop();
-        }
-
         let mut template_string = template_in
             .replace("@version@", &pkg_info.version)
-            .replace("@description@", &description)
-            .replace("@license@", &license)
-            .replace("@homepage@", &pkg_info.homepage)
             .replace("@maintainer@", &maintainer)
             .replace("@pkgname@", &pkg_info.pkg_name)
             .replace("@checksum@", &pkg_info.sha);
+
+        if pkg_info.description.is_some() {
+            let mut description =
+                check_string_len(&pkg_info.pkg_name, &pkg_info.description.unwrap(), "description");
+
+            if description.chars().last().unwrap_or_default() == '.' {
+                description.pop();
+            }
+
+            template_string = template_string.replace("@description@", &description)
+        } else {
+            warn!(
+                "Couldn't determine field 'description'! Please add it to the template yourself.",
+            );
+        }
+
+        if pkg_info.homepage.is_some() {
+            template_string = template_string.replace("@homepage@", &pkg_info.homepage.unwrap())
+        } else {
+            warn!(
+                "Couldn't determine field 'homepage'! Please add it to the template yourself.",
+            );
+        }
+
+        if pkg_info.license.is_some() {
+            let mut license = String::new();
+
+            for x in pkg_info.license.as_ref().unwrap() {
+                if !license.is_empty() {
+                    license.push_str(", ");
+                }
+
+                license.push_str(&correct_license(x));
+            }
+
+            template_string = template_string.replace("@license@", &license)
+        } else {
+            warn!(
+                "Couldn't determine field 'license'! Please add it to the template yourself.",
+            );
+        }
 
         if pkg_info.dependencies.is_some() {
             let dependencies = pkg_info.dependencies.as_ref().unwrap();
@@ -533,7 +562,7 @@ impl TmplBuilder {
                 .replace(&format!("\nwrksrc=\"{}\"", wrksrc), "");
         }
 
-        let license = &pkg_info.license.join(", ");
+        let license = &pkg_info.license.unwrap_or_default().join(", ");
         if license.contains(&"MIT".to_string())
             || license.contains(&"ISC".to_string())
             || license.contains(&"BSD".to_string())

@@ -14,7 +14,6 @@
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::errors::Error;
-use crate::helpers::*;
 use crate::types::*;
 use log::debug;
 
@@ -47,15 +46,9 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     let pkg_info = PkgInfo {
         pkg_name: format!("ruby-{}", gem_name.to_string()),
         version: query_result.version,
-        description: query_result
-            .info
-            .unwrap_or_else(|| missing_field_s("description")),
-        homepage: query_result
-            .homepage_uri
-            .unwrap_or_else(|| missing_field_s("homepage")),
-        license: query_result
-            .licenses
-            .unwrap_or_else(|| vec![missing_field_s("license")]),
+        description: query_result.info,
+        homepage: query_result.homepage_uri,
+        license: query_result.licenses,
         dependencies: Some(Dependencies {
             host: None,
             make: None,

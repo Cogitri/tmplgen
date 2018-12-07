@@ -1,6 +1,6 @@
 use crate::errors::Error;
-use crate::helpers::*;
 use crate::types::*;
+use crate::helpers::gen_checksum;
 use log::debug;
 
 /// Query the crates.io API.
@@ -34,15 +34,9 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
     let pkg_info = PkgInfo {
         pkg_name: format!("rust-{}", crate_name),
         version: query_result.max_version,
-        description: query_result
-            .description
-            .unwrap_or_else(|| missing_field_s("description")),
-        homepage: query_result
-            .homepage
-            .unwrap_or_else(|| missing_field_s("homepage")),
-        license: vec![query_result
-            .license
-            .unwrap_or_else(|| missing_field_s("license"))],
+        description: query_result.description,
+        homepage: query_result.homepage,
+        license: Some(vec![query_result.license.unwrap_or_default()]),
         dependencies: crate_deps,
         sha: gen_checksum(&sha_download_url)?,
         download_url: Some(download_url),

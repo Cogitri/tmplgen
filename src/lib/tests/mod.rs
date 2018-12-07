@@ -18,7 +18,7 @@ fn test_query_crate() {
     let mut tmpl_builder = TmplBuilder::new("rubygems_api");
     tmpl_builder.set_type(PkgType::Crate).get_info().unwrap();
     assert_eq!(
-        tmpl_builder.pkg_info.unwrap().homepage,
+        tmpl_builder.pkg_info.unwrap().homepage.unwrap(),
         "https://github.com/Cogitri/rubygems_api"
     );
 }
@@ -27,7 +27,7 @@ fn test_query_crate() {
 fn test_query_gem() {
     let mut tmpl_builder = TmplBuilder::new("ffi");
     tmpl_builder.set_type(PkgType::Gem).get_info().unwrap();
-    assert_eq!(tmpl_builder.pkg_info.unwrap().license[0], "BSD-3-Clause");
+    assert_eq!(tmpl_builder.pkg_info.unwrap().license.unwrap()[0], "BSD-3-Clause");
 }
 
 #[test]
@@ -44,10 +44,10 @@ fn test_tmplwriter_correctness() {
     let pkg_info_crate = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.3.1".to_string(),
-        description: "Void Linux template generator for language-specific package managers"
-            .to_string(),
-        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
-        license: vec!["GPL-3.0-or-later".to_string()],
+        description: Some("Void Linux template generator for language-specific package managers"
+            .to_string()),
+        homepage: Some("https://github.com/Cogitri/tmplgen".to_string()),
+        license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
         sha: "dummy_sha".to_string(),
         download_url: Some(
@@ -68,9 +68,9 @@ fn test_tmplwriter_correctness() {
     let pkg_info_perl = PkgInfo {
         pkg_name: "perl-Moose".to_string(),
         version: "2.2011".to_string(),
-        description: "A postmodern object system for Perl 5".to_string(),
-        homepage: "http://moose.perl.org/".to_string(),
-        license: vec!["perl_5".to_string()],
+        description: Some("A postmodern object system for Perl 5".to_string()),
+        homepage: Some("http://moose.perl.org/".to_string()),
+        license: Some(vec!["perl_5".to_string()]),
         dependencies: Some(Dependencies {
             host: Some(vec!["perl".to_string()]),
             make: Some(vec![
@@ -301,10 +301,10 @@ fn test_template_updater() {
     let pkg_info_good = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.3.1".to_string(),
-        description: "Void Linux template generator for language-specific package managers"
-            .to_string(),
-        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
-        license: vec!["GPL-3.0-or-later".to_string()],
+        description: Some("Void Linux template generator for language-specific package managers"
+            .to_string()),
+        homepage: Some("https://github.com/Cogitri/tmplgen".to_string()),
+        license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
         sha: "dummy_sha".to_string(),
         download_url: Some(
@@ -315,9 +315,9 @@ fn test_template_updater() {
     let pkg_info_bad = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.2.9".to_string(),
-        description: "gibberish".to_string(),
-        homepage: "htt/ri/tmplgen".to_string(),
-        license: vec!["GPL-3.0-or-later".to_string()],
+        description: Some("gibberish".to_string()),
+        homepage: Some("htt/ri/tmplgen".to_string()),
+        license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
         sha: "dummy".to_string(),
         download_url: Some("This Shouldn't be here".to_string()),
@@ -338,10 +338,10 @@ fn test_template_updater() {
     let pkg_info_ok = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.2.9".to_string(),
-        description: "Void Linux template generator for language-specific package managers"
-            .to_string(),
-        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
-        license: vec!["GPL-3.0-or-later".to_string()],
+        description: Some("Void Linux template generator for language-specific package managers"
+            .to_string()),
+        homepage: Some("https://github.com/Cogitri/tmplgen".to_string()),
+        license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
         sha: "dummy".to_string(),
         download_url: Some(

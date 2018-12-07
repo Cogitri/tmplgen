@@ -24,17 +24,6 @@ use std::env::var_os;
 use std::process::Command;
 use std::str::from_utf8;
 
-/// A not so pretty hack to insert an empty string if PkgInfo has a field that can't
-/// be determined and an option is to cumbersome to use
-pub(super) fn missing_field_s(field_name: &str) -> String {
-    warn!(
-        "Couldn't determine field '{}'! Please add it to the template yourself.",
-        field_name
-    );
-
-    String::from("")
-}
-
 /// Figure out whether we're dealing with a crate or a gem if the user hasn't specified that.
 ///
 /// # Errors
