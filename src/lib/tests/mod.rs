@@ -22,8 +22,6 @@ use rubygems_api::GemRunDeps;
 use std::env::set_var;
 
 fn set_env() {
-    set_var("XBPS_DISTDIR", "/tmp/tmplgen-tests");
-    set_var("HOME", "/tmp/tmplgen-tests");
     set_var("GIT_AUTHOR_NAME", "tmplgentests");
     set_var("GIT_AUTHOR_EMAIL", "tmplgentests@github.com")
 }
@@ -54,6 +52,10 @@ fn test_query_perldist() {
 
 #[test]
 fn test_tmplwriter_correctness() {
+    let dir = tempfile::tempdir().unwrap();
+
+    set_var("XBPS_DISTDIR", dir.path());
+
     set_env();
 
     let pkg_info_crate = PkgInfo {
@@ -140,6 +142,8 @@ fn test_tmplwriter_correctness() {
         tmpl_string_perl.inner,
         include_str!("template_test_perl.in")
     );
+
+    dir.close().unwrap();
 }
 
 #[test]
@@ -285,15 +289,25 @@ fn test_crate_check_native_deps() {
 //TODO: Improve the below test to test recursive deps
 #[test]
 fn test_gem_dep_graph() {
+    let dir = tempfile::tempdir().unwrap();
+
+    set_var("XBPS_DISTDIR", dir.path());
     set_env();
-    assert!(gem_dep_graph("ffi").is_ok())
+    assert!(gem_dep_graph("ffi").is_ok());
+
+    dir.close().unwrap();
 }
 
 //TODO: Improve the below test to test recursive deps
 #[test]
 fn test_perl_dep_graph() {
+    let dir = tempfile::tempdir().unwrap();
+
+    set_var("XBPS_DISTDIR", dir.path());
     set_env();
-    assert!(perldist_dep_graph("Moose").is_ok())
+    assert!(perldist_dep_graph("Moose").is_ok());
+
+    dir.close().unwrap();
 }
 
 #[test]
@@ -341,6 +355,10 @@ fn test_correct_license() {
 
 #[test]
 fn test_template_updater() {
+    let dir = tempfile::tempdir().unwrap();
+
+    set_var("XBPS_DISTDIR", dir.path());
+
     set_env();
 
     let pkg_info_good = PkgInfo {
@@ -405,6 +423,8 @@ fn test_template_updater() {
         .unwrap();
 
     assert_eq!(good_templ.inner, include_str!("template_test_crate.in"));
+
+    dir.close().unwrap();
 }
 
 #[test]
