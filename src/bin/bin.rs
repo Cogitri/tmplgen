@@ -185,7 +185,7 @@ fn set_up_logging(is_debug: bool, is_verbose: bool) {
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
 fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool, bool) {
-    let help_yaml = load_yaml!("cli.yml");
+    let help_yaml = load_yaml!("cli-build.yml");
     let matches = App::from_yaml(help_yaml).get_matches();
 
     let tmpl_type = if matches.value_of("tmpltype").unwrap_or_default() == "crate" {
