@@ -10,6 +10,7 @@ use log::debug;
 /// * Errors out if crates.io can't be reached
 /// * Errors out if the crate can't be found on crates.io
 /// * Errors if the native deps can't be determined (via `check_native_deps`)
+// TODO: Switch to AsyncClient
 pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
     let client = crates_io_api::SyncClient::new();
 
