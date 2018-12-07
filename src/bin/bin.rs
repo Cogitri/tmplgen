@@ -26,10 +26,25 @@ use log::{error, warn};
 #[cfg(test)]
 mod tests;
 
+pub(crate) struct BinOptions {
+    pub pkg_name: String,
+    pub tmpl_type: Option<PkgType>,
+    pub force_overwrite: bool,
+    pub verbose: bool,
+    pub debug: bool,
+    pub update_ver: bool,
+    pub update_all: bool,
+    pub no_prefix: bool,
+}
+
 fn main() {
+    let bin_options = help_string();
+
+    set_up_logging(bin_options.debug, bin_options.verbose);
+
     // This isn't so very pretty, especially since main() can return Result since Rust 2018,
     // but we need this for pretty error messages via `env_logger`.
-    actual_work()
+    actual_work(&bin_options)
         .map_err(|e| {
             error!("{}", e.to_string());
             std::process::exit(1);
@@ -37,27 +52,15 @@ fn main() {
         .unwrap();
 }
 
-fn actual_work() -> Result<(), Error> {
-    let help_tuple = help_string();
-    let pkg_name = help_tuple.0;
-    let tmpl_type = help_tuple.1;
-    let force_overwrite = help_tuple.2;
-    let is_verbose = help_tuple.3;
-    let is_debug = help_tuple.4;
-    let is_update_ver = help_tuple.5;
-    let is_update_all = help_tuple.6;
-    let no_prefix = help_tuple.7;
-
-    set_up_logging(is_debug, is_verbose);
-
-    if is_update_ver && is_update_all {
+fn actual_work(opts: &BinOptions) -> Result<(), Error> {
+    if opts.update_ver && opts.update_all {
         warn!("Specified both -u and -U! Will ignore -u");
     }
 
-    let mut tmpl_builder = TmplBuilder::new(&pkg_name);
+    let mut tmpl_builder = TmplBuilder::new(&opts.pkg_name);
 
-    if tmpl_type.is_some() {
-        tmpl_builder.set_type(tmpl_type.unwrap());
+    if opts.tmpl_type.is_some() {
+        tmpl_builder.set_type(opts.tmpl_type.unwrap());
     } else {
         tmpl_builder.get_type()?;
     }
@@ -66,7 +69,7 @@ fn actual_work() -> Result<(), Error> {
         return Err(Error::BuiltIn(tmpl_builder.pkg_name.clone()));
     }
 
-    if no_prefix {
+    if opts.no_prefix {
         let mut pkg_info = tmpl_builder.get_info()?.pkg_info.clone().unwrap();
         pkg_info.pkg_name = pkg_info.pkg_name
             .replace("perl-", "")
@@ -83,7 +86,7 @@ fn actual_work() -> Result<(), Error> {
         tmpl_builder.pkg_info.as_ref().unwrap().pkg_name
     );
 
-    let template = if is_update_ver || is_update_all {
+    let template = if opts.update_ver || opts.update_all {
         if Path::new(&xdist_template_path).exists() {
             let mut template_file = File::open(&xdist_template_path)?;
             let mut template_string = String::new();
@@ -92,9 +95,9 @@ fn actual_work() -> Result<(), Error> {
             tmpl_builder.update(
                 &Template {
                     inner: template_string,
-                    name: pkg_name.clone(),
+                    name: opts.pkg_name.clone(),
                 },
-                is_update_all,
+                opts.update_all,
             )
         } else {
             return Err(Error::TmplUpdater(format!(
@@ -102,13 +105,13 @@ fn actual_work() -> Result<(), Error> {
                 &tmpl_builder.pkg_info.unwrap().pkg_name
             )));
         }
-    } else if Path::new(&xdist_template_path).exists() && !force_overwrite {
+    } else if Path::new(&xdist_template_path).exists() && !opts.force_overwrite {
         return Err(Error::TmplWriter(format!(
             "Won't overwrite existing template '{}' without `--force`!",
             &xdist_template_path,
         )));
     } else {
-        tmpl_builder.generate(!no_prefix)
+        tmpl_builder.generate(!opts.no_prefix)
     };
 
     create_dir_all(&xdist_template_path.replace("/template", ""))?;
@@ -137,7 +140,7 @@ fn actual_work() -> Result<(), Error> {
                 }
             } else {
                 return Err(Error::RecDeps {
-                    pkg_name,
+                    pkg_name: opts.pkg_name.clone(),
                     err: dep_template_vec.err().unwrap().to_string(),
                 });
             }
@@ -146,7 +149,7 @@ fn actual_work() -> Result<(), Error> {
         }
     } else {
         return Err(Error::RecDeps {
-            pkg_name,
+            pkg_name: opts.pkg_name.clone(),
             err: deps.err().unwrap().to_string(),
         });
     }
@@ -184,7 +187,7 @@ fn set_up_logging(is_debug: bool, is_verbose: bool) {
 }
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
-fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool, bool) {
+fn help_string() -> BinOptions {
     let help_yaml = load_yaml!("cli-build.yml");
     let matches = App::from_yaml(help_yaml).get_matches();
 
@@ -198,30 +201,30 @@ fn help_string() -> (String, Option<PkgType>, bool, bool, bool, bool, bool, bool
         None
     };
 
-    let crate_name = String::from(matches.value_of("PKGNAME").unwrap());
+    let pkg_name = String::from(matches.value_of("PKGNAME").unwrap());
 
     let force_overwrite = matches.is_present("force");
 
-    let is_verbose = matches.is_present("verbose");
+    let verbose = matches.is_present("verbose");
 
-    let is_debug = matches.is_present("debug");
+    let debug = matches.is_present("debug");
 
-    let update_ver_only = matches.is_present("update");
+    let update_ver = matches.is_present("update");
 
     let update_all = matches.is_present("update_all");
 
     let no_prefix = matches.is_present("no_prefix");
 
-    (
-        crate_name,
+    BinOptions {
+        pkg_name,
         tmpl_type,
         force_overwrite,
-        is_verbose,
-        is_debug,
-        update_ver_only,
+        verbose,
+        debug,
+        update_ver,
         update_all,
         no_prefix,
-    )
+    }
 }
 
 fn xdist_dir() -> Result<String, Error> {
