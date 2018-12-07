@@ -24,7 +24,7 @@ pub enum Error {
         _0
     )]
     GitError(String),
-    #[fail(display = "Failed to determine XBPS_XDISTDIR: {}", _0)]
+    #[fail(display = "Failed to determine XBPS_DISTDIR: {}", _0)]
     XdistError(String),
     #[fail(
         display = "Found a package matching the specified package {} on multiple platforms! Please explicitly choose one via the `-t` parameter!",

@@ -240,7 +240,7 @@ fn xdist_dir() -> Result<String, Error> {
             Ok(unclean_dir.replace("~", &home_dir.unwrap()))
         } else {
             Err(Error::XdistError(
-                "Please either replace '~' with your homepath in XBPS_XDISTDIR or export HOME"
+                "Please either replace '~' with your homepath in XBPS_DISTDIR or export HOME"
                     .to_string(),
             ))
         }
