@@ -186,7 +186,7 @@ impl TmplBuilder {
                         Path::new(&format!(
                             "{}/perl-{}/template",
                             tmpl_path.unwrap_or_default(),
-                            x
+                            x.replace("::", "-")
                         ))
                         .exists()
                     } else {
