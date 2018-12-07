@@ -211,9 +211,16 @@ impl TmplBuilder {
             }
             Ok(tmpl_vec)
         } else {
-            Err(Error::TooLittleInfo(
-                "Can't create Templates for deps without getting the dependencies of the package first!".to_string(),
-            ))
+            if self.pkg_type == Some(PkgType::Crate) {
+                Err(Error::WrongUsage {
+                    method: "gen_deps".to_string(),
+                    err: "Crates don't have dependencies so I won't write templates for it dependencies!".to_string()
+                })
+            } else {
+                Err(Error::TooLittleInfo(
+                    "Can't create Templates for deps without getting the dependencies of the package first!".to_string(),
+                ))
+            }
         }
     }
 
