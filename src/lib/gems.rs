@@ -47,7 +47,7 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
         pkg_name: format!("ruby-{}", gem_name.to_string()),
         version: query_result.version,
         description: query_result.info,
-        homepage: query_result.homepage_uri,
+        homepage: query_result.homepage_uri.unwrap_or_else(|| format!("https://rubygems.org/gems/{}", gem_name)),
         license: query_result.licenses,
         dependencies: Some(Dependencies {
             host: None,

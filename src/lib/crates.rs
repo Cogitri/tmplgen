@@ -33,10 +33,10 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
     );
 
     let pkg_info = PkgInfo {
-        pkg_name: format!("rust-{}", crate_name),
+        pkg_name: format!("rust-{}", &crate_name),
         version: query_result.max_version,
         description: query_result.description,
-        homepage: query_result.homepage,
+        homepage: query_result.homepage.unwrap_or_else(|| format!("https://crates.io/crates/{}", &crate_name)),
         license: Some(vec![query_result.license.unwrap_or_default()]),
         dependencies: crate_deps,
         sha: gen_checksum(&sha_download_url)?,

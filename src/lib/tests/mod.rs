@@ -18,7 +18,7 @@ fn test_query_crate() {
     let mut tmpl_builder = TmplBuilder::new("rubygems_api");
     tmpl_builder.set_type(PkgType::Crate).get_info().unwrap();
     assert_eq!(
-        tmpl_builder.pkg_info.unwrap().homepage.unwrap(),
+        tmpl_builder.pkg_info.unwrap().homepage,
         "https://github.com/Cogitri/rubygems_api"
     );
 }
@@ -46,7 +46,7 @@ fn test_tmplwriter_correctness() {
         version: "0.3.1".to_string(),
         description: Some("Void Linux template generator for language-specific package managers"
             .to_string()),
-        homepage: Some("https://github.com/Cogitri/tmplgen".to_string()),
+        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
         sha: "dummy_sha".to_string(),
@@ -69,7 +69,7 @@ fn test_tmplwriter_correctness() {
         pkg_name: "perl-Moose".to_string(),
         version: "2.2011".to_string(),
         description: Some("A postmodern object system for Perl 5".to_string()),
-        homepage: Some("http://moose.perl.org/".to_string()),
+        homepage: "http://moose.perl.org/".to_string(),
         license: Some(vec!["perl_5".to_string()]),
         dependencies: Some(Dependencies {
             host: Some(vec!["perl".to_string()]),
@@ -303,7 +303,7 @@ fn test_template_updater() {
         version: "0.3.1".to_string(),
         description: Some("Void Linux template generator for language-specific package managers"
             .to_string()),
-        homepage: Some("https://github.com/Cogitri/tmplgen".to_string()),
+        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
         sha: "dummy_sha".to_string(),
@@ -316,7 +316,7 @@ fn test_template_updater() {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.2.9".to_string(),
         description: Some("gibberish".to_string()),
-        homepage: Some("htt/ri/tmplgen".to_string()),
+        homepage: "htt/ri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
         sha: "dummy".to_string(),
@@ -340,7 +340,7 @@ fn test_template_updater() {
         version: "0.2.9".to_string(),
         description: Some("Void Linux template generator for language-specific package managers"
             .to_string()),
-        homepage: Some("https://github.com/Cogitri/tmplgen".to_string()),
+        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
         sha: "dummy".to_string(),

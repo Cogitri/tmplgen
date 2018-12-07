@@ -231,7 +231,7 @@ impl TmplBuilder {
     ///        version: "0.6.0".to_string(),
     ///        description: Some("Void Linux template generator for language-specific package managers"
     ///            .to_string()),
-    ///        homepage: Some("https://github.com/Cogitri/tmplgen".to_string()),
+    ///        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
     ///        license: Some(vec!["GPL-3.0-or-later".to_string()]),
     ///        dependencies: None,
     ///        sha: "afc403bf69ad4da168938961b0f02da86ef29d655967cfcbacc8201e1327aff4".to_string(),
@@ -311,15 +311,10 @@ impl TmplBuilder {
 
             if orig_homepage_string.is_empty() {
                 warn!("Couldn't find 'homepage' string and as such won't update it!");
-            } else if &pkg_info.homepage.is_some()  == &true {
+            } else {
                 template_string = template_string.replace(
                     &orig_homepage_string,
-                    &format!("homepage=\"{}\"", &pkg_info.homepage.unwrap()),
-                );
-            } else {
-                warn!(
-                    "Couldn't determine field 'homepage'! Won't update it.",
-                );
+                    &format!("homepage=\"{}\"", &pkg_info.homepage));
             }
 
             if orig_distfiles_string.is_empty() {
@@ -399,7 +394,7 @@ impl TmplBuilder {
     ///        version: "0.6.0".to_string(),
     ///        description: Some("Void Linux template generator for language-specific package managers"
     ///            .to_string()),
-    ///        homepage: Some("https://github.com/Cogitri/tmplgen".to_string()),
+    ///        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
     ///        license: Some(vec!["GPL-3.0-or-later".to_string()]),
     ///        dependencies: None,
     ///        sha: "afc403bf69ad4da168938961b0f02da86ef29d655967cfcbacc8201e1327aff4".to_string(),
@@ -441,7 +436,8 @@ impl TmplBuilder {
             .replace("@version@", &pkg_info.version)
             .replace("@maintainer@", &maintainer)
             .replace("@pkgname@", &pkg_info.pkg_name)
-            .replace("@checksum@", &pkg_info.sha);
+            .replace("@checksum@", &pkg_info.sha)
+            .replace("@homepage@", &pkg_info.homepage);
 
         if pkg_info.description.is_some() {
             let mut description =
@@ -455,14 +451,6 @@ impl TmplBuilder {
         } else {
             warn!(
                 "Couldn't determine field 'description'! Please add it to the template yourself.",
-            );
-        }
-
-        if pkg_info.homepage.is_some() {
-            template_string = template_string.replace("@homepage@", &pkg_info.homepage.unwrap())
-        } else {
-            warn!(
-                "Couldn't determine field 'homepage'! Please add it to the template yourself.",
             );
         }
 

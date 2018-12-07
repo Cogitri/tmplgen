@@ -57,7 +57,7 @@ pub struct PkgInfo {
     pub pkg_name: String,
     pub version: String,
     pub description: Option<String>,
-    pub homepage: Option<String>,
+    pub homepage: String,
     pub license: Option<Vec<String>>,
     pub dependencies: Option<Dependencies>,
     pub sha: String,
