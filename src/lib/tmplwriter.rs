@@ -182,16 +182,13 @@ impl TmplBuilder {
                             x
                         ))
                         .exists()
-                    } else if self.pkg_type.unwrap() == PkgType::PerlDist {
+                    } else {
                         Path::new(&format!(
                             "{}/perl-{}/template",
                             tmpl_path.unwrap_or_default(),
                             x.replace("::", "-")
                         ))
                         .exists()
-                    } else {
-                        Path::new(&format!("{}/rust-{}/template", tmpl_path.unwrap_or_default(), x))
-                            .exists()
                     };
 
                     if tmpl_path_exists {
