@@ -143,6 +143,12 @@ fn test_tmplwriter_correctness() {
 }
 
 #[test]
+#[should_panic]
+fn test_generate_panic() {
+    TmplBuilder::new("tmplgen").generate(true).unwrap();
+}
+
+#[test]
 fn test_provider_selector() {
     assert_eq!(
         TmplBuilder::new("tmplgen")
@@ -195,7 +201,31 @@ fn test_built_in() {
             .is_built_in()
             .unwrap(),
         true
-    )
+    );
+
+    assert_eq!(
+        TmplBuilder::new("json")
+            .set_type(PkgType::Gem)
+            .is_built_in()
+            .unwrap(),
+        true
+    );
+
+    assert_eq!(
+        TmplBuilder::new("tmplgen")
+            .set_type(PkgType::Crate)
+            .is_built_in()
+            .unwrap(),
+        false
+    );
+}
+
+#[test]
+#[should_panic]
+fn test_is_built_in_panic() {
+    TmplBuilder::new("tmplgen")
+        .is_built_in()
+        .unwrap();
 }
 
 #[test]
@@ -378,6 +408,32 @@ fn test_template_updater() {
 }
 
 #[test]
+#[should_panic]
+fn test_template_updater_panic() {
+
+    let pkg_info_ok = PkgInfo {
+        pkg_name: "rust-tmplgen".to_string(),
+        version: "0.2.9".to_string(),
+        description: Some("Void Linux template generator for language-specific package managers"
+            .to_string()),
+        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+        license: Some(vec!["GPL-3.0-or-later".to_string()]),
+        dependencies: None,
+        sha: "dummy".to_string(),
+        download_url: Some(
+            "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
+        ),
+    };
+
+    let old_tmpl = TmplBuilder::from_pkg_info(pkg_info_ok)
+        .set_type(PkgType::Crate)
+        .generate(true)
+        .unwrap();
+
+    TmplBuilder::new("tmplgen").update(&old_tmpl, false).unwrap();
+}
+
+#[test]
 fn test_get_git_author() {
     set_env();
 
@@ -387,19 +443,21 @@ fn test_get_git_author() {
     );
 }
 
-/*
 #[test]
 #[should_panic]
-fn test_template_updater_panic() {
-    set_env();
+fn test_get_info_panic() {
+    TmplBuilder::new("tmplgen").get_info().unwrap();
+}
 
-    let pkg_info_panic = PkgInfo {
-        pkg_name: "tmplgendsadwadsaijodaioj".to_string(),
+#[test]
+fn test_set_info() {
+    let pkg_info_good = PkgInfo {
+        pkg_name: "rust-tmplgen".to_string(),
         version: "0.3.1".to_string(),
-        description: "Void Linux template generator for language-specific package managers"
-            .to_string(),
+        description: Some("Void Linux template generator for language-specific package managers"
+            .to_string()),
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
-        license: vec!["GPL-3.0-or-later".to_string()],
+        license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
         sha: "dummy_sha".to_string(),
         download_url: Some(
@@ -407,5 +465,28 @@ fn test_template_updater_panic() {
         ),
     };
 
-    update_template(&pkg_info_panic, true, false).unwrap();
-}*/
+    let mut builder = TmplBuilder::new("tmplgen");
+    builder.set_info(pkg_info_good.clone());
+
+    assert_eq!(builder.pkg_info.unwrap(), pkg_info_good);
+}
+
+#[test]
+fn test_get_deps() {
+    TmplBuilder::new("rake").set_type(PkgType::Gem).get_deps().unwrap();
+    TmplBuilder::new("Moose").set_type(PkgType::PerlDist).get_deps().unwrap();
+    assert_eq!(TmplBuilder::new("tmplgen").set_type(PkgType::Crate).get_deps().unwrap().deps, None);
+}
+
+#[test]
+fn test_gen_deps() {
+    TmplBuilder::new("Moose").set_type(PkgType::PerlDist).get_deps().unwrap().gen_deps(None).unwrap();
+    TmplBuilder::new("rspec").set_type(PkgType::Gem).get_deps().unwrap().gen_deps(None).unwrap();
+}
+
+#[test]
+#[should_panic]
+fn test_gen_deps_panic() {
+    TmplBuilder::new("tmplgen").set_type(PkgType::Crate).get_deps().unwrap().gen_deps(None).unwrap();
+    TmplBuilder::new("Moose").set_type(PkgType::PerlDist).gen_deps(None).unwrap();
+}
