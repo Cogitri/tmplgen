@@ -41,15 +41,24 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
 
     debug!("metacpan.org query result: {:?}", query_result);
 
-    let download_url = query_result
-        .download_url
-        .replace(&query_result.version.as_str().unwrap_or_default(), "${version}");
+    let download_url = query_result.download_url.replace(
+        &query_result.version.as_str().unwrap_or_default(),
+        "${version}",
+    );
 
     let pkg_info = PkgInfo {
         pkg_name: "perl-".to_string() + &query_result.name,
-        version: query_result.version.as_str().unwrap_or_default().to_string(),
+        version: query_result
+            .version
+            .as_str()
+            .unwrap_or_default()
+            .to_string(),
         description: query_result.description.clone(),
-        homepage: query_result.resources.homepage.clone().unwrap_or_else(|| format!("https://metacpan.org/pod/{}", query_result.name)),
+        homepage: query_result
+            .resources
+            .homepage
+            .clone()
+            .unwrap_or_else(|| format!("https://metacpan.org/pod/{}", query_result.name)),
         license: Some(query_result.license.unwrap_or_default()),
         dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())?),
         sha: gen_checksum(&query_result.download_url)?,
@@ -68,7 +77,11 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, E
     let client = metacpan_api::SyncClient::new();
 
     for x in dep_vec {
-        if TmplBuilder::new(&x.module).set_type(PkgType::PerlDist).is_built_in().unwrap_or({ false }) {
+        if TmplBuilder::new(&x.module)
+            .set_type(PkgType::PerlDist)
+            .is_built_in()
+            .unwrap_or({ false })
+        {
             continue;
         }
 
@@ -85,10 +98,10 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, E
                     )?,
                 };
 
-                if ! make_vec.contains(&query_result.name) {
+                if !make_vec.contains(&query_result.name) {
                     make_vec.push(query_result.name)
                 }
-            },
+            }
             "runtime" => {
                 let query_result = client.perl_info(&x.module);
 
@@ -101,9 +114,10 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, E
                     )?,
                 };
 
-                if ! run_vec.contains(&query_result.name) {
+                if !run_vec.contains(&query_result.name) {
                     run_vec.push(query_result.name)
-                } },
+                }
+            }
             _ => (),
         }
     }

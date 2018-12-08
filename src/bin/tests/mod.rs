@@ -15,9 +15,9 @@
 
 use crate::*;
 use assert_cmd::prelude::*;
+use std::env::set_var;
 use std::process::Command;
 use tempfile::tempdir;
-use std::env::set_var;
 
 #[test]
 fn test_bin_gen() {
@@ -79,7 +79,10 @@ fn test_xdist_dir() {
     set_var("XBPS_DISTDIR", "~/void-packages");
     set_var("HOME", "/home/tmplgen");
 
-    assert_eq!(xdist_dir().unwrap(), "/home/tmplgen/void-packages".to_string())
+    assert_eq!(
+        xdist_dir().unwrap(),
+        "/home/tmplgen/void-packages".to_string()
+    )
 }
 
 #[test]

@@ -31,7 +31,11 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     let mut dep_vec_run = Vec::new();
 
     for x in query_result.dependencies.runtime.unwrap_or_default() {
-        if TmplBuilder::new(&x.name).set_type(PkgType::Gem).is_built_in().unwrap_or({ false }) {
+        if TmplBuilder::new(&x.name)
+            .set_type(PkgType::Gem)
+            .is_built_in()
+            .unwrap_or({ false })
+        {
             continue;
         }
         let dep = determine_gem_run_deps(&x);
@@ -53,7 +57,9 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
         pkg_name: format!("ruby-{}", gem_name.to_string()),
         version: query_result.version,
         description: query_result.info,
-        homepage: query_result.homepage_uri.unwrap_or_else(|| format!("https://rubygems.org/gems/{}", gem_name)),
+        homepage: query_result
+            .homepage_uri
+            .unwrap_or_else(|| format!("https://rubygems.org/gems/{}", gem_name)),
         license: query_result.licenses,
         dependencies: Some(Dependencies {
             host: None,

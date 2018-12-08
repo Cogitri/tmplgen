@@ -71,7 +71,8 @@ fn actual_work(opts: &BinOptions) -> Result<(), Error> {
 
     if opts.no_prefix {
         let mut pkg_info = tmpl_builder.get_info()?.pkg_info.clone().unwrap();
-        pkg_info.pkg_name = pkg_info.pkg_name
+        pkg_info.pkg_name = pkg_info
+            .pkg_name
             .replace("perl-", "")
             .replace("ruby-", "")
             .replace("rust-", "");

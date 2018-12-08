@@ -171,7 +171,10 @@ impl TmplBuilder {
             for x in self.deps.as_ref().unwrap() {
                 let mut tmpl_builder = TmplBuilder::new(x);
 
-                if tmpl_builder.set_type(self.pkg_type.unwrap()).is_built_in()? {
+                if tmpl_builder
+                    .set_type(self.pkg_type.unwrap())
+                    .is_built_in()?
+                {
                     warn!("Won't write template for built-in package {}", x);
                     continue;
                 } else if tmpl_path.is_some() {
@@ -318,7 +321,8 @@ impl TmplBuilder {
             } else {
                 template_string = template_string.replace(
                     &orig_homepage_string,
-                    &format!("homepage=\"{}\"", &pkg_info.homepage));
+                    &format!("homepage=\"{}\"", &pkg_info.homepage),
+                );
             }
 
             if orig_distfiles_string.is_empty() {
@@ -344,15 +348,13 @@ impl TmplBuilder {
 
             if orig_description_string.is_empty() {
                 warn!("Couldn't find 'description' string and as such won't update it!");
-            } else if &pkg_info.description.is_some() == &true {
+            } else if pkg_info.description.is_some() == true {
                 template_string = template_string.replace(
                     &orig_description_string,
                     &format!("short_desc=\"{}\"", &pkg_info.description.unwrap()),
                 );
             } else {
-                warn!(
-                    "Couldn't determine field 'description'! Won't update it.",
-                );
+                warn!("Couldn't determine field 'description'! Won't update it.",);
             }
         } else {
             // If we don't update all (and as such also update distfiles) we want to download the
@@ -444,8 +446,11 @@ impl TmplBuilder {
             .replace("@homepage@", &pkg_info.homepage);
 
         if pkg_info.description.is_some() {
-            let mut description =
-                check_string_len(&pkg_info.pkg_name, &pkg_info.description.unwrap(), "description");
+            let mut description = check_string_len(
+                &pkg_info.pkg_name,
+                &pkg_info.description.unwrap(),
+                "description",
+            );
 
             if description.chars().last().unwrap_or_default() == '.' {
                 description.pop();
@@ -471,9 +476,7 @@ impl TmplBuilder {
 
             template_string = template_string.replace("@license@", &license)
         } else {
-            warn!(
-                "Couldn't determine field 'license'! Please add it to the template yourself.",
-            );
+            warn!("Couldn't determine field 'license'! Please add it to the template yourself.",);
         }
 
         if pkg_info.dependencies.is_some() {
@@ -542,11 +545,9 @@ impl TmplBuilder {
 
             let wrksrc = format!("${{pkgname/{}/}}-${{version}}", prefix);
 
-            template_string = template_string
-                .replace("@wrksrc@", &wrksrc);
+            template_string = template_string.replace("@wrksrc@", &wrksrc);
         } else {
-            template_string = template_string
-                .replace("\nwrksrc=\"@wrksrc@\"", "");
+            template_string = template_string.replace("\nwrksrc=\"@wrksrc@\"", "");
         }
 
         let license = &pkg_info.license.unwrap_or_default().join(", ");

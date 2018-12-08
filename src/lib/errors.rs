@@ -48,10 +48,8 @@ pub enum Error {
         pkg_name, err
     )]
     RecDeps { pkg_name: String, err: String },
-    #[fail(display= "Can't run method {}! {}",
-        method, err
-    )]
-    WrongUsage { method: String, err: String},
+    #[fail(display = "Can't run method {}! {}", method, err)]
+    WrongUsage { method: String, err: String },
 }
 
 impl From<crates_io_api::Error> for Error {

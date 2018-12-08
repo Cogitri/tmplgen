@@ -40,7 +40,10 @@ fn test_query_crate() {
 fn test_query_gem() {
     let mut tmpl_builder = TmplBuilder::new("ffi");
     tmpl_builder.set_type(PkgType::Gem).get_info().unwrap();
-    assert_eq!(tmpl_builder.pkg_info.unwrap().license.unwrap()[0], "BSD-3-Clause");
+    assert_eq!(
+        tmpl_builder.pkg_info.unwrap().license.unwrap()[0],
+        "BSD-3-Clause"
+    );
 }
 
 #[test]
@@ -61,8 +64,9 @@ fn test_tmplwriter_correctness() {
     let mut pkg_info_crate = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.3.1".to_string(),
-        description: Some("Void Linux template generator for language-specific package managers"
-            .to_string()),
+        description: Some(
+            "Void Linux template generator for language-specific package managers".to_string(),
+        ),
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
@@ -90,10 +94,7 @@ fn test_tmplwriter_correctness() {
         license: Some(vec!["perl_5".to_string()]),
         dependencies: Some(Dependencies {
             host: Some(vec!["perl".to_string()]),
-            make: Some(vec![
-                "perl".to_string(),
-                "Dist::CheckConflicts".to_string(),
-            ]),
+            make: Some(vec!["perl".to_string(), "Dist::CheckConflicts".to_string()]),
             run: Some(vec![
                 "perl".to_string(),
                 "Devel::PartialDump".to_string(),
@@ -231,9 +232,7 @@ fn test_built_in() {
 #[test]
 #[should_panic]
 fn test_is_built_in_panic() {
-    TmplBuilder::new("tmplgen")
-        .is_built_in()
-        .unwrap();
+    TmplBuilder::new("tmplgen").is_built_in().unwrap();
 }
 
 #[test]
@@ -247,7 +246,10 @@ fn test_gem_dep() {
         .as_ref()
         .unwrap();
 
-    assert_eq!(pkg_info.dependencies.as_ref().unwrap().run, Some(vec!["ruby".to_string()]));
+    assert_eq!(
+        pkg_info.dependencies.as_ref().unwrap().run,
+        Some(vec!["ruby".to_string()])
+    );
 }
 
 #[test]
@@ -368,8 +370,9 @@ fn test_template_updater() {
     let pkg_info_good = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.3.1".to_string(),
-        description: Some("Void Linux template generator for language-specific package managers"
-            .to_string()),
+        description: Some(
+            "Void Linux template generator for language-specific package managers".to_string(),
+        ),
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
@@ -405,8 +408,9 @@ fn test_template_updater() {
     let pkg_info_ok = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.2.9".to_string(),
-        description: Some("Void Linux template generator for language-specific package managers"
-            .to_string()),
+        description: Some(
+            "Void Linux template generator for language-specific package managers".to_string(),
+        ),
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
@@ -431,8 +435,9 @@ fn test_template_updater() {
     let diff_url_pkg_info_ok = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.2.9".to_string(),
-        description: Some("Void Linux template generator for language-specific package managers"
-            .to_string()),
+        description: Some(
+            "Void Linux template generator for language-specific package managers".to_string(),
+        ),
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
@@ -450,8 +455,9 @@ fn test_template_updater() {
     let different_url_pkg_info = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.3.1".to_string(),
-        description: Some("Void Linux template generator for language-specific package managers"
-            .to_string()),
+        description: Some(
+            "Void Linux template generator for language-specific package managers".to_string(),
+        ),
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
@@ -466,9 +472,18 @@ fn test_template_updater() {
         .update(&diff_url_ok_tmpl, false)
         .unwrap();
 
-    assert_eq!(diff_sha_templ.inner, include_str!("template_test_crate.in")
-        .replace("dummy_sha", "395408a3dc9c3db2b5c200b8722a13a60898c861633b99e6e250186adffd1370")
-        .replace("https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate", "https://github.com/Cogitri/tmplgen/archive/v${version}.tar.gz"));
+    assert_eq!(
+        diff_sha_templ.inner,
+        include_str!("template_test_crate.in")
+            .replace(
+                "dummy_sha",
+                "395408a3dc9c3db2b5c200b8722a13a60898c861633b99e6e250186adffd1370"
+            )
+            .replace(
+                "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate",
+                "https://github.com/Cogitri/tmplgen/archive/v${version}.tar.gz"
+            )
+    );
 
     dir.close().unwrap();
 }
@@ -476,12 +491,12 @@ fn test_template_updater() {
 #[test]
 #[should_panic]
 fn test_template_updater_panic() {
-
     let pkg_info_ok = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.2.9".to_string(),
-        description: Some("Void Linux template generator for language-specific package managers"
-            .to_string()),
+        description: Some(
+            "Void Linux template generator for language-specific package managers".to_string(),
+        ),
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
@@ -496,7 +511,9 @@ fn test_template_updater_panic() {
         .generate(true)
         .unwrap();
 
-    TmplBuilder::new("tmplgen").update(&old_tmpl, false).unwrap();
+    TmplBuilder::new("tmplgen")
+        .update(&old_tmpl, false)
+        .unwrap();
 }
 
 #[test]
@@ -520,8 +537,9 @@ fn test_set_info() {
     let pkg_info_good = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.3.1".to_string(),
-        description: Some("Void Linux template generator for language-specific package managers"
-            .to_string()),
+        description: Some(
+            "Void Linux template generator for language-specific package managers".to_string(),
+        ),
         homepage: "https://github.com/Cogitri/tmplgen".to_string(),
         license: Some(vec!["GPL-3.0-or-later".to_string()]),
         dependencies: None,
@@ -539,25 +557,68 @@ fn test_set_info() {
 
 #[test]
 fn test_get_deps() {
-    TmplBuilder::new("rake").set_type(PkgType::Gem).get_deps().unwrap();
-    TmplBuilder::new("Moose").set_type(PkgType::PerlDist).get_deps().unwrap();
-    assert_eq!(TmplBuilder::new("tmplgen").set_type(PkgType::Crate).get_deps().unwrap().deps, None);
+    TmplBuilder::new("rake")
+        .set_type(PkgType::Gem)
+        .get_deps()
+        .unwrap();
+    TmplBuilder::new("Moose")
+        .set_type(PkgType::PerlDist)
+        .get_deps()
+        .unwrap();
+    assert_eq!(
+        TmplBuilder::new("tmplgen")
+            .set_type(PkgType::Crate)
+            .get_deps()
+            .unwrap()
+            .deps,
+        None
+    );
 }
 
 #[test]
 fn test_gen_deps() {
-    TmplBuilder::new("Moose").set_type(PkgType::PerlDist).get_deps().unwrap().gen_deps(None).unwrap();
-    TmplBuilder::new("rspec").set_type(PkgType::Gem).get_deps().unwrap().gen_deps(None).unwrap();
+    TmplBuilder::new("Moose")
+        .set_type(PkgType::PerlDist)
+        .get_deps()
+        .unwrap()
+        .gen_deps(None)
+        .unwrap();
+    TmplBuilder::new("rspec")
+        .set_type(PkgType::Gem)
+        .get_deps()
+        .unwrap()
+        .gen_deps(None)
+        .unwrap();
 
     let dir = tempfile::tempdir().unwrap();
     set_var("XBPS_DISTDIR", dir.path());
 
-    TmplBuilder::new("Task-Kensho").set_type(PkgType::PerlDist).get_deps().unwrap().gen_deps(dir.path().to_str()).unwrap();
-    TmplBuilder::new("diff-lcs").set_type(PkgType::Gem).get_deps().unwrap().gen_deps(dir.path().to_str()).unwrap();
+    TmplBuilder::new("Task-Kensho")
+        .set_type(PkgType::PerlDist)
+        .get_deps()
+        .unwrap()
+        .gen_deps(dir.path().to_str())
+        .unwrap();
+    TmplBuilder::new("diff-lcs")
+        .set_type(PkgType::Gem)
+        .get_deps()
+        .unwrap()
+        .gen_deps(dir.path().to_str())
+        .unwrap();
 
     // Test if already existing deps are successfully skipped.
-    TmplBuilder::new("rspec-core").set_type(PkgType::Gem).get_info().unwrap().generate(true).unwrap();
-    TmplBuilder::new("rspec").set_type(PkgType::Gem).get_deps().unwrap().gen_deps(dir.path().to_str()).unwrap();
+    TmplBuilder::new("rspec-core")
+        .set_type(PkgType::Gem)
+        .get_info()
+        .unwrap()
+        .generate(true)
+        .unwrap();
+    TmplBuilder::new("rspec")
+        .set_type(PkgType::Gem)
+        .get_deps()
+        .unwrap()
+        .gen_deps(dir.path().to_str())
+        .unwrap();
 
     dir.close().unwrap();
 }
@@ -565,6 +626,14 @@ fn test_gen_deps() {
 #[test]
 #[should_panic]
 fn test_gen_deps_panic() {
-    TmplBuilder::new("tmplgen").set_type(PkgType::Crate).get_deps().unwrap().gen_deps(None).unwrap();
-    TmplBuilder::new("Moose").set_type(PkgType::PerlDist).gen_deps(None).unwrap();
+    TmplBuilder::new("tmplgen")
+        .set_type(PkgType::Crate)
+        .get_deps()
+        .unwrap()
+        .gen_deps(None)
+        .unwrap();
+    TmplBuilder::new("Moose")
+        .set_type(PkgType::PerlDist)
+        .gen_deps(None)
+        .unwrap();
 }

@@ -14,8 +14,8 @@
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::errors::Error;
-use crate::types::*;
 use crate::helpers::gen_checksum;
+use crate::types::*;
 use log::debug;
 
 /// Query the crates.io API.
@@ -51,7 +51,9 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
         pkg_name: format!("rust-{}", &crate_name),
         version: query_result.max_version,
         description: query_result.description,
-        homepage: query_result.homepage.unwrap_or_else(|| format!("https://crates.io/crates/{}", &crate_name)),
+        homepage: query_result
+            .homepage
+            .unwrap_or_else(|| format!("https://crates.io/crates/{}", &crate_name)),
         license: Some(vec![query_result.license.unwrap_or_default()]),
         dependencies: crate_deps,
         sha: gen_checksum(&sha_download_url)?,
