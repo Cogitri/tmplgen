@@ -544,6 +544,18 @@ fn test_get_deps() {
 fn test_gen_deps() {
     TmplBuilder::new("Moose").set_type(PkgType::PerlDist).get_deps().unwrap().gen_deps(None).unwrap();
     TmplBuilder::new("rspec").set_type(PkgType::Gem).get_deps().unwrap().gen_deps(None).unwrap();
+
+    let dir = tempfile::tempdir().unwrap();
+    set_var("XBPS_DISTDIR", dir.path());
+
+    TmplBuilder::new("Task-Kensho").set_type(PkgType::PerlDist).get_deps().unwrap().gen_deps(dir.path().to_str()).unwrap();
+    TmplBuilder::new("diff-lcs").set_type(PkgType::Gem).get_deps().unwrap().gen_deps(dir.path().to_str()).unwrap();
+
+    // Test if already existing deps are successfully skipped.
+    TmplBuilder::new("rspec-core").set_type(PkgType::Gem).get_info().unwrap().generate(true).unwrap();
+    TmplBuilder::new("rspec").set_type(PkgType::Gem).get_deps().unwrap().gen_deps(dir.path().to_str()).unwrap();
+
+    dir.close().unwrap();
 }
 
 #[test]
