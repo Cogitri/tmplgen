@@ -106,8 +106,8 @@ fn test_main_worker() {
     opts.no_prefix = true;
     actual_work(&opts).unwrap();
 
-    opts.update_ver = true;
-    actual_work(&opts).unwrap();
+    //opts.update_ver = true;
+    //actual_work(&opts).unwrap();
     //opts.update_ver = false;
 
     //actual_work(&opts).unwrap();
