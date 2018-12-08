@@ -58,7 +58,7 @@ fn test_tmplwriter_correctness() {
 
     set_env();
 
-    let pkg_info_crate = PkgInfo {
+    let mut pkg_info_crate = PkgInfo {
         pkg_name: "rust-tmplgen".to_string(),
         version: "0.3.1".to_string(),
         description: Some("Void Linux template generator for language-specific package managers"
@@ -72,7 +72,7 @@ fn test_tmplwriter_correctness() {
         ),
     };
 
-    let tmpl_string_crate = TmplBuilder::from_pkg_info(pkg_info_crate)
+    let tmpl_string_crate = TmplBuilder::from_pkg_info(pkg_info_crate.clone())
         .set_type(PkgType::Crate)
         .generate(true)
         .unwrap();
@@ -141,6 +141,18 @@ fn test_tmplwriter_correctness() {
     assert_eq!(
         tmpl_string_perl.inner,
         include_str!("template_test_perl.in")
+    );
+
+    pkg_info_crate.pkg_name = "tmplgen".to_string();
+
+    let tmpl_string_crate_noprefix = TmplBuilder::from_pkg_info(pkg_info_crate)
+        .set_type(PkgType::Crate)
+        .generate(false)
+        .unwrap();
+
+    assert_eq!(
+        tmpl_string_crate_noprefix.inner,
+        include_str!("template_test_crate_noprefix.in")
     );
 
     dir.close().unwrap();
