@@ -66,6 +66,10 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Dependencies {
     let mut run_vec = Vec::new();
 
     for x in dep_vec {
+        if TmplBuilder::new(&x.module).set_type(PkgType::PerlDist).is_built_in().unwrap_or({ false }) {
+            continue;
+        }
+
         match x.phase.as_ref() {
             "configure" => make_vec.push(x.module),
             "runtime" => run_vec.push(x.module),

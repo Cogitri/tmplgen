@@ -31,6 +31,9 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     let mut dep_vec_run = Vec::new();
 
     for x in query_result.dependencies.runtime.unwrap_or_default() {
+        if TmplBuilder::new(&x.name).set_type(PkgType::Gem).is_built_in().unwrap_or({ false }) {
+            continue;
+        }
         let dep = determine_gem_run_deps(&x);
         dep_vec_run.push(dep);
     }
