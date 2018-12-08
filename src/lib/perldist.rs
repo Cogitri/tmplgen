@@ -62,8 +62,8 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
 }
 
 fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, Error> {
-    let mut make_vec = Vec::new();
-    let mut run_vec = Vec::new();
+    let mut make_vec = vec!["perl".to_string()];
+    let mut run_vec = vec!["perl".to_string()];
 
     let client = metacpan_api::SyncClient::new();
 
@@ -95,14 +95,6 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, E
                 } },
             _ => (),
         }
-    }
-
-    if !make_vec.contains(&"perl".to_string()) {
-        make_vec.push("perl".to_string());
-    }
-
-    if !run_vec.contains(&"perl".to_string()) {
-        run_vec.push("perl".to_string());
     }
 
     Ok(Dependencies {

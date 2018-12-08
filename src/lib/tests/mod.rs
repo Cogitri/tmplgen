@@ -91,10 +91,11 @@ fn test_tmplwriter_correctness() {
         dependencies: Some(Dependencies {
             host: Some(vec!["perl".to_string()]),
             make: Some(vec![
-                "Dist::CheckConflicts".to_string(),
                 "perl".to_string(),
+                "Dist::CheckConflicts".to_string(),
             ]),
             run: Some(vec![
+                "perl".to_string(),
                 "Devel::PartialDump".to_string(),
                 "Data::OptList".to_string(),
                 "Class::Load::XS".to_string(),
@@ -116,7 +117,6 @@ fn test_tmplwriter_correctness() {
                 "Module::Runtime::Conflicts".to_string(),
                 "Dist::CheckConflicts".to_string(),
                 "Class::Load".to_string(),
-                "perl".to_string(),
             ]),
         }),
         sha: "dummy_sha".to_string(),

@@ -6,15 +6,15 @@ noarch=yes
 wrksrc="${pkgname/perl-/}-${version}"
 build_style=perl-module
 hostmakedepends="perl"
-makedepends="perl-Dist-CheckConflicts perl"
-depends="perl-Devel-PartialDump perl-Data-OptList perl-Class-Load-XS
+makedepends="perl perl-Dist-CheckConflicts"
+depends="perl perl-Devel-PartialDump perl-Data-OptList perl-Class-Load-XS
  perl-Params-Util perl-Sub-Identify perl-Package-DeprecationManager
  perl-Scalar-List-Utils perl-Eval-Closure perl-Package-Stash-XS
  perl-Sub-Name perl-Module-Runtime perl-Devel-OverloadInfo
  perl-Sub-Exporter perl-Devel-StackTrace perl-Devel-GlobalDestruction
  perl-Package-Stash perl-Try-Tiny perl-MRO-Compat
  perl-Module-Runtime-Conflicts perl-Dist-CheckConflicts
- perl-Class-Load perl"
+ perl-Class-Load"
 short_desc="A postmodern object system for Perl 5"
 maintainer="tmplgentests <tmplgentests@github.com>"
 license="Artistic-1.0-Perl, GPL-1.0-or-later"
