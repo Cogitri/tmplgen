@@ -246,7 +246,8 @@
     {"name" : "OS2-ExtAttr"},
     {"name" : "OS2-PrfDB"},
     {"name" : "OS2-Process"},
-    {"name" : "OS2-DLL"}
+    {"name" : "OS2-DLL"},
+    {"name" : "perl"}
   ],
   "ruby" : [
     {"name" : "bigdecimal"},
@@ -255,6 +256,7 @@
     {"name" : "net-telnet"},
     {"name" : "psych"},
     {"name" : "rake"},
-    {"name" : "rdoc"}
+    {"name" : "rdoc"},
+    {"name" : "ruby"}
   ]
 }
