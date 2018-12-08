@@ -38,6 +38,9 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
         dep_vec_run.push(dep);
     }
 
+    // Gems always depend on ruby.
+    dep_vec_run.push("ruby".to_string());
+
     debug!("Gem run dependencies: {:?}", &dep_vec_run);
 
     let gem_run_deps = if dep_vec_run.is_empty() {

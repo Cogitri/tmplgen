@@ -237,7 +237,7 @@ fn test_is_built_in_panic() {
 }
 
 #[test]
-fn test_empty_gem_dep() {
+fn test_gem_dep() {
     let mut pkg_info = TmplBuilder::new("ffi");
     let pkg_info = pkg_info
         .set_type(PkgType::Gem)
@@ -247,7 +247,7 @@ fn test_empty_gem_dep() {
         .as_ref()
         .unwrap();
 
-    assert_eq!(pkg_info.dependencies.as_ref().unwrap().run, None);
+    assert_eq!(pkg_info.dependencies.as_ref().unwrap().run, Some(vec!["ruby".to_string()]));
 }
 
 #[test]
