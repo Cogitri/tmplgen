@@ -518,13 +518,6 @@ impl TmplBuilder {
             template_string = template_string
                 .replace("@build_style@", "perl-module")
                 .replace("@noarch@", "yes");
-            if prefix {
-                template_string = template_string
-                    .replace("@wrksrc@", "${pkgname/perl-/}-${version}");
-            } else {
-                template_string = template_string
-                    .replace("\nwrksrc=\"@wrksrc@\"", "");
-            }
         } else if tmpl_type == PkgType::Gem {
             template_string = template_string
                 .replace("@build_style@", "gem")
@@ -535,15 +528,14 @@ impl TmplBuilder {
                 .replace("@pkgname@", &pkg_info.pkg_name)
                 .replace("\ndepends=\"@depends@\"", "")
                 .replace("@build_style@", "cargo")
-                .replace("@wrksrc@", "${pkgname/rust-/}-${version}")
                 .replace("\nnoarch=@noarch@", "");
         }
 
-        if ! prefix {
+        if prefix {
             let prefix = if tmpl_type == PkgType::Crate {
                 "rust-"
-            } else if tmpl_type == PkgType::Gem {
-                "ruby-"
+            //} else if tmpl_type == PkgType::Gem {
+            //    "ruby-"
             } else {
                 "perl-"
             };
@@ -551,7 +543,10 @@ impl TmplBuilder {
             let wrksrc = format!("${{pkgname/{}/}}-${{version}}", prefix);
 
             template_string = template_string
-                .replace(&format!("\nwrksrc=\"{}\"", wrksrc), "");
+                .replace("@wrksrc@", &wrksrc);
+        } else {
+            template_string = template_string
+                .replace("\nwrksrc=\"@wrksrc@\"", "");
         }
 
         let license = &pkg_info.license.unwrap_or_default().join(", ");
