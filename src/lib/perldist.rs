@@ -43,15 +43,15 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
 
     let download_url = query_result
         .download_url
-        .replace(&query_result.version, "${version}");
+        .replace(&query_result.version.as_str().unwrap_or_default(), "${version}");
 
     let pkg_info = PkgInfo {
         pkg_name: "perl-".to_string() + &query_result.name,
-        version: query_result.version.clone(),
+        version: query_result.version.as_str().unwrap_or_default().to_string(),
         description: query_result.description.clone(),
         homepage: query_result.resources.homepage.clone().unwrap_or_else(|| format!("https://metacpan.org/pod/{}", query_result.name)),
         license: Some(query_result.license.unwrap_or_default()),
-        dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())),
+        dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())?),
         sha: gen_checksum(&query_result.download_url)?,
         download_url: Some(download_url),
     };
@@ -61,18 +61,31 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
     Ok(pkg_info)
 }
 
-fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Dependencies {
+fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, Error> {
     let mut make_vec = Vec::new();
     let mut run_vec = Vec::new();
+
+    let client = metacpan_api::SyncClient::new();
 
     for x in dep_vec {
         if TmplBuilder::new(&x.module).set_type(PkgType::PerlDist).is_built_in().unwrap_or({ false }) {
             continue;
         }
 
+        let query_result = client.perl_info(&x.module);
+
+        let query_result = match query_result {
+            Ok(query_result) => query_result,
+            Err(_e) => client.perl_info(
+                &client
+                    .get_dist(&x.module)
+                    .map_err(|e| Error::PerlDist(e.to_string()))?,
+            )?,
+        };
+
         match x.phase.as_ref() {
-            "configure" => make_vec.push(x.module),
-            "runtime" => run_vec.push(x.module),
+            "configure" => make_vec.push(query_result.name),
+            "runtime" => run_vec.push(query_result.name),
             _ => (),
         }
     }
@@ -85,11 +98,11 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Dependencies {
         run_vec.push("perl".to_string());
     }
 
-    Dependencies {
+    Ok(Dependencies {
         host: Some(vec!["perl".to_string()]),
         make: Some(make_vec),
         run: Some(run_vec),
-    }
+    })
 }
 
 /// Figures out recursive deps of a perldist and calls `recursive_deps` to generate templates
@@ -112,7 +125,7 @@ pub(super) fn perldist_dep_graph(perldist_name: &str) -> Result<Vec<String>, Err
 
     let mut deps_vec = Vec::new();
 
-    let dependencies = order_perldeps(query_result.dependency.unwrap_or_default());
+    let dependencies = order_perldeps(query_result.dependency.unwrap_or_default())?;
 
     for x in dependencies.make.unwrap() {
         deps_vec.push(x);
