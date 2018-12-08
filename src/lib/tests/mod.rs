@@ -91,10 +91,8 @@ fn test_tmplwriter_correctness() {
         dependencies: Some(Dependencies {
             host: Some(vec!["perl".to_string()]),
             make: Some(vec![
-                "JSON::PP".to_string(),
-                "ExtUtils::MakeMaker".to_string(),
-                "perl".to_string(),
                 "Dist::CheckConflicts".to_string(),
+                "perl".to_string(),
             ]),
             run: Some(vec![
                 "Devel::PartialDump".to_string(),
@@ -102,20 +100,14 @@ fn test_tmplwriter_correctness() {
                 "Class::Load::XS".to_string(),
                 "Params::Util".to_string(),
                 "Sub::Identify".to_string(),
-                "parent".to_string(),
                 "Package::DeprecationManager".to_string(),
-                "Scalar::Util".to_string(),
-                "Carp".to_string(),
+                "Scalar::List::Utils".to_string(),
                 "Eval::Closure".to_string(),
-                "Data::OptList".to_string(),
                 "Package::Stash::XS".to_string(),
                 "Sub::Name".to_string(),
-                "List::Util".to_string(),
                 "Module::Runtime".to_string(),
                 "Devel::OverloadInfo".to_string(),
-                "perl".to_string(),
                 "Sub::Exporter".to_string(),
-                "warnings".to_string(),
                 "Devel::StackTrace".to_string(),
                 "Devel::GlobalDestruction".to_string(),
                 "Package::Stash".to_string(),
@@ -123,8 +115,8 @@ fn test_tmplwriter_correctness() {
                 "MRO::Compat".to_string(),
                 "Module::Runtime::Conflicts".to_string(),
                 "Dist::CheckConflicts".to_string(),
-                "strict".to_string(),
                 "Class::Load".to_string(),
+                "perl".to_string(),
             ]),
         }),
         sha: "dummy_sha".to_string(),
@@ -286,7 +278,7 @@ fn test_gen_dep_string_split() {
 
     assert_eq!(
         dep_perldist_string.lines().last().unwrap(),
-        " perl-Dist-CheckConflicts"
+        " perl-ExtUtils-MakeMaker perl-Dist-CheckConflicts"
     )
 }
 

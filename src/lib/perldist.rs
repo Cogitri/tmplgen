@@ -84,8 +84,15 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, E
         };
 
         match x.phase.as_ref() {
-            "configure" => make_vec.push(query_result.name),
-            "runtime" => run_vec.push(query_result.name),
+            "configure" => {
+                if ! make_vec.contains(&query_result.name) {
+                    make_vec.push(query_result.name)
+                }
+            },
+            "runtime" => {
+                if ! run_vec.contains(&query_result.name) {
+                    run_vec.push(query_result.name)
+                } },
             _ => (),
         }
     }

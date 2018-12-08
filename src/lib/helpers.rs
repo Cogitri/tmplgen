@@ -31,6 +31,7 @@ use std::str::from_utf8;
 /// * Errors out of a package with the name the user gave us can be found multiple platforms
 /// * Errors out if the package can't be found on any platform
 pub(super) fn figure_out_provider(pkg_name: &str) -> Result<PkgType, Error> {
+    //TODO: Actually check that the error is "Not Found"!
     let crate_status = crates_io_api::SyncClient::new()
         .get_crate(&pkg_name)
         .is_ok();
@@ -95,6 +96,7 @@ pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: PkgType) -> String {
 
         if pkg_type == PkgType::PerlDist {
             if x == "perl" {
+                dep_string.push_str(x)
             } else {
                 dep_string.push_str(&("perl-".to_string() + &x.replace("::", "-")));
             }

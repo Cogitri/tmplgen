@@ -5,18 +5,16 @@ revision=1
 noarch=yes
 wrksrc="${pkgname/perl-/}-${version}"
 build_style=perl-module
-hostmakedepends=""
-makedepends="perl-JSON-PP perl-ExtUtils-MakeMaker  perl-Dist-CheckConflicts"
+hostmakedepends="perl"
+makedepends="perl-Dist-CheckConflicts perl"
 depends="perl-Devel-PartialDump perl-Data-OptList perl-Class-Load-XS
- perl-Params-Util perl-Sub-Identify perl-parent
- perl-Package-DeprecationManager perl-Scalar-Util perl-Carp
- perl-Eval-Closure perl-Data-OptList perl-Package-Stash-XS
- perl-Sub-Name perl-List-Util perl-Module-Runtime
- perl-Devel-OverloadInfo  perl-Sub-Exporter perl-warnings
- perl-Devel-StackTrace perl-Devel-GlobalDestruction
+ perl-Params-Util perl-Sub-Identify perl-Package-DeprecationManager
+ perl-Scalar-List-Utils perl-Eval-Closure perl-Package-Stash-XS
+ perl-Sub-Name perl-Module-Runtime perl-Devel-OverloadInfo
+ perl-Sub-Exporter perl-Devel-StackTrace perl-Devel-GlobalDestruction
  perl-Package-Stash perl-Try-Tiny perl-MRO-Compat
- perl-Module-Runtime-Conflicts perl-Dist-CheckConflicts perl-strict
- perl-Class-Load"
+ perl-Module-Runtime-Conflicts perl-Dist-CheckConflicts
+ perl-Class-Load perl"
 short_desc="A postmodern object system for Perl 5"
 maintainer="tmplgentests <tmplgentests@github.com>"
 license="Artistic-1.0-Perl, GPL-1.0-or-later"
