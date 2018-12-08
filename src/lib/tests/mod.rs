@@ -424,6 +424,48 @@ fn test_template_updater() {
 
     assert_eq!(good_templ.inner, include_str!("template_test_crate.in"));
 
+    let diff_url_pkg_info_ok = PkgInfo {
+        pkg_name: "rust-tmplgen".to_string(),
+        version: "0.2.9".to_string(),
+        description: Some("Void Linux template generator for language-specific package managers"
+            .to_string()),
+        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+        license: Some(vec!["GPL-3.0-or-later".to_string()]),
+        dependencies: None,
+        sha: "dummy".to_string(),
+        download_url: Some(
+            "https://github.com/Cogitri/tmplgen/archive/v${version}.tar.gz".to_string(),
+        ),
+    };
+
+    let diff_url_ok_tmpl = TmplBuilder::from_pkg_info(diff_url_pkg_info_ok)
+        .set_type(PkgType::Crate)
+        .generate(true)
+        .unwrap();
+
+    let different_url_pkg_info = PkgInfo {
+        pkg_name: "rust-tmplgen".to_string(),
+        version: "0.3.1".to_string(),
+        description: Some("Void Linux template generator for language-specific package managers"
+            .to_string()),
+        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+        license: Some(vec!["GPL-3.0-or-later".to_string()]),
+        dependencies: None,
+        sha: "dummy".to_string(),
+        download_url: Some(
+            "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
+        ),
+    };
+
+    let diff_sha_templ = TmplBuilder::from_pkg_info(different_url_pkg_info)
+        .set_type(PkgType::Crate)
+        .update(&diff_url_ok_tmpl, false)
+        .unwrap();
+
+    assert_eq!(diff_sha_templ.inner, include_str!("template_test_crate.in")
+        .replace("dummy_sha", "395408a3dc9c3db2b5c200b8722a13a60898c861633b99e6e250186adffd1370")
+        .replace("https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate", "https://github.com/Cogitri/tmplgen/archive/v${version}.tar.gz"));
+
     dir.close().unwrap();
 }
 
