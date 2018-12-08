@@ -72,24 +72,35 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, E
             continue;
         }
 
-        let query_result = client.perl_info(&x.module);
-
-        let query_result = match query_result {
-            Ok(query_result) => query_result,
-            Err(_e) => client.perl_info(
-                &client
-                    .get_dist(&x.module)
-                    .map_err(|e| Error::PerlDist(e.to_string()))?,
-            )?,
-        };
-
         match x.phase.as_ref() {
             "configure" => {
+                let query_result = client.perl_info(&x.module);
+
+                let query_result = match query_result {
+                    Ok(query_result) => query_result,
+                    Err(_e) => client.perl_info(
+                        &client
+                            .get_dist(&x.module)
+                            .map_err(|e| Error::PerlDist(e.to_string()))?,
+                    )?,
+                };
+
                 if ! make_vec.contains(&query_result.name) {
                     make_vec.push(query_result.name)
                 }
             },
             "runtime" => {
+                let query_result = client.perl_info(&x.module);
+
+                let query_result = match query_result {
+                    Ok(query_result) => query_result,
+                    Err(_e) => client.perl_info(
+                        &client
+                            .get_dist(&x.module)
+                            .map_err(|e| Error::PerlDist(e.to_string()))?,
+                    )?,
+                };
+
                 if ! run_vec.contains(&query_result.name) {
                     run_vec.push(query_result.name)
                 } },
