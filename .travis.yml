@@ -31,6 +31,14 @@ before_install:
 
 after_success: |
   if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
-    env LD_LIBRARY_PATH=$(rustc --print sysroot)/lib:$LD_LIBRARY_PATH cargo tarpaulin --out Xml
+  # About exclude-files: vendor doesn't belong to use. types&errors.rs don't
+  # contain anything we can test.
+  # src/bin/* - https://github.com/xd009642/tarpaulin/issues/176
+    env LD_LIBRARY_PATH=$(rustc --print sysroot)/lib:$LD_LIBRARY_PATH cargo tarpaulin \
+      --out Xml \
+      --ciserver travis-ci \
+      --timeout 240 \
+      --exclude-files vendor/* src/lib/types.rs src/lib/errors.rs src/bin/*
+
     bash <(curl -s https://codecov.io/bash)
   fi
