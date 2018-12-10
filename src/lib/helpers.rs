@@ -37,15 +37,30 @@ pub(super) fn figure_out_provider(pkg_name: &str) -> Result<PkgType, Error> {
         .get_crate(&pkg_name)
         .is_ok();
 
-    let gem_status = rubygems_api::SyncClient::new().gem_info(&pkg_name).is_ok();
+    let gem_status = rubygems_api::SyncClient::new()
+        .gem_info(&pkg_name)
+        .is_ok();
 
-    let perldist_status = metacpan_api::SyncClient::new().perl_info(&pkg_name).is_ok();
+    let perldist_status = metacpan_api::SyncClient::new()
+        .perl_info(&pkg_name)
+        .is_ok();
 
     if (crate_status && gem_status)
         || (crate_status && perldist_status)
         || (gem_status && perldist_status)
     {
-        Err(Error::AmbPkg(pkg_name.to_string()))
+        let mut found_platforms = Vec::new();
+        if crate_status {
+            found_platforms.push("crates.io");
+        }
+        if gem_status {
+            found_platforms.push("metacpan.org");
+        }
+        if perldist_status {
+            found_platforms.push("rubygems.org")
+        }
+
+        Err(Error::AmbPkg((&format!("{} on the platforms {:?}", pkg_name, found_platforms).replace("[", "").replace("]", "")).to_string()))
     } else if crate_status {
         debug!("Determined the target package {} to be a crate", &pkg_name);
         Ok(PkgType::Crate)

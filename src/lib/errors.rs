@@ -27,7 +27,7 @@ pub enum Error {
     #[fail(display = "Failed to determine XBPS_DISTDIR: {}", _0)]
     XdistError(String),
     #[fail(
-        display = "Found a package matching the specified package {} on multiple platforms! Please explicitly choose one via the `-t` parameter!",
+        display = "Found a package matching the specified package {}! Please explicitly choose one via the `-t` parameter!",
         _0
     )]
     AmbPkg(String),
