@@ -477,7 +477,7 @@ fn test_template_updater() {
         include_str!("template_test_crate.in")
             .replace(
                 "dummy_sha",
-                "395408a3dc9c3db2b5c200b8722a13a60898c861633b99e6e250186adffd1370"
+                "ac295b3b50ba071599ef2e8aa1bfc2d8d69a69267dee865e3fe0091c769221ca"
             )
             .replace(
                 "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate",

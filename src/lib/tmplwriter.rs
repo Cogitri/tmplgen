@@ -374,7 +374,7 @@ impl TmplBuilder {
                 // If it doesn't match we have to download the distfile and get its sha sum
                 template_string = template_string.replace(
                     &orig_checksum_string,
-                    &format!("checksum={}", gen_checksum(tmpl_download_url)?),
+                    &format!("checksum={}", gen_checksum(&tmpl_download_url.replace("${version}", &pkg_info.version))?),
                 );
             };
         }
