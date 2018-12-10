@@ -1,9 +1,5 @@
 # TODO
 
-
-## Checksums
-* Display a neat progress bar during downloads
-
 ## Crates
 * Figure out native dependencies for recursive deps
 

@@ -18,6 +18,7 @@ use crate::errors::Error;
 use crate::gems::*;
 use crate::perldist::*;
 use crate::types::*;
+use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, info, warn};
 use sha2::{Digest, Sha256};
 use std::env::var_os;
@@ -191,19 +192,52 @@ pub(super) fn get_git_author() -> Result<String, Error> {
 /// * Errors out if the file can't be downloaded
 /// * Errors out if the sha256sum couldn't be determined
 pub(super) fn gen_checksum(dwnld_url: &str) -> Result<String, Error> {
+    let req_client = reqwest::Client::new();
+    let url = reqwest::Url::parse(dwnld_url)?;
+
+    let total_size = {
+        let resp = req_client.head(url.as_str()).send()?;
+        if resp.status().is_success() {
+            resp.headers()
+                .get(reqwest::header::CONTENT_LENGTH)
+                .and_then(|ct_len| ct_len.to_str().ok())
+                .and_then(|ct_len| ct_len.parse().ok())
+                .unwrap_or(0)
+        } else {
+            return Err(Error::ShaError(format!(
+                "Couldn't download URL: {}. Error: {:?}",
+                url,
+                resp.status(),
+            )));
+        }
+    };
+
     debug!("GET: {}", dwnld_url);
 
     info!("Downloading distfile to generate checksum...");
 
-    let resp = reqwest::get(dwnld_url);
+    let resp = req_client.get(url.as_str());
 
-    if resp.is_err() {
-        return Err(Error::ShaError(resp.unwrap_err().to_string()));
-    }
+    // Do not display a progresssbar if the download is under 200KiB big,
+    // it usually is either not visible or just flashes over the screen anyway.
+    let pb = if total_size > 200_000 {
+        ProgressBar::new(total_size)
+    } else {
+        ProgressBar::hidden()
+    };
+
+    pb.set_style(ProgressStyle::default_bar()
+        .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+        .progress_chars("#>-"));
+
+    let mut source = DownloadProgress {
+        progress_bar: pb,
+        inner: resp.send()?,
+    };
 
     let mut hasher = Sha256::new();
 
-    let hash_res = resp.unwrap().copy_to(&mut hasher);
+    let hash_res = std::io::copy(&mut source, &mut hasher);
 
     if hash_res.is_err() {
         return Err(Error::ShaError(hash_res.unwrap_err().to_string()));

@@ -50,6 +50,8 @@ pub enum Error {
     RecDeps { pkg_name: String, err: String },
     #[fail(display = "Can't run method {}! {}", method, err)]
     WrongUsage { method: String, err: String },
+    #[fail(display = "{}", _0)]
+    Reqwest(String),
 }
 
 impl From<crates_io_api::Error> for Error {
@@ -79,5 +81,17 @@ impl From<std::str::Utf8Error> for Error {
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Self {
         Error::File(e.to_string())
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(e: reqwest::Error) -> Self {
+        Error::Reqwest(e.to_string())
+    }
+}
+
+impl From<reqwest::UrlError> for Error {
+    fn from(e: reqwest::UrlError) -> Self {
+        Error::Reqwest(e.to_string())
     }
 }

@@ -35,6 +35,20 @@ impl Read for Template {
     }
 }
 
+pub(super) struct DownloadProgress<R> {
+    pub inner: R,
+    pub progress_bar: indicatif::ProgressBar,
+}
+
+impl<R: std::io::Read> std::io::Read for DownloadProgress<R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.inner.read(buf).map(|n| {
+            self.progress_bar.inc(n as u64);
+            n
+        })
+    }
+}
+
 /// The PkgType enum, containing all types of packages tmplgen can handle
 #[derive(Copy, Clone, Eq, Ord, PartialOrd, Hash, Debug, PartialEq)]
 pub enum PkgType {
