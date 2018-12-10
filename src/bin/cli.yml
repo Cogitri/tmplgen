@@ -1,7 +1,7 @@
 name: tmplgen
 version: "@version_string@"
 author: Rasmus Thomsen <rasmus.thomsen@protonmail.com>
-about: A Void Linux Template generator for rust packages
+about: Void Linux template generator for language-specific package managers
 args:
   - debug:
       short: d
@@ -10,7 +10,7 @@ args:
   - force:
       short: f
       long: force
-      help: Overwrite template, if it already exists
+      help: Overwrite template, if it already exists.
   - no_prefix:
       short: n
       long: no-prefix
@@ -19,20 +19,20 @@ args:
       short: t
       long: tmpltype
       value_name: crate/gem/perldist
-      help: Explicitly sets what kind of template we want to generate
+      help: Explicitly sets what kind of template we want to generate.
   - update:
       short: u
       long: update
-      help: Check if a new version for the package is available and if so, update 'version'
+      help: Check if a new version for the package is available and if so, update 'version'.
   - update_all:
       short: U
       long: UpdateAll
-      help: Same as 'update', but also update 'distfiles' and 'homepage'
+      help: Same as 'update', but also update 'distfiles' and 'homepage'.
   - verbose:
       short: v
       long: verbose
       help: Be more verbose. Is ignored if debugging is enabled.
   - PKGNAME:
-      help: Sets for which package the template should be generated
+      help: Sets for which package the template should be generated.
       required: true
       index: 1
