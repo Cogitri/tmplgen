@@ -31,14 +31,15 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     let mut dep_vec_run = Vec::new();
 
     for x in query_result.dependencies.runtime.unwrap_or_default() {
+        // Don't add deps built into ruby to depends
         if TmplBuilder::new(&x.name)
             .set_type(PkgType::Gem)
             .is_built_in()
-            .unwrap_or({ false })
+            .unwrap_or(false)
         {
             continue;
         }
-        let dep = determine_gem_run_deps(&x);
+        let dep = parse_gem_version_req(&x);
         dep_vec_run.push(dep);
     }
 
@@ -59,7 +60,7 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
         description: query_result.info,
         homepage: query_result
             .homepage_uri
-            .unwrap_or_else(|| format!("https://rubygems.org/gems/{}", gem_name)),
+            .unwrap_or(format!("https://rubygems.org/gems/{}", gem_name)),
         license: query_result.licenses,
         dependencies: Some(Dependencies {
             host: None,
@@ -90,14 +91,14 @@ pub(super) fn gem_dep_graph(gem_name: &str) -> Result<Vec<String>, Error> {
 
     let mut deps_vec = Vec::new();
 
-    for x in query_result.dependencies.runtime.unwrap() {
+    for x in query_result.dependencies.runtime.unwrap_or_default() {
         deps_vec.push(x.name);
     }
 
     Ok(deps_vec)
 }
 
-/* Can't be used right now we'll just replace it with >=
+/* Can't be used right now, we'll just replace it with >=
 // Convert the ~> comparator to something useful for us.
 // The ~> comparator is meant to allow only version updates up to the first version specifier
 // ~> 2.0.3 means >= 2.0.3 ∩ < 2.1
@@ -140,7 +141,7 @@ pub fn tilde_parse(version: String) -> Option<Vec<String>> {
 */
 
 /// Determines the run dependencies of a gem. Deals with version requirements.
-pub(super) fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> String {
+pub(super) fn parse_gem_version_req(rubygem_dep: &rubygems_api::GemRunDeps) -> String {
     let cmpr = rubygem_dep
         .requirements
         .split_whitespace()
@@ -153,15 +154,15 @@ pub(super) fn determine_gem_run_deps(rubygem_dep: &rubygems_api::GemRunDeps) -> 
         .replace(",", "");
 
     match cmpr {
-        ">" | "<" | "<=" => "ruby-".to_string() + &rubygem_dep.name + cmpr + &ver,
+        ">" | "<" | "<=" => format!("ruby-{}{}{}", &rubygem_dep.name, cmpr, &ver),
         ">=" => {
             if ver == "0" {
-                "ruby-".to_string() + &rubygem_dep.name
+                format!("ruby-{}", &rubygem_dep.name)
             } else {
-                "ruby-".to_string() + &rubygem_dep.name + cmpr + &ver
+                format!("ruby-{}{}{}", &rubygem_dep.name, cmpr, &ver)
             }
         }
-        "~>" => "ruby-".to_string() + &rubygem_dep.name + ">=" + &ver,
-        _ => "ruby-".to_string() + &rubygem_dep.name,
+        "~>" => format!("ruby-{}>={}", &rubygem_dep.name, &ver),
+        _ => format!("ruby-{}", &rubygem_dep.name),
     }
 }

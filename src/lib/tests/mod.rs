@@ -292,30 +292,6 @@ fn test_crate_check_native_deps() {
     )
 }
 
-//TODO: Improve the below test to test recursive deps
-#[test]
-fn test_gem_dep_graph() {
-    let dir = tempfile::tempdir().unwrap();
-
-    set_var("XBPS_DISTDIR", dir.path());
-    set_env();
-    assert!(gem_dep_graph("ffi").is_ok());
-
-    dir.close().unwrap();
-}
-
-//TODO: Improve the below test to test recursive deps
-#[test]
-fn test_perl_dep_graph() {
-    let dir = tempfile::tempdir().unwrap();
-
-    set_var("XBPS_DISTDIR", dir.path());
-    set_env();
-    assert!(perldist_dep_graph("Moose").is_ok());
-
-    dir.close().unwrap();
-}
-
 #[test]
 fn test_determine_gem_run_deps() {
     let rubygem_deps = vec![
@@ -340,7 +316,7 @@ fn test_determine_gem_run_deps() {
     let mut dep_string = String::new();
 
     for x in rubygem_deps {
-        dep_string.push_str(&determine_gem_run_deps(&x));
+        dep_string.push_str(&parse_gem_version_req(&x));
         dep_string.push_str(" ");
     }
 
@@ -579,13 +555,13 @@ fn test_get_deps() {
 fn test_gen_deps() {
     TmplBuilder::new("Moose")
         .set_type(PkgType::PerlDist)
-        .get_deps()
+        .get_info()
         .unwrap()
         .gen_deps(None)
         .unwrap();
     TmplBuilder::new("rspec")
         .set_type(PkgType::Gem)
-        .get_deps()
+        .get_info()
         .unwrap()
         .gen_deps(None)
         .unwrap();
@@ -595,13 +571,13 @@ fn test_gen_deps() {
 
     TmplBuilder::new("Task-Kensho")
         .set_type(PkgType::PerlDist)
-        .get_deps()
+        .get_info()
         .unwrap()
         .gen_deps(dir.path().to_str())
         .unwrap();
     TmplBuilder::new("diff-lcs")
         .set_type(PkgType::Gem)
-        .get_deps()
+        .get_info()
         .unwrap()
         .gen_deps(dir.path().to_str())
         .unwrap();
@@ -615,7 +591,7 @@ fn test_gen_deps() {
         .unwrap();
     TmplBuilder::new("rspec")
         .set_type(PkgType::Gem)
-        .get_deps()
+        .get_info()
         .unwrap()
         .gen_deps(dir.path().to_str())
         .unwrap();

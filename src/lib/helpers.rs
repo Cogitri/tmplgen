@@ -95,7 +95,7 @@ pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: PkgType) -> String {
     let mut dep_string = String::new();
 
     for x in dep_vec {
-        let after_string = "".to_string() + &dep_string + x;
+        let after_string = format!("{}{}", &dep_string, x);
 
         let last_line_ln = after_string.lines().last().unwrap_or_default().len();
 
@@ -114,7 +114,7 @@ pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: PkgType) -> String {
             if x == "perl" {
                 dep_string.push_str(x)
             } else {
-                dep_string.push_str(&("perl-".to_string() + &x.replace("::", "-")));
+                dep_string.push_str(&format!("perl-{}", &x.replace("::", "-")));
             }
         } else {
             dep_string.push_str(x);
@@ -168,8 +168,14 @@ pub(super) fn get_git_author() -> Result<String, Error> {
 
     let git_details = if git_author_env.is_some() && git_email_env.is_some() {
         (
-            git_author_env.unwrap().to_str().unwrap().to_string(),
-            git_email_env.unwrap().to_str().unwrap().to_string(),
+            git_author_env.unwrap()
+                .to_str()
+                .unwrap()
+                .to_string(),
+            git_email_env.unwrap()
+                .to_str()
+                .unwrap()
+                .to_string(),
         )
     } else {
         let git_author = Command::new("git")
@@ -193,9 +199,7 @@ pub(super) fn get_git_author() -> Result<String, Error> {
         )
     };
 
-    let mut maintainer = format!("{} <{}>", git_details.0, git_details.1,);
-
-    maintainer = maintainer.replace("\n", "");
+    let maintainer = format!("{} <{}>", git_details.0, git_details.1).replace("\n", "");
 
     Ok(maintainer)
 }

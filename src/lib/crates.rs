@@ -40,23 +40,17 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
         name = &crate_name,
     );
 
-    // We don't want to have $-{version} in our download_url
-    let sha_download_url = format!(
-        "https://static.crates.io/crates/{name}/{name}-{version}.crate",
-        name = &crate_name,
-        version = query_result.max_version,
-    );
-
     let pkg_info = PkgInfo {
         pkg_name: format!("rust-{}", &crate_name),
-        version: query_result.max_version,
+        version: query_result.max_version.clone(),
         description: query_result.description,
         homepage: query_result
             .homepage
-            .unwrap_or_else(|| format!("https://crates.io/crates/{}", &crate_name)),
+            .unwrap_or(format!("https://crates.io/crates/{}", &crate_name)),
         license: Some(vec![query_result.license.unwrap_or_default()]),
         dependencies: crate_deps,
-        sha: gen_checksum(&sha_download_url)?,
+        // gen_checksum can't replace ${version} itself, so we have to do it here
+        sha: gen_checksum(&download_url.replace("${version}", &query_result.max_version))?,
         download_url: Some(download_url),
     };
 
