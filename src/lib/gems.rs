@@ -76,28 +76,6 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     Ok(pkg_info)
 }
 
-/// Figures out recursive deps of a gem and calls `recursive_deps` to generate templates
-/// for those gems.
-///
-/// # Errors
-///
-/// * Errors out if rubygems.org can't be reached
-/// * Errors out if the gem can't be found on rubygems.org
-/// * Errors out if `recursive_deps` errors
-pub(super) fn gem_dep_graph(gem_name: &str) -> Result<Vec<String>, Error> {
-    let client = rubygems_api::SyncClient::new();
-
-    let query_result = client.gem_info(gem_name)?;
-
-    let mut deps_vec = Vec::new();
-
-    for x in query_result.dependencies.runtime.unwrap_or_default() {
-        deps_vec.push(x.name);
-    }
-
-    Ok(deps_vec)
-}
-
 /* Can't be used right now, we'll just replace it with >=
 // Convert the ~> comparator to something useful for us.
 // The ~> comparator is meant to allow only version updates up to the first version specifier

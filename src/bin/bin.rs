@@ -120,39 +120,24 @@ fn actual_work(opts: &BinOptions) -> Result<(), Error> {
     let mut file = File::create(&xdist_template_path)?;
     file.write_all(template?.inner.as_bytes())?;
 
-    let deps = tmpl_builder.get_deps();
+    if tmpl_builder.pkg_info.as_ref().unwrap().dependencies.is_some() {
+        let dep_template_vec = tmpl_builder.gen_deps(Some(&format!("{}/srcpkgs", xdist_dir()?)));
 
-    if deps.is_ok() {
-        let deps_vec = &deps.as_ref().unwrap().deps;
-        if deps_vec.is_some() {
-            let dep_template_vec = deps
-                .as_ref()
-                .unwrap()
-                .gen_deps(Some(&format!("{}/srcpkgs", xdist_dir()?)));
-            if dep_template_vec.is_ok() {
-                for x in dep_template_vec.unwrap() {
-                    let xdist_template_path =
-                        format!("{}/srcpkgs/{}/template", xdist_dir()?, x.name,);
+        if dep_template_vec.is_ok() {
+            for x in dep_template_vec.unwrap() {
+                let xdist_template_path = format!("{}/srcpkgs/{}/template", xdist_dir()?, x.name, );
 
-                    create_dir_all(&xdist_template_path.replace("/template", ""))?;
+                create_dir_all(&xdist_template_path.replace("/template", ""))?;
 
-                    let mut file = File::create(&xdist_template_path)?;
-                    file.write_all(x.inner.as_bytes())?;
-                }
-            } else {
-                return Err(Error::RecDeps {
-                    pkg_name: opts.pkg_name.clone(),
-                    err: dep_template_vec.err().unwrap().to_string(),
-                });
+                let mut file = File::create(&xdist_template_path)?;
+                file.write_all(x.inner.as_bytes())?;
             }
         } else {
-            return Ok(());
+            return Err(Error::RecDeps {
+                pkg_name: opts.pkg_name.clone(),
+                err: dep_template_vec.err().unwrap().to_string(),
+            });
         }
-    } else {
-        return Err(Error::RecDeps {
-            pkg_name: opts.pkg_name.clone(),
-            err: deps.err().unwrap().to_string(),
-        });
     }
 
     Ok(())

@@ -16,7 +16,6 @@
 use super::crates::*;
 use super::gems::*;
 use super::helpers::*;
-use super::perldist::*;
 use super::types::*;
 use rubygems_api::GemRunDeps;
 use std::env::set_var;
@@ -532,26 +531,6 @@ fn test_set_info() {
 }
 
 #[test]
-fn test_get_deps() {
-    TmplBuilder::new("rake")
-        .set_type(PkgType::Gem)
-        .get_deps()
-        .unwrap();
-    TmplBuilder::new("Moose")
-        .set_type(PkgType::PerlDist)
-        .get_deps()
-        .unwrap();
-    assert_eq!(
-        TmplBuilder::new("tmplgen")
-            .set_type(PkgType::Crate)
-            .get_deps()
-            .unwrap()
-            .deps,
-        None
-    );
-}
-
-#[test]
 fn test_gen_deps() {
     TmplBuilder::new("Moose")
         .set_type(PkgType::PerlDist)
@@ -604,7 +583,7 @@ fn test_gen_deps() {
 fn test_gen_deps_panic() {
     TmplBuilder::new("tmplgen")
         .set_type(PkgType::Crate)
-        .get_deps()
+        .get_info()
         .unwrap()
         .gen_deps(None)
         .unwrap();

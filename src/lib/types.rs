@@ -21,7 +21,6 @@ pub struct TmplBuilder {
     pub pkg_name: String,
     pub pkg_type: Option<PkgType>,
     pub pkg_info: Option<PkgInfo>,
-    pub deps: Option<Vec<String>>,
 }
 
 pub struct Template {

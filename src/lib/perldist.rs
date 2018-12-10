@@ -128,36 +128,3 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, E
         run: Some(run_vec),
     })
 }
-
-/// Figures out recursive deps of a perldist and calls `recursive_deps` to generate templates
-/// for those perldists.
-///
-/// # Errors
-///
-/// * Errors out if metacpan.org can't be reached
-/// * Errors out if the perldist can't be found on metacpan.org
-/// * Errors out if `recursive_deps` errors
-pub(super) fn perldist_dep_graph(perldist_name: &str) -> Result<Vec<String>, Error> {
-    let client = metacpan_api::SyncClient::new();
-
-    let query_result = client.perl_info(&perldist_name);
-
-    let query_result = match query_result {
-        Ok(query_result) => query_result,
-        Err(_error) => client.perl_info(&client.get_dist(&perldist_name)?)?,
-    };
-
-    let mut deps_vec = Vec::new();
-
-    let dependencies = order_perldeps(query_result.dependency.unwrap_or_default())?;
-
-    for x in dependencies.make.unwrap() {
-        deps_vec.push(x);
-    }
-
-    for x in dependencies.run.unwrap() {
-        deps_vec.push(x);
-    }
-
-    Ok(deps_vec)
-}

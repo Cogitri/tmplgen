@@ -14,9 +14,7 @@
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::errors::Error;
-use crate::gems::gem_dep_graph;
 use crate::helpers::*;
-use crate::perldist::perldist_dep_graph;
 use crate::types::*;
 use std::path::Path;
 
@@ -29,7 +27,6 @@ impl TmplBuilder {
             pkg_name: pkg_name.to_owned(),
             pkg_type: None,
             pkg_info: None,
-            deps: None,
         }
     }
 
@@ -39,7 +36,6 @@ impl TmplBuilder {
             pkg_name: pkg_info.pkg_name.clone(),
             pkg_type: None,
             pkg_info: Some(pkg_info),
-            deps: None,
         }
     }
 
@@ -82,24 +78,6 @@ impl TmplBuilder {
     pub fn set_info(&mut self, pkg_info: PkgInfo) -> &mut TmplBuilder {
         self.pkg_info = Some(pkg_info);
         self
-    }
-
-    /// Gets the dependencies of the TmplBuilder that's passed into the method
-    ///
-    /// # Errors:
-    ///
-    /// * If metacpan.org/rubygems.org can't be reached
-    /// * If the perldist/gem can't be found on metacpan.org/rubygems.org
-    pub fn get_deps(&mut self) -> Result<&mut TmplBuilder, Error> {
-        self.deps = if self.pkg_type == Some(PkgType::PerlDist) {
-            Some(perldist_dep_graph(&self.pkg_name)?)
-        } else if self.pkg_type == Some(PkgType::Gem) {
-            Some(gem_dep_graph(&self.pkg_name)?)
-        } else {
-            None
-        };
-
-        Ok(self)
     }
 
     /// Checks if a Gem or PerlDist is built into Ruby/Perl.
@@ -165,37 +143,78 @@ impl TmplBuilder {
     /// * If something went wrong while generating Templates for all dependencies of [self.pkg_name](crate::TmplBuilder.pkg_name)
     // TODO: Make this prettier so we don't needlessly generate templates twice if dep x and y both depend on z
     pub fn gen_deps(&self, tmpl_path: Option<&str>) -> Result<Vec<Template>, Error> {
-        if self.deps.is_some() {
+        if self.pkg_info.is_some() {
+            if self.pkg_type == Some(PkgType::Crate) {
+                return Err(Error::WrongUsage {
+                    method: "gen_deps".to_string(),
+                    err: "Crates don't have dependencies so I won't write templates for it dependencies!".to_string()
+                });
+            }
+
+            let mut dep_vec = Vec::new();
+
+            let deps = self.pkg_info
+                .as_ref()
+                .unwrap()
+                .dependencies
+                .as_ref()
+                .unwrap();
+
+            if deps.run.is_some() {
+                for x in deps.run.as_ref().unwrap() {
+                    if x == "perl" && x == "ruby" {
+                        continue;
+                    }
+                    dep_vec.push(x);
+                }
+            }
+
+            if deps.make.is_some() {
+                for x in deps.make.as_ref().unwrap() {
+                    if x == "perl" || x == "ruby" {
+                        continue;
+                    }
+                    dep_vec.push(x);
+                }
+            }
+
             let mut tmpl_vec = Vec::new();
 
-            for x in self.deps.as_ref().unwrap() {
-                let mut tmpl_builder = TmplBuilder::new(x);
+            for x in dep_vec {
+                let pkg_tainted = x.split('>')
+                    .collect::<Vec<&str>>()[0]
+                    .split('<')
+                    .collect::<Vec<&str>>()[0];
+
+                let pkg = pkg_tainted.replace("perl-", "").replace("ruby-", "");
+
+                let mut tmpl_builder = TmplBuilder::new(&pkg);
 
                 if tmpl_builder
                     .set_type(self.pkg_type.unwrap())
                     .is_built_in()?
                 {
-                    warn!("Won't write template for built-in package {}", x);
+                    warn!("Won't write template for built-in package {}", pkg);
                     continue;
                 } else if tmpl_path.is_some() {
                     let tmpl_path_exists = if self.pkg_type.unwrap() == PkgType::Gem {
                         Path::new(&format!(
                             "{}/ruby-{}/template",
                             tmpl_path.unwrap_or_default(),
-                            x
+                            pkg
                         ))
                         .exists()
                     } else {
                         Path::new(&format!(
                             "{}/perl-{}/template",
                             tmpl_path.unwrap_or_default(),
-                            x.replace("::", "-")
+                            pkg.replace("::", "-")
                         ))
                         .exists()
                     };
 
                     if tmpl_path_exists {
-                        warn!("Won't overwrite already existing template {}", x);
+                        warn!("Won't overwrite already existing template {}", pkg);
                         continue;
                     }
                 }
@@ -203,7 +222,7 @@ impl TmplBuilder {
                 tmpl_vec.push(tmpl_builder.get_info()?.generate(true)?);
 
                 tmpl_vec.append(
-                    &mut TmplBuilder::new(x)
+                    &mut TmplBuilder::new(&pkg)
                         .set_type(self.pkg_type.unwrap())
                         .gen_deps(tmpl_path)
                         .unwrap_or_default(),
@@ -211,16 +230,9 @@ impl TmplBuilder {
             }
             Ok(tmpl_vec)
         } else {
-            if self.pkg_type == Some(PkgType::Crate) {
-                Err(Error::WrongUsage {
-                    method: "gen_deps".to_string(),
-                    err: "Crates don't have dependencies so I won't write templates for it dependencies!".to_string()
-                })
-            } else {
-                Err(Error::TooLittleInfo(
-                    "Can't create Templates for deps without getting the dependencies of the package first!".to_string(),
-                ))
-            }
+            Err(Error::TooLittleInfo(
+                "Can't create Templates for deps without setting/getting PkgInfo of the package first!".to_string(),
+            ))
         }
     }
 
