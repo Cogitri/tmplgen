@@ -30,6 +30,7 @@ indicatif = "0.10.3"
 cargo-husky = {version = "^1.2.0", features = ["precommit-hook", "run-cargo-test"]}
 assert_cmd = "0.10.2"
 tempfile = "3.0.5"
+criterion = "0.2.5"
 
 [lib]
 name = "libtmplgen"
@@ -38,6 +39,10 @@ path = "src/lib/lib.rs"
 [[bin]]
 name = "tmplgen"
 path = "src/bin/bin.rs"
+
+[[bench]]
+name = "benchmarks"
+harness = false
 
 [profile.release]
 lto = true
