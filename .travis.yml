@@ -23,12 +23,6 @@ script:
   - cargo build
   - cargo test
 
-before_install:
-  - mkdir vendor
-  - pushd vendor
-  - git clone https://github.com/Cogitri/crates_io_api
-  - popd
-
 after_success: |
   if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
   # About exclude-files: vendor doesn't belong to use. types&errors.rs don't
