@@ -2,6 +2,11 @@
 kind: pipeline
 name: default
 
+clone:
+  git:
+    image: plugins/git
+    tags: true
+
 steps:
 - name: submodules
   image: docker:git
@@ -30,12 +35,23 @@ steps:
       files:
       - cobertura.xml
       required: true
-- name: bench
+- name: package-release
   image: rust:latest
   commands:
-  - cargo bench
+  - cargo package
+- name: publish-release
+  image: plugins/github-release
+  settings:
+    api_key:
+      from_secret: github_token
+    files: target/package/*.crate
+    checksum:
+    - sha256
+    when:
+      event:
+      - tag
 ---
 kind: signature
-hmac: 8c3345d05eae2b11cdcdda86005e3f15af0980ed233cf0ba14791f7a65a7b123
+hmac: 2e5c720dd6b2a215fa1cd3da686df499e9d43196c807e4c67a170be041e26a6d
 
 ...
