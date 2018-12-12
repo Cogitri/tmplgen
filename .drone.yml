@@ -16,7 +16,7 @@ steps:
   - cargo build --verbose --all
   - cargo test --verbose --all
 - name: generate-coverage
-  image: tarpaulin:latest
+  image: xd009642/tarpaulin:latest
   commands:
   - export GIT_AUTHOR_NAME="drone"
   - export GIT_AUTHOR_EMAIL="drone@exqa.de"
@@ -35,6 +35,6 @@ steps:
   - cargo bench
 ---
 kind: signature
-hmac: 621fef0b70ef70009070af2207d7953afea0cdae708c5e5daa64c079f925e941
+hmac: 12bcb76fa3d7252d1f1ca7cd89000e721b24e6574acddde49fa0ec829f415d8c
 
 ...
