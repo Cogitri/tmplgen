@@ -10,11 +10,16 @@ steps:
 - name: test
   image: rust:latest
   commands:
+  - export RUST_BACKTRACE=1
+  - export GIT_AUTHOR_NAME="drone"
+  - export GIT_AUTHOR_EMAIL="drone@exqa.de"
   - cargo build --verbose --all
   - cargo test --verbose --all
 - name: generate-coverage
   image: tarpaulin:latest
   commands:
+  - export GIT_AUTHOR_NAME="drone"
+  - export GIT_AUTHOR_EMAIL="drone@exqa.de"
   - cargo tarpaulin --verbose --out Xml --timeout 300
 - name: upload-coverage
   image: plugins/codecov
@@ -30,6 +35,6 @@ steps:
   - cargo bench
 ---
 kind: signature
-hmac: 5ee02147d763cce35913ad59ea7862f458d3478312040fca97353c834fd3ed0b
+hmac: 621fef0b70ef70009070af2207d7953afea0cdae708c5e5daa64c079f925e941
 
 ...
