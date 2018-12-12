@@ -17,6 +17,7 @@ steps:
   - cargo test --verbose --all
 - name: generate-coverage
   image: xd009642/tarpaulin:develop-nightly
+  privileged: true
   commands:
   - export GIT_AUTHOR_NAME="drone"
   - export GIT_AUTHOR_EMAIL="drone@exqa.de"
@@ -35,6 +36,6 @@ steps:
   - cargo bench
 ---
 kind: signature
-hmac: 9dd256bf492a04338c73d3c042607ec66ba1ca0ae353c0bee6f06e6c105cf30d
+hmac: 8c3345d05eae2b11cdcdda86005e3f15af0980ed233cf0ba14791f7a65a7b123
 
 ...
