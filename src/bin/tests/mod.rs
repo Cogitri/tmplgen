@@ -90,6 +90,8 @@ fn test_main_worker() {
     let dir = tempdir().unwrap();
 
     set_var("XBPS_DISTDIR", dir.path());
+    set_var("GIT_AUTHOR_NAME", "tmplgentests");
+    set_var("GIT_AUTHOR_EMAIL", "tmplgen@tests.de");
 
     let mut opts = BinOptions {
         pkg_name: "tmplgen".to_string(),
