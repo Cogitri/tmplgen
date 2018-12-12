@@ -13,27 +13,7 @@ env:
   - RUST_BACKTRACE=1
 cache: cargo
 
-before_cache: |
-  if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
-    RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin -f
-  fi
-
 script:
   - cargo clean
   - cargo build
   - cargo test
-
-after_success: |
-  if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
-  # About exclude-files: vendor doesn't belong to use. types&errors.rs don't
-  # contain anything we can test.
-  # src/bin/* - https://github.com/xd009642/tarpaulin/issues/176
-    env LD_LIBRARY_PATH=$(rustc --print sysroot)/lib:$LD_LIBRARY_PATH cargo tarpaulin \
-      --verbose \
-      --out Xml \
-      --ciserver travis-ci \
-      --timeout 240 \
-      --exclude-files vendor/* src/lib/types.rs src/lib/errors.rs src/bin/*
-
-    bash <(curl -s https://codecov.io/bash)
-  fi
