@@ -30,11 +30,14 @@ fn main() {
 
     cli_string = cli_string.replace("@version_string@", version);
 
+    let out_dir = std::env::var("OUT_DIR").unwrap();
+    let dest_path = std::path::Path::new(&out_dir).join("cli_gen.yml");
+
     let mut cli_yml_out = OpenOptions::new()
         .write(true)
         .create(true)
         .append(false)
-        .open("src/bin/cli-build.yml")
+        .open(dest_path)
         .unwrap();
 
     cli_yml_out.write_all(cli_string.as_bytes()).unwrap();
