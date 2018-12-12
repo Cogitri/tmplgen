@@ -13,7 +13,7 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
-use clap::{load_yaml, App};
+use clap::{App, YamlLoader};
 use env_logger::Builder;
 use libtmplgen::*;
 use std::fs::{create_dir_all, File};
@@ -174,8 +174,8 @@ fn set_up_logging(is_debug: bool, is_verbose: bool) {
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
 fn help_string() -> BinOptions {
-    let help_yaml = load_yaml!("cli-build.yml");
-    let matches = App::from_yaml(help_yaml).get_matches();
+    let help_yaml = YamlLoader::load_from_str(include_str!(concat!(env!("OUT_DIR"), "/cli_gen.yml"))).unwrap();
+    let matches = App::from_yaml(&help_yaml[0]).get_matches();
 
     let tmpl_type = if matches.value_of("tmpltype").unwrap_or_default() == "crate" {
         Some(PkgType::Crate)
