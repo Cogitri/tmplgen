@@ -178,6 +178,17 @@ pub(super) fn get_git_author() -> Result<String, Error> {
                 .to_string(),
         )
     } else {
+        match Command::new("git")
+            .args(&["--version"])
+            .output() {
+            Ok(_) => {},
+            Err(e) => {
+                if let std::io::ErrorKind::NotFound = e.kind() {
+                    return Err(Error::GitError("Couldn't find the command `git`. Make sure you have installed git and that it's in your PATH, or set GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL!".to_string()))
+                }
+            }
+        }
+
         let git_author = Command::new("git")
             .args(&["config", "user.name"])
             .output()?;
