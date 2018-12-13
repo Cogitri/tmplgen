@@ -6,7 +6,6 @@ clone:
   git:
     image: plugins/git
     tags: true
-
 steps:
 - name: submodules
   image: docker:git
@@ -50,8 +49,22 @@ steps:
     when:
       event:
       - tag
+- name: matrix-notification
+  image: plugins/matrix
+  settings:
+    homeserver: https://matrix.org
+    roomid: qOcHPTCOgAbkObQgRy:matrix.org
+    username:
+      from_secret: matrix_username
+    password:
+      from_secret: matrix_password
+  when:
+    status:
+      - success
+      - failure
+      - changed
 ---
 kind: signature
-hmac: 2e5c720dd6b2a215fa1cd3da686df499e9d43196c807e4c67a170be041e26a6d
+hmac: 972bed03daf6b0e0d44cdb4dee8a784c320bdd56c522549efd3aea7a60afbb7a
 
 ...
