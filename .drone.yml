@@ -1,58 +1,32 @@
 ---
 kind: pipeline
-name: default
+name: test
 
-clone:
-  git:
-    image: plugins/git
-    tags: true
 steps:
-- name: submodules
+- name: git
   image: docker:git
+  pull: always
   commands:
   - git submodule update --recursive --init
+
 - name: test
   image: rust:latest
+  pull: always
+  environment:
+    RUST_BACKTRACE: 1
+    GIT_AUTHOR_EMAIL: drone@exqa.de
+    GIT_AUTHOR_NAME: drone
   commands:
   - export RUST_BACKTRACE=1
   - export GIT_AUTHOR_NAME="drone"
   - export GIT_AUTHOR_EMAIL="drone@exqa.de"
   - cargo build --verbose --all
   - cargo test --verbose --all
-- name: generate-coverage
-  image: xd009642/tarpaulin:develop-nightly
-  privileged: true
-  commands:
-  - export GIT_AUTHOR_NAME="drone"
-  - export GIT_AUTHOR_EMAIL="drone@exqa.de"
-  - cargo tarpaulin --verbose --out Xml --timeout 300
-- name: upload-coverage
-  image: plugins/codecov
-  settings:
-    token:
-      from_secret: codecov_token
-      files:
-      - cobertura.xml
-      required: true
-- name: package-release
-  image: rust:latest
-  commands:
-  - cargo package
-- name: publish-release
-  image: plugins/github-release
-  settings:
-    api_key:
-      from_secret: github_token
-    files: target/package/*.crate
-    checksum:
-    - sha256
-    when:
-      event:
-      - tag
+
 - name: matrix-notification
   image: plugins/matrix
+  pull: always
   settings:
-    homeserver: https://matrix.org
     roomid: qOcHPTCOgAbkObQgRy:matrix.org
     username:
       from_secret: matrix_username
@@ -60,11 +34,50 @@ steps:
       from_secret: matrix_password
   when:
     status:
-      - success
-      - failure
-      - changed
+    - failure
+---
+kind: pipeline
+name: coverage
+
+steps:
+- name: git
+  image: docker:git
+  commands:
+  - git submodule update --recursive --init
+
+- name: generate-coverage
+  image: xd009642/tarpaulin:develop-nightly
+  pull: always
+  privileged: true
+  environment:
+    GIT_AUTHOR_EMAIL: drone
+    GIT_AUTHOR_NAME: drone@exqa.de
+  commands:
+  - cargo tarpaulin --verbose --out Xml --timeout 3000
+
+- name: upload-coverage
+  image: plugins/codecov
+  pull: always
+  settings:
+    token:
+      from_secret: codecov_token
+      files:
+      - cobertura.xml
+      required: true
+
+- name: matrix-notification
+  image: plugins/matrix
+  settings:
+    roomid: qOcHPTCOgAbkObQgRy:matrix.org
+    username:
+      from_secret: matrix_username
+    password:
+      from_secret: matrix_password
+  when:
+    status:
+     - failure
 ---
 kind: signature
-hmac: 972bed03daf6b0e0d44cdb4dee8a784c320bdd56c522549efd3aea7a60afbb7a
+hmac: c9a09eb1438fe5bfd3ec96d22e6dde14fbcd4fd806ae7aa30dbd36708ef9381c
 
 ...
