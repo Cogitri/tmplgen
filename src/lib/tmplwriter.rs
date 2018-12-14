@@ -144,13 +144,6 @@ impl TmplBuilder {
     // TODO: Make this prettier so we don't needlessly generate templates twice if dep x and y both depend on z
     pub fn gen_deps(&self, tmpl_path: Option<&str>) -> Result<Vec<Template>, Error> {
         if self.pkg_info.is_some() {
-            if self.pkg_type == Some(PkgType::Crate) {
-                return Err(Error::WrongUsage {
-                    method: "gen_deps".to_string(),
-                    err: "Crates don't have dependencies so I won't write templates for it dependencies!".to_string()
-                });
-            }
-
             let mut dep_vec = Vec::new();
 
             let deps = self
