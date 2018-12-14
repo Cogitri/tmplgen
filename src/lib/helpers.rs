@@ -299,7 +299,7 @@ pub(super) fn check_native_deps(
         let mut make_dep_vec = vec![];
 
         for native_dep in &native_deps.rust {
-            if pkg_name == &native_dep.name {
+            if pkg_name == native_dep.name {
                 make_dep_vec.push(native_dep.dep.clone());
                 break;
             }

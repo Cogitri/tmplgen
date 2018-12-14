@@ -60,7 +60,7 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
         description: query_result.info,
         homepage: query_result
             .homepage_uri
-            .unwrap_or(format!("https://rubygems.org/gems/{}", gem_name)),
+            .unwrap_or_else(|| format!("https://rubygems.org/gems/{}", gem_name)),
         license: query_result.licenses,
         dependencies: Some(Dependencies {
             host: None,

@@ -353,7 +353,7 @@ impl TmplBuilder {
 
             if orig_description_string.is_empty() {
                 warn!("Couldn't find 'description' string and as such won't update it!");
-            } else if pkg_info.description.is_some() == true {
+            } else if pkg_info.description.is_some() {
                 template_string = template_string.replace(
                     &orig_description_string,
                     &format!("short_desc=\"{}\"", pkg_info.description.as_ref().unwrap()),

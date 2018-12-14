@@ -48,7 +48,7 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
         description: query_result.description,
         homepage: query_result
             .homepage
-            .unwrap_or(format!("https://crates.io/crates/{}", &crate_name)),
+            .unwrap_or_else(|| format!("https://crates.io/crates/{}", &crate_name)),
         license: Some(vec![query_result.license.unwrap_or_default()]),
         dependencies: crate_deps,
         download_url: Some(download_url),

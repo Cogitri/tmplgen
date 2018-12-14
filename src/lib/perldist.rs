@@ -47,17 +47,18 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
     );
 
     let pkg_info = PkgInfo {
-        pkg_name: "perl-".to_string() + &query_result.name,
+        pkg_name: format!("perl-{}", &query_result.name),
         version: query_result
             .version
             .as_str()
             .unwrap_or_default()
             .to_string(),
-        description: query_result.description,
         homepage: query_result
             .resources
             .homepage
-            .unwrap_or(format!("https://metacpan.org/pod/{}", query_result.name)),
+            .clone()
+            .unwrap_or_else(|| format!("https://metacpan.org/pod/{}", query_result.name)),
+        description: query_result.description,
         license: Some(query_result.license.unwrap_or_default()),
         dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())?),
         sha: gen_checksum(&query_result.download_url)?,
