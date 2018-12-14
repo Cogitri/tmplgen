@@ -283,7 +283,10 @@ pub(super) fn gen_checksum(dwnld_url: &str) -> Result<String, Error> {
 ///
 /// * Errors out if crates.io can't be queried
 /// * Errors out if the crate can't be found on crates.io
-pub(super) fn check_native_deps(pkg_name: &str, pkg_type: PkgType) -> Result<Option<Dependencies>, Error> {
+pub(super) fn check_native_deps(
+    pkg_name: &str,
+    pkg_type: PkgType,
+) -> Result<Option<Dependencies>, Error> {
     if pkg_type == PkgType::Crate {
         let dependencies = crate::crates::get_crate_deps(pkg_name)?;
 
@@ -291,16 +294,21 @@ pub(super) fn check_native_deps(pkg_name: &str, pkg_type: PkgType) -> Result<Opt
 
         let data: NativeDepType = serde_json::from_str(include_str!("native_deps.in")).unwrap();
 
-        let native_deps = NativeDepType {
-            rust: data.rust,
-        };
+        let native_deps = NativeDepType { rust: data.rust };
 
         let mut make_dep_vec = vec![];
+
+        for native_dep in &native_deps.rust {
+            if pkg_name == &native_dep.name {
+                make_dep_vec.push(native_dep.dep.clone());
+                break;
+            }
+        }
 
         for dep in dependencies {
             for native_dep in &native_deps.rust {
                 if dep.crate_id == native_dep.name {
-                    make_dep_vec.push(native_dep.dep.clone())
+                    make_dep_vec.push(native_dep.dep.clone());
                 }
             }
         }
@@ -317,7 +325,7 @@ pub(super) fn check_native_deps(pkg_name: &str, pkg_type: PkgType) -> Result<Opt
     } else {
         Err(Error::WrongUsage {
             method: "check_native_deps".to_string(),
-            err: "Right now check_native_deps only works for crates!".to_string()
+            err: "Right now check_native_deps only works for crates!".to_string(),
         })
     }
 }
