@@ -120,6 +120,11 @@ fn actual_work(opts: &BinOptions) -> Result<(), Error> {
     let mut file = File::create(&xdist_template_path)?;
     file.write_all(template?.inner.as_bytes())?;
 
+    // We don't want to generate recursive deps for crates, as they don't have any!
+    if tmpl_builder.pkg_type.unwrap() == PkgType::Crate {
+        return Ok(());
+    }
+
     if tmpl_builder
         .pkg_info
         .as_ref()
