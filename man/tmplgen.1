@@ -100,6 +100,19 @@ When generating templates for the perldist tmpltype rewrite all occurrences of :
 
 .RE
 .P
+.SH MAGIC
+.P
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+If a \fIPKGNAME\fR is given without -t it will query all sources and if only one result is found it will use it
+
+.RE
+.P
 .SH TODO
 .P
 .RS 4
@@ -128,5 +141,9 @@ $ tmplgen -t crate tmplgen
 
 # Generate template for Perl's Task::Kensho
 $ tmplgen -t perldist Task-Kensho
+
+# Generate template for Rubygems's diff-lcs
+# since it is only available on rubygems it will default to that
+$ tmplgen diff-lcs
 .fi
 .RE

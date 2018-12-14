@@ -65,6 +65,10 @@ XBPS\_DISTDIR needs to be set for tmplgen to know where to write the templates
 
 - When generating templates for the perldist tmpltype rewrite all occurrences of :: as -. e.g. Task::Kensho -> Task-Kensho
 
+# MAGIC
+
+- If a _PKGNAME_ is given without -t it will query all sources and if only one result is found it will use it
+
 # TODO
 
 - Download progress bar
@@ -83,4 +87,8 @@ $ tmplgen -t crate tmplgen
 
 # Generate template for Perl's Task::Kensho
 $ tmplgen -t perldist Task-Kensho
+
+# Generate template for Rubygems's diff-lcs
+# since it is only available on rubygems it will default to that
+$ tmplgen diff-lcs
 ```
