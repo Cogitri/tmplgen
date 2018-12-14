@@ -6,6 +6,7 @@ steps:
 - name: rustfmt
   image: rust:latest
   commands:
+    - rustup component add rustfmt
     - cargo fmt -- --check
 - name: matrix-notification
   image: plugins/matrix
@@ -105,6 +106,6 @@ steps:
      - failure
 ---
 kind: signature
-hmac: f62020659a893825ebef4bb7352caec83dec42dd5bc383c2b8282419b5590d1a
+hmac: ea9978b36916b978e36bfa118f3f68019acbf08aec7384adc2299a44d6be8f21
 
 ...
