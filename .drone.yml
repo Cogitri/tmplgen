@@ -1,6 +1,30 @@
 ---
 kind: pipeline
+name: rustfmt
+
+steps:
+- name: rustfmt
+  image: rust:latest
+  commands:
+    - cargo fmt -- --check
+- name: matrix-notification
+  image: plugins/matrix
+  pull: always
+  settings:
+    roomid: qOcHPTCOgAbkObQgRy:matrix.org
+    username:
+      from_secret: matrix_username
+    password:
+      from_secret: matrix_password
+  when:
+    status:
+    - failure
+---
+kind: pipeline
 name: test
+
+depends_on:
+- rustfmt
 
 steps:
 - name: git
@@ -38,6 +62,9 @@ steps:
 ---
 kind: pipeline
 name: coverage
+
+depends_on:
+- rustfmt
 
 steps:
 - name: git
@@ -78,6 +105,6 @@ steps:
      - failure
 ---
 kind: signature
-hmac: c9a09eb1438fe5bfd3ec96d22e6dde14fbcd4fd806ae7aa30dbd36708ef9381c
+hmac: f62020659a893825ebef4bb7352caec83dec42dd5bc383c2b8282419b5590d1a
 
 ...
