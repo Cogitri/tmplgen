@@ -42,15 +42,15 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
 
     let pkg_info = PkgInfo {
         pkg_name: format!("rust-{}", &crate_name),
-        version: query_result.max_version.clone(),
+        // gen_checksum can't replace ${version} itself, so we have to do it here
+        sha: gen_checksum(&download_url.replace("${version}", &query_result.max_version))?,
+        version: query_result.max_version,
         description: query_result.description,
         homepage: query_result
             .homepage
             .unwrap_or(format!("https://crates.io/crates/{}", &crate_name)),
         license: Some(vec![query_result.license.unwrap_or_default()]),
         dependencies: crate_deps,
-        // gen_checksum can't replace ${version} itself, so we have to do it here
-        sha: gen_checksum(&download_url.replace("${version}", &query_result.max_version))?,
         download_url: Some(download_url),
     };
 

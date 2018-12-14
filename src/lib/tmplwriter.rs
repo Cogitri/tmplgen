@@ -273,7 +273,7 @@ impl TmplBuilder {
     ///   (self.get_info)[crate::tmplwriter::TmplBuilder::get_info] or (self.set_type)[crate::tmplwriter::TmplBuilder::set_info]
     pub fn update(&self, old_template: &Template, update_all: bool) -> Result<Template, Error> {
         let pkg_info = if self.pkg_info.is_some() {
-            Ok(self.pkg_info.clone().unwrap())
+            Ok(self.pkg_info.as_ref().unwrap())
         } else {
             Err(Error::TooLittleInfo(
                 "Can't update template without setting PkgInfo first!".to_string(),
@@ -356,7 +356,7 @@ impl TmplBuilder {
             } else if pkg_info.description.is_some() == true {
                 template_string = template_string.replace(
                     &orig_description_string,
-                    &format!("short_desc=\"{}\"", &pkg_info.description.unwrap()),
+                    &format!("short_desc=\"{}\"", pkg_info.description.as_ref().unwrap()),
                 );
             } else {
                 warn!("Couldn't determine field 'description'! Won't update it.",);
@@ -389,7 +389,7 @@ impl TmplBuilder {
 
         Ok(Template {
             inner: template_string.to_owned(),
-            name: pkg_info.pkg_name,
+            name: pkg_info.pkg_name.clone(),
         })
     }
 
@@ -432,7 +432,7 @@ impl TmplBuilder {
     ///   (self.get_info)[crate::tmplwriter::TmplBuilder::get_info] or (self.set_info)[crate::tmplwriter::TmplBuilder::set_info]
     pub fn generate(&self, prefix: bool) -> Result<Template, Error> {
         let pkg_info = if self.pkg_info.is_some() {
-            Ok(self.pkg_info.clone().unwrap())
+            Ok(self.pkg_info.as_ref().unwrap())
         } else {
             Err(Error::TooLittleInfo(
                 "Can't write a new template without setting PkgInfo first!".to_string(),
@@ -456,7 +456,7 @@ impl TmplBuilder {
         if pkg_info.description.is_some() {
             let mut description = check_string_len(
                 &pkg_info.pkg_name,
-                &pkg_info.description.unwrap(),
+                &pkg_info.description.as_ref().unwrap(),
                 "description",
             );
 
@@ -558,7 +558,7 @@ impl TmplBuilder {
             template_string = template_string.replace("\nwrksrc=\"@wrksrc@\"", "");
         }
 
-        let license = &pkg_info.license.unwrap_or_default().join(", ");
+        let license = &pkg_info.license.as_ref().unwrap_or(&Vec::new()).join(", ");
         if license.contains(&"MIT".to_string())
             || license.contains(&"ISC".to_string())
             || license.contains(&"BSD".to_string())
@@ -570,7 +570,7 @@ impl TmplBuilder {
 
         Ok(Template {
             inner: template_string,
-            name: pkg_info.pkg_name,
+            name: pkg_info.pkg_name.clone(),
         })
     }
 }
