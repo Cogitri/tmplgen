@@ -59,6 +59,12 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
     Ok(pkg_info)
 }
 
+// Below you can see how this function could look if we were to figure out recursive deps
+// of crates. The problem is that crates.io doesn't tell us recursive deps, so we'd have
+// to iterate over some 50-200 packages (and there aren't many crates with less than 100
+// deps, especially for binaries), which would mean 100-400 API calls (since crates_io_api
+// queries the package once and then the latest version), which is UBER SLOW!
+//pub(super) fn get_crate_deps(crate_name: &str, done_deps: Option<Vec<crates_io_api::Dependency>>) -> Result<Vec<crates_io_api::Dependency>, Error> {
 pub(super) fn get_crate_deps(crate_name: &str) -> Result<Vec<crates_io_api::Dependency>, Error> {
     let client = crates_io_api::SyncClient::new();
 
@@ -66,5 +72,19 @@ pub(super) fn get_crate_deps(crate_name: &str) -> Result<Vec<crates_io_api::Depe
 
     let latest_version = &query_result.versions[0].num;
 
+    //let mut deps = done_deps.clone().unwrap_or(client.crate_dependencies(crate_name, &latest_version)?);
+
     Ok(client.crate_dependencies(crate_name, &latest_version)?)
 }
+
+/*
+    for x in deps.clone() {
+        if done_deps.as_ref().unwrap_or(&Vec::new()).contains(&x) {
+            continue;
+        }
+        deps.append(&mut get_crate_deps(&x.crate_id, Some(deps.clone()))?);
+    }
+
+    Ok(deps)
+}
+*/
