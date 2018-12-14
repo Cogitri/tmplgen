@@ -86,11 +86,17 @@ pub(super) fn check_native_deps(crate_name: &str) -> Result<Option<Dependencies>
 
     debug!("Crate dependencies: {:?}", dependencies);
 
+    let data: NativeDepType = serde_json::from_str(include_str!("native_deps.in")).unwrap();
+
+    let native_deps = NativeDepType { rust: data.rust };
+
     let mut make_dep_vec = vec![];
 
-    for x in dependencies {
-        if x.crate_id == "openssl-sys" {
-            make_dep_vec.push("libressl-devel".to_string());
+    for dep in dependencies {
+        for native_dep in &native_deps.rust {
+            if dep.crate_id == native_dep.name {
+                make_dep_vec.push(native_dep.dep.clone())
+            }
         }
     }
 

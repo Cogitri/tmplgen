@@ -34,20 +34,6 @@ impl Read for Template {
     }
 }
 
-pub(super) struct DownloadProgress<R> {
-    pub inner: R,
-    pub progress_bar: indicatif::ProgressBar,
-}
-
-impl<R: std::io::Read> std::io::Read for DownloadProgress<R> {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        self.inner.read(buf).map(|n| {
-            self.progress_bar.inc(n as u64);
-            n
-        })
-    }
-}
-
 /// The PkgType enum, containing all types of packages tmplgen can handle
 #[derive(Copy, Clone, Eq, Ord, PartialOrd, Hash, Debug, PartialEq)]
 pub enum PkgType {
@@ -77,24 +63,49 @@ pub struct PkgInfo {
     pub download_url: Option<String>,
 }
 
+pub(super) struct DownloadProgress<R> {
+    pub inner: R,
+    pub progress_bar: indicatif::ProgressBar,
+}
+
+impl<R: std::io::Read> std::io::Read for DownloadProgress<R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.inner.read(buf).map(|n| {
+            self.progress_bar.inc(n as u64);
+            n
+        })
+    }
+}
+
 #[derive(Debug, Deserialize)]
-pub(crate) struct BuiltIns {
+pub(super) struct BuiltIns {
     pub perl: Vec<BuiltInDep>,
     pub ruby: Vec<BuiltInDep>,
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct BuiltInDep {
+pub(super) struct BuiltInDep {
     pub name: String,
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct CorrectedVals {
+pub(super) struct CorrectedVals {
     pub licenses: Vec<CorrectedLicenses>,
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct CorrectedLicenses {
+pub(super) struct CorrectedLicenses {
     pub is: String,
     pub should: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub(super) struct NativeDepType {
+    pub rust: Vec<NativeDeps>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(super) struct NativeDeps {
+    pub name: String,
+    pub dep: String,
 }
