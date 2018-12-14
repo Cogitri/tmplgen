@@ -33,7 +33,7 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
 
     let crate_deps = check_native_deps(crate_name)?;
 
-    debug!("crates.io query result: {:?}", query_result,);
+    debug!("crates.io query result: {:?}", query_result);
 
     let download_url = format!(
         "https://static.crates.io/crates/{name}/{name}-${{version}}.crate",

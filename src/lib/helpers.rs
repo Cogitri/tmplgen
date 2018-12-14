@@ -37,13 +37,9 @@ pub(super) fn figure_out_provider(pkg_name: &str) -> Result<PkgType, Error> {
         .get_crate(&pkg_name)
         .is_ok();
 
-    let gem_status = rubygems_api::SyncClient::new()
-        .gem_info(&pkg_name)
-        .is_ok();
+    let gem_status = rubygems_api::SyncClient::new().gem_info(&pkg_name).is_ok();
 
-    let perldist_status = metacpan_api::SyncClient::new()
-        .perl_info(&pkg_name)
-        .is_ok();
+    let perldist_status = metacpan_api::SyncClient::new().perl_info(&pkg_name).is_ok();
 
     if (crate_status && gem_status)
         || (crate_status && perldist_status)
@@ -60,7 +56,12 @@ pub(super) fn figure_out_provider(pkg_name: &str) -> Result<PkgType, Error> {
             found_platforms.push("rubygems.org")
         }
 
-        Err(Error::AmbPkg((&format!("{} on the platforms {:?}", pkg_name, found_platforms).replace("[", "").replace("]", "")).to_string()))
+        Err(Error::AmbPkg(
+            (&format!("{} on the platforms {:?}", pkg_name, found_platforms)
+                .replace("[", "")
+                .replace("]", ""))
+                .to_string(),
+        ))
     } else if crate_status {
         debug!("Determined the target package {} to be a crate", &pkg_name);
         Ok(PkgType::Crate)
@@ -168,23 +169,15 @@ pub(super) fn get_git_author() -> Result<String, Error> {
 
     let git_details = if git_author_env.is_some() && git_email_env.is_some() {
         (
-            git_author_env.unwrap()
-                .to_str()
-                .unwrap()
-                .to_string(),
-            git_email_env.unwrap()
-                .to_str()
-                .unwrap()
-                .to_string(),
+            git_author_env.unwrap().to_str().unwrap().to_string(),
+            git_email_env.unwrap().to_str().unwrap().to_string(),
         )
     } else {
-        match Command::new("git")
-            .args(&["--version"])
-            .output() {
-            Ok(_) => {},
+        match Command::new("git").args(&["--version"]).output() {
+            Ok(_) => {}
             Err(e) => {
                 if let std::io::ErrorKind::NotFound = e.kind() {
-                    return Err(Error::GitError("Couldn't find the command `git`. Make sure you have installed git and that it's in your PATH, or set GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL!".to_string()))
+                    return Err(Error::GitError("Couldn't find the command `git`. Make sure you have installed git and that it's in your PATH, or set GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL!".to_string()));
                 }
             }
         }

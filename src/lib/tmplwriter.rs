@@ -153,7 +153,8 @@ impl TmplBuilder {
 
             let mut dep_vec = Vec::new();
 
-            let deps = self.pkg_info
+            let deps = self
+                .pkg_info
                 .as_ref()
                 .unwrap()
                 .dependencies
@@ -181,8 +182,7 @@ impl TmplBuilder {
             let mut tmpl_vec = Vec::new();
 
             for x in dep_vec {
-                let pkg_tainted = x.split('>')
-                    .collect::<Vec<&str>>()[0]
+                let pkg_tainted = x.split('>').collect::<Vec<&str>>()[0]
                     .split('<')
                     .collect::<Vec<&str>>()[0];
 
@@ -386,7 +386,10 @@ impl TmplBuilder {
                 // If it doesn't match we have to download the distfile and get its sha sum
                 template_string = template_string.replace(
                     &orig_checksum_string,
-                    &format!("checksum={}", gen_checksum(&tmpl_download_url.replace("${version}", &pkg_info.version))?),
+                    &format!(
+                        "checksum={}",
+                        gen_checksum(&tmpl_download_url.replace("${version}", &pkg_info.version))?
+                    ),
                 );
             };
         }

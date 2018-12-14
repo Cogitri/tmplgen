@@ -120,12 +120,18 @@ fn actual_work(opts: &BinOptions) -> Result<(), Error> {
     let mut file = File::create(&xdist_template_path)?;
     file.write_all(template?.inner.as_bytes())?;
 
-    if tmpl_builder.pkg_info.as_ref().unwrap().dependencies.is_some() {
+    if tmpl_builder
+        .pkg_info
+        .as_ref()
+        .unwrap()
+        .dependencies
+        .is_some()
+    {
         let dep_template_vec = tmpl_builder.gen_deps(Some(&format!("{}/srcpkgs", xdist_dir()?)));
 
         if dep_template_vec.is_ok() {
             for x in dep_template_vec.unwrap() {
-                let xdist_template_path = format!("{}/srcpkgs/{}/template", xdist_dir()?, x.name, );
+                let xdist_template_path = format!("{}/srcpkgs/{}/template", xdist_dir()?, x.name,);
 
                 create_dir_all(&xdist_template_path.replace("/template", ""))?;
 
@@ -174,7 +180,8 @@ fn set_up_logging(is_debug: bool, is_verbose: bool) {
 
 // Print the help script if invoked without arguments or with `--help`/`-h`
 fn help_string() -> BinOptions {
-    let help_yaml = YamlLoader::load_from_str(include_str!(concat!(env!("OUT_DIR"), "/cli_gen.yml"))).unwrap();
+    let help_yaml =
+        YamlLoader::load_from_str(include_str!(concat!(env!("OUT_DIR"), "/cli_gen.yml"))).unwrap();
     let matches = App::from_yaml(&help_yaml[0]).get_matches();
 
     let tmpl_type = if matches.value_of("tmpltype").unwrap_or_default() == "crate" {
