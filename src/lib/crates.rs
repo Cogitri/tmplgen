@@ -14,7 +14,7 @@
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::errors::Error;
-use crate::helpers::gen_checksum;
+use crate::helpers::*;
 use crate::types::*;
 use log::debug;
 
@@ -31,7 +31,7 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
 
     let query_result = client.full_crate(crate_name, false)?;
 
-    let crate_deps = check_native_deps(crate_name)?;
+    let crate_deps = check_native_deps(crate_name, PkgType::Crate)?;
 
     debug!("crates.io query result: {:?}", query_result);
 
@@ -59,7 +59,7 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
     Ok(pkg_info)
 }
 
-fn get_crate_deps(crate_name: &str) -> Result<Vec<crates_io_api::Dependency>, Error> {
+pub(super) fn get_crate_deps(crate_name: &str) -> Result<Vec<crates_io_api::Dependency>, Error> {
     let client = crates_io_api::SyncClient::new();
 
     let query_result = client.get_crate(crate_name)?;
@@ -67,46 +67,4 @@ fn get_crate_deps(crate_name: &str) -> Result<Vec<crates_io_api::Dependency>, Er
     let latest_version = &query_result.versions[0].num;
 
     Ok(client.crate_dependencies(crate_name, &latest_version)?)
-}
-
-// Check if a crate needs native libs (e.g. libressl-devel)
-// TODO: This only works with direct deps!
-/// Check if a crate needs native dependencies (e.g. openssl-sys needs libressl-devel)
-/// This only works with direct deps as of now.
-///
-/// If the crate has native deps `Some(Dependencies)`
-/// is returned, otherwise None is returned.
-///
-/// # Errors
-///
-/// * Errors out if crates.io can't be queried
-/// * Errors out if the crate can't be found on crates.io
-pub(super) fn check_native_deps(crate_name: &str) -> Result<Option<Dependencies>, Error> {
-    let dependencies = get_crate_deps(crate_name)?;
-
-    debug!("Crate dependencies: {:?}", dependencies);
-
-    let data: NativeDepType = serde_json::from_str(include_str!("native_deps.in")).unwrap();
-
-    let native_deps = NativeDepType { rust: data.rust };
-
-    let mut make_dep_vec = vec![];
-
-    for dep in dependencies {
-        for native_dep in &native_deps.rust {
-            if dep.crate_id == native_dep.name {
-                make_dep_vec.push(native_dep.dep.clone())
-            }
-        }
-    }
-
-    if !make_dep_vec.is_empty() {
-        Ok(Some(Dependencies {
-            host: Some(vec!["pkg-config".to_string()]),
-            make: Some(make_dep_vec),
-            run: None,
-        }))
-    } else {
-        Ok(None)
-    }
 }

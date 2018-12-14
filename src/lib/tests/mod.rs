@@ -13,7 +13,6 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::crates::*;
 use super::gems::*;
 use super::helpers::*;
 use super::types::*;
@@ -286,7 +285,11 @@ fn test_gen_dep_string_split() {
 #[test]
 fn test_crate_check_native_deps() {
     assert_eq!(
-        &check_native_deps("openssl").unwrap().unwrap().make.unwrap()[0],
+        &check_native_deps("openssl", PkgType::Crate)
+            .unwrap()
+            .unwrap()
+            .make
+            .unwrap()[0],
         "libressl-devel"
     )
 }

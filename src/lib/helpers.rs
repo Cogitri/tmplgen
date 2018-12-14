@@ -272,3 +272,52 @@ pub(super) fn gen_checksum(dwnld_url: &str) -> Result<String, Error> {
 
     Ok(format!("{:x}", &hash))
 }
+
+/// Check if a package needs native deps (e.g. crate openssl-sys needs libressl-devel)
+/// If the package has native deps, we return Some(Dependencies), otherwise we return
+/// None
+///
+/// As of now only works for crates
+///
+/// # Errors
+///
+/// * Errors out if crates.io can't be queried
+/// * Errors out if the crate can't be found on crates.io
+pub(super) fn check_native_deps(pkg_name: &str, pkg_type: PkgType) -> Result<Option<Dependencies>, Error> {
+    if pkg_type == PkgType::Crate {
+        let dependencies = crate::crates::get_crate_deps(pkg_name)?;
+
+        debug!("Crate dependencies: {:?}", dependencies);
+
+        let data: NativeDepType = serde_json::from_str(include_str!("native_deps.in")).unwrap();
+
+        let native_deps = NativeDepType {
+            rust: data.rust,
+        };
+
+        let mut make_dep_vec = vec![];
+
+        for dep in dependencies {
+            for native_dep in &native_deps.rust {
+                if dep.crate_id == native_dep.name {
+                    make_dep_vec.push(native_dep.dep.clone())
+                }
+            }
+        }
+
+        if !make_dep_vec.is_empty() {
+            Ok(Some(Dependencies {
+                host: Some(vec!["pkg-config".to_string()]),
+                make: Some(make_dep_vec),
+                run: None,
+            }))
+        } else {
+            Ok(None)
+        }
+    } else {
+        Err(Error::WrongUsage {
+            method: "check_native_deps".to_string(),
+            err: "Right now check_native_deps only works for crates!".to_string()
+        })
+    }
+}
