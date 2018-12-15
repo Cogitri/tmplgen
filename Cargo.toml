@@ -54,3 +54,4 @@ codegen-units = 1 # best optimization
 [badges]
 travis-ci = { repository = "Cogitri/tmplgen" }
 codecov = { repository = "https://codecov.io/gh/Cogitri/tmplgen" }
+maintenance = { status = "actively-developed" }
