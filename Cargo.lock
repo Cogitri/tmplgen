@@ -1486,7 +1486,7 @@ dependencies = [
 
 [[package]]
 name = "tmplgen"
-version = "0.103.1"
+version = "1.0.0"
 dependencies = [
  "assert_cmd 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cargo-husky 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
