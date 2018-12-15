@@ -217,8 +217,8 @@ impl TmplBuilder {
                 tmpl_vec.append(
                     &mut TmplBuilder::new(&pkg)
                         .set_type(self.pkg_type.unwrap())
-                        .gen_deps(tmpl_path)
-                        .unwrap_or_default(),
+                        .get_info()?
+                        .gen_deps(tmpl_path)?,
                 )
             }
             Ok(tmpl_vec)
