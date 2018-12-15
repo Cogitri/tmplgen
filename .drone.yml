@@ -28,12 +28,6 @@ depends_on:
 - rustfmt
 
 steps:
-- name: git
-  image: docker:git
-  pull: always
-  commands:
-  - git submodule update --recursive --init
-
 - name: test
   image: rust:latest
   pull: always
@@ -68,11 +62,6 @@ depends_on:
 - rustfmt
 
 steps:
-- name: git
-  image: docker:git
-  commands:
-  - git submodule update --recursive --init
-
 - name: generate-coverage
   image: xd009642/tarpaulin:develop-nightly
   pull: always
@@ -106,6 +95,6 @@ steps:
      - failure
 ---
 kind: signature
-hmac: ea9978b36916b978e36bfa118f3f68019acbf08aec7384adc2299a44d6be8f21
+hmac: 8e2012cc8e985094f8bbd143142e6463fa79741768106fedabe22af8d0c34784
 
 ...
