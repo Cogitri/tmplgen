@@ -17,6 +17,7 @@ use crate::errors::Error;
 use crate::helpers::*;
 use crate::types::*;
 use log::debug;
+use retry::retry_exponentially;
 
 /// Query the crates.io API.
 ///
@@ -29,7 +30,15 @@ use log::debug;
 pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
     let client = crates_io_api::SyncClient::new();
 
-    let query_result = client.full_crate(crate_name, false)?;
+    let query_result = match retry_exponentially(
+        3,
+        10.0,
+        &mut || client.full_crate(crate_name, false),
+        |result| result.is_ok(),
+    ) {
+        Ok(response) => response?,
+        Err(error) => return Err(Error::Crate(error.to_string())),
+    };
 
     let crate_deps = check_native_deps(crate_name, PkgType::Crate)?;
 

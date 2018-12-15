@@ -17,6 +17,7 @@ use crate::errors::Error;
 use crate::helpers::*;
 use crate::types::*;
 use log::debug;
+use retry::retry_exponentially;
 
 /// Query the metacpan.org API. If `perldist_name` is the name of a perl module, it will query
 /// the perldist instead.
@@ -30,13 +31,37 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
 
     let query_result = client.perl_info(&perldist_name);
 
+    // Determine the query result. If the Error is "Not Found" the user either tries to
+    // query an non-existent perldist _or_ it's a module. In that case we want to try to
+    // query the module to get the perldist it belongs to and query the perldist module times.
     let query_result = match query_result {
         Ok(query_result) => query_result,
-        Err(_e) => client.perl_info(
-            &client
-                .get_dist(&perldist_name)
-                .map_err(|e| Error::PerlDist(e.to_string()))?,
-        )?,
+        Err(query_err) => {
+            // TODO: Properly match this!
+            if query_err.to_string() == "Not Found" {
+                match retry_exponentially(
+                    3,
+                    10.0,
+                    &mut || client.perl_info(&client.get_dist(&perldist_name)?),
+                    |result| result.is_ok(),
+                ) {
+                    Ok(response) => response?,
+                    Err(error) => return Err(Error::Gem(error.to_string())),
+                }
+            } else {
+                // If the Error isn't "Not Found" we're most likely dealing with a network error,
+                // so let's retry this a few times
+                match retry_exponentially(
+                    3,
+                    10.0,
+                    &mut || client.perl_info(&perldist_name),
+                    |result| result.is_ok(),
+                ) {
+                    Ok(response) => response?,
+                    Err(error) => return Err(Error::PerlDist(error.to_string())),
+                }
+            }
+        }
     };
 
     debug!("metacpan.org query result: {:?}", query_result);

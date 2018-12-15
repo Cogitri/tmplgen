@@ -20,6 +20,7 @@ use crate::perldist::*;
 use crate::types::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, info, warn};
+use retry::retry_exponentially;
 use sha2::{Digest, Sha256};
 use std::env::var_os;
 use std::process::Command;
@@ -218,28 +219,34 @@ pub(super) fn gen_checksum(dwnld_url: &str) -> Result<String, Error> {
     let req_client = reqwest::Client::new();
     let url = reqwest::Url::parse(dwnld_url)?;
 
-    let total_size = {
-        let resp = req_client.head(url.as_str()).send()?;
-        if resp.status().is_success() {
-            resp.headers()
-                .get(reqwest::header::CONTENT_LENGTH)
-                .and_then(|ct_len| ct_len.to_str().ok())
-                .and_then(|ct_len| ct_len.parse().ok())
-                .unwrap_or(0)
-        } else {
-            return Err(Error::ShaError(format!(
-                "Couldn't download URL: {}. Error: {:?}",
-                url,
-                resp.status(),
-            )));
+    let response_head = {
+        match retry_exponentially(
+            3,
+            10.0,
+            &mut || req_client.head(url.as_str()).send(),
+            |result| result.is_ok(),
+        ) {
+            Ok(resp) => resp,
+            Err(err) => {
+                return Err(Error::ShaError(format!(
+                    "Couldn't download URL {}: {}",
+                    url,
+                    err.to_string()
+                )))
+            }
         }
     };
+
+    let total_size = response_head?
+        .headers()
+        .get(reqwest::header::CONTENT_LENGTH)
+        .and_then(|ct_len| ct_len.to_str().ok())
+        .and_then(|ct_len| ct_len.parse().ok())
+        .unwrap_or(0);
 
     debug!("GET: {}", dwnld_url);
 
     info!("Downloading distfile to generate checksum...");
-
-    let resp = req_client.get(url.as_str());
 
     // Do not display a progresssbar if the download is under 200KiB big,
     // it usually is either not visible or just flashes over the screen anyway.
@@ -253,9 +260,17 @@ pub(super) fn gen_checksum(dwnld_url: &str) -> Result<String, Error> {
         .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
         .progress_chars("#>-"));
 
+    let resp_get = || reqwest::get(url.clone());
+
+    let query_result =
+        match retry_exponentially(3, 10.0, &mut || resp_get(), |result| result.is_ok()) {
+            Ok(response) => response?,
+            Err(error) => return Err(Error::Crate(error.to_string())),
+        };
+
     let mut source = DownloadProgress {
         progress_bar: pb,
-        inner: resp.send()?,
+        inner: query_result,
     };
 
     let mut hasher = Sha256::new();

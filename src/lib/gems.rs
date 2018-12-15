@@ -16,6 +16,7 @@
 use crate::errors::Error;
 use crate::types::*;
 use log::debug;
+use retry::retry_exponentially;
 
 /// Query the rubygems.org API.
 ///
@@ -26,7 +27,13 @@ use log::debug;
 pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
     let client = rubygems_api::SyncClient::new();
 
-    let query_result = client.gem_info(gem_name)?;
+    let query_result =
+        match retry_exponentially(3, 10.0, &mut || client.gem_info(gem_name), |result| {
+            result.is_ok()
+        }) {
+            Ok(response) => response?,
+            Err(error) => return Err(Error::Gem(error.to_string())),
+        };
 
     let mut dep_vec_run = Vec::new();
 
