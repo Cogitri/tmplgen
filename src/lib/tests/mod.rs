@@ -535,7 +535,7 @@ fn test_set_info() {
 
 #[test]
 fn test_gen_deps() {
-    TmplBuilder::new("Moose")
+    TmplBuilder::new("Scalar-List-Utils")
         .set_type(PkgType::PerlDist)
         .get_info()
         .unwrap()
@@ -551,7 +551,7 @@ fn test_gen_deps() {
     let dir = tempfile::tempdir().unwrap();
     set_var("XBPS_DISTDIR", dir.path());
 
-    TmplBuilder::new("Task-Kensho")
+    TmplBuilder::new("Scalar-List-Utils")
         .set_type(PkgType::PerlDist)
         .get_info()
         .unwrap()
