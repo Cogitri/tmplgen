@@ -38,7 +38,7 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
         Ok(query_result) => query_result,
         Err(query_err) => {
             // TODO: Properly match this!
-            if query_err.to_string() == "Not Found" {
+            if query_err.to_string() == "Not found" {
                 match retry_exponentially(
                     3,
                     10.0,
