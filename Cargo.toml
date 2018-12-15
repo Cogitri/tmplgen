@@ -26,6 +26,8 @@ sha2 = "0.8"
 reqwest = "0.9"
 indicatif = "0.10"
 retry = "0.4"
+# rustc-demangle >=0.1.10 needs nightly cargo features for building, which causes the coverage build to fail
+rustc-demangle = "=0.1.9"
 
 [dev-dependencies]
 cargo-husky = {version = "1.2", features = ["precommit-hook", "run-cargo-test"]}
