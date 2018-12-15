@@ -1,7 +1,7 @@
 # tmplgen
 
 [![Build Status](https://drone.exqa.de/api/badges/Cogitri/tmplgen/status.svg)](https://drone.exqa.de/Cogitri/tmplgen)
-[![Build Status](https://travis-ci.com/Cogitri/tmplgen.svg?branch=master)](https://travis-ci.org/Cogitri/tmplgen)
+[![Build Status](https://travis-ci.com/Cogitri/tmplgen.svg?branch=master)](https://travis-ci.com/Cogitri/tmplgen)
 [![codecov](https://codecov.io/gh/Cogitri/tmplgen/branch/master/graph/badge.svg)](https://codecov.io/gh/Cogitri/tmplgen)
 
 A simple Void Linux template generator.
