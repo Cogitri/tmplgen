@@ -228,6 +228,7 @@ dependencies = [
 [[package]]
 name = "crates_io_api"
 version = "0.3.0"
+source = "git+https://github.com/Cogitri/crates_io_api#1f09630f94899acbc67e6bdf1b7ba9d340f73cc4"
 dependencies = [
  "chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1509,7 +1510,7 @@ dependencies = [
  "assert_cmd 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cargo-husky 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "crates_io_api 0.3.0",
+ "crates_io_api 0.3.0 (git+https://github.com/Cogitri/crates_io_api)",
  "criterion 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1905,6 +1906,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum console 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)" = "4ba5561f4d4d89e0f246d4dd83846d96f617e886b96c7aee36e68791c98f89ce"
 "checksum core-foundation 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "286e0b41c3a20da26536c6000a280585d519fd07b3956b43aed8a79e9edce980"
 "checksum core-foundation-sys 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "716c271e8613ace48344f723b60b900a93150271e5be206212d052bbc0883efa"
+"checksum crates_io_api 0.3.0 (git+https://github.com/Cogitri/crates_io_api)" = "<none>"
 "checksum crc32fast 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "e91d5240c6975ef33aeb5f148f35275c25eda8e8a5f95abe421978b05b8bf192"
 "checksum criterion 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "c47d2b548c5647e1a436dc0cb78d4ebf51b6bf7ab101ed76662828bdd4d3a24a"
 "checksum criterion-plot 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "6e649d6aacdbbdb94ec659561a309a71336fc5655ed408f3afd28df2fc0c4f4f"

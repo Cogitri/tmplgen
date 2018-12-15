@@ -1,3 +1,0 @@
-[submodule "vendor/crates_io_api"]
-	path = vendor/crates_io_api
-	url = https://github.com/Cogitri/crates_io_api
