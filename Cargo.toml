@@ -12,6 +12,7 @@ categories = ["command-line-utilities"]
 edition = "2018"
 
 [dependencies]
+crates_io_api = "0.3"
 clap = {version = "2.32", features = ["yaml"]}
 rubygems_api = "0.3"
 failure = "0.1"
@@ -28,8 +29,8 @@ retry = "0.4"
 # rustc-demangle >=0.1.10 needs nightly cargo features for building, which causes the coverage build to fail
 rustc-demangle = "=0.1.9"
 
-[dependencies.crates_io_api]
-git = 'https://github.com/Cogitri/crates_io_api'
+[replace]
+"crates_io_api:0.3.0" = { git = 'https://github.com/Cogitri/crates_io_api' }
 
 [dev-dependencies]
 cargo-husky = {version = "1.2", features = ["precommit-hook", "run-cargo-test"]}
