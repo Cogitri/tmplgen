@@ -22,8 +22,8 @@ use log::{info, warn};
 
 impl TmplBuilder {
     /// Initializes a new TmplBuilder with nothing but pkg_name set.
-    pub fn new(pkg_name: &str) -> TmplBuilder {
-        TmplBuilder {
+    pub fn new(pkg_name: &str) -> Self {
+        Self {
             pkg_name: pkg_name.to_owned(),
             pkg_type: None,
             pkg_info: None,
@@ -31,8 +31,8 @@ impl TmplBuilder {
     }
 
     /// Initializes a new TmplBuilder from a PkgInfo. Useful for testing or as a shortcut
-    pub fn from_pkg_info(pkg_info: PkgInfo) -> TmplBuilder {
-        TmplBuilder {
+    pub fn from_pkg_info(pkg_info: PkgInfo) -> Self {
+        Self {
             pkg_name: pkg_info.pkg_name.clone(),
             pkg_type: None,
             pkg_info: Some(pkg_info),
@@ -46,13 +46,13 @@ impl TmplBuilder {
     /// * If a package with the name of (self.pkg_name)[crate::TmplBuilder.pkg_name] can be
     ///   found on multiple platforms (e.g. on both (crates.io)[https://crates.io] and (rubygems.org)[https://rubygems.org])
     /// * If the package can't be found on any of the platforms
-    pub fn get_type(&mut self) -> Result<&mut TmplBuilder, Error> {
+    pub fn get_type(&mut self) -> Result<&mut Self, Error> {
         self.pkg_type = Some(figure_out_provider(&self.pkg_name)?);
         Ok(self)
     }
 
     /// Sets the PkgType of the package of the TmplBuilder that's passed into the method
-    pub fn set_type(&mut self, pkg_type: PkgType) -> &mut TmplBuilder {
+    pub fn set_type(&mut self, pkg_type: PkgType) -> &mut Self {
         self.pkg_type = Some(pkg_type);
         self
     }
@@ -63,7 +63,7 @@ impl TmplBuilder {
     ///
     /// * If you try to call this method without setting/getting pkg_type first via either
     ///   (self.get_type)[crate::tmplwriter::TmplBuilder::get_type] or (self.set_type)[crate::tmplwriter::TmplBuilder::set_type]
-    pub fn get_info(&mut self) -> Result<&mut TmplBuilder, Error> {
+    pub fn get_info(&mut self) -> Result<&mut Self, Error> {
         if self.pkg_type.is_some() {
             self.pkg_info = Some(get_pkginfo(&self.pkg_name, self.pkg_type.unwrap())?);
             Ok(self)
@@ -75,7 +75,7 @@ impl TmplBuilder {
     }
 
     /// Sets the PkgInfo of the package of the TmplBuilder that's passed into the method
-    pub fn set_info(&mut self, pkg_info: PkgInfo) -> &mut TmplBuilder {
+    pub fn set_info(&mut self, pkg_info: PkgInfo) -> &mut Self {
         self.pkg_info = Some(pkg_info);
         self
     }
@@ -181,7 +181,7 @@ impl TmplBuilder {
 
                 let pkg = pkg_tainted.replace("perl-", "").replace("ruby-", "");
 
-                let mut tmpl_builder = TmplBuilder::new(&pkg);
+                let mut tmpl_builder = Self::new(&pkg);
 
                 if tmpl_builder
                     .set_type(self.pkg_type.unwrap())
