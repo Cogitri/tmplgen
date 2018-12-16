@@ -543,7 +543,7 @@ impl TmplBuilder {
         }
 
         if prefix {
-            let prefix = if tmpl_type == PkgType::Crate {
+            let prefix_str = if tmpl_type == PkgType::Crate {
                 "rust-"
             //} else if tmpl_type == PkgType::Gem {
             //    "ruby-"
@@ -551,7 +551,7 @@ impl TmplBuilder {
                 "perl-"
             };
 
-            let wrksrc = format!("${{pkgname/{}/}}-${{version}}", prefix);
+            let wrksrc = format!("${{pkgname/{}/}}-${{version}}", prefix_str);
 
             template_string = template_string.replace("@wrksrc@", &wrksrc);
         } else {
