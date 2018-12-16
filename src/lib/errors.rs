@@ -23,9 +23,9 @@ pub enum Error {
         display = "Failed to determine git username/email from environment or git config! Error: {}",
         _0
     )]
-    GitError(String),
+    Git(String),
     #[fail(display = "Failed to determine XBPS_DISTDIR: {}", _0)]
-    XdistError(String),
+    Xdist(String),
     #[fail(
         display = "Found a package matching the specified package {}! Please explicitly choose one via the `-t` parameter!",
         _0
@@ -40,7 +40,7 @@ pub enum Error {
         display = "Failed to write checksum to the newly written template! Error: {}",
         _0
     )]
-    ShaError(String),
+    Sha(String),
     #[fail(display = "Didn't provide enough info for action {}", _0)]
     TooLittleInfo(String),
     #[fail(

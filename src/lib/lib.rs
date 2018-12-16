@@ -22,7 +22,7 @@
 //!
 //! # Usage
 //!
-//! The following will write a template for `tmplgen` in $XBPS_DISTDIR/srcpkgs/tmplgen/template
+//! The following will write a template for `tmplgen` in `$XBPS_DISTDIR/srcpkgs/rust-tmplgen/template`
 //!
 //! ```
 //! use libtmplgen::*;

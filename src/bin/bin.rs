@@ -229,7 +229,7 @@ fn xdist_dir() -> Result<String, Error> {
     let xdist_env = std::env::var_os("XBPS_DISTDIR");
 
     if xdist_env.is_none() {
-        return Err(libtmplgen::Error::XdistError("Couldn't get XBPS_DISTDIR variable, please set it to where you want to write the template to!".to_string()));
+        return Err(libtmplgen::Error::Xdist("Couldn't get XBPS_DISTDIR variable, please set it to where you want to write the template to!".to_string()));
     }
 
     let unclean_dir = std::str::from_utf8(xdist_env.unwrap().as_bytes())?.to_string();
@@ -240,7 +240,7 @@ fn xdist_dir() -> Result<String, Error> {
         if home_dir.is_ok() {
             Ok(unclean_dir.replace("~", &home_dir.unwrap()))
         } else {
-            Err(Error::XdistError(
+            Err(Error::Xdist(
                 "Please either replace '~' with your homepath in XBPS_DISTDIR or export HOME"
                     .to_string(),
             ))

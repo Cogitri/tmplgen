@@ -143,9 +143,9 @@ pub(super) fn correct_license(license: &str) -> String {
     license.to_string()
 }
 
-/// Convenience function to get PkgInfo for the package `pkg_name` of a certain PkgType
+/// Convenience function to get `PkgInfo` for the package `pkg_name` of a certain `PkgType`
 ///
-/// Errors if determining PkgInfo fails, see the doc for [crate_info](crate::crates::crate_info),
+/// Errors if determining `PkgInfo` fails, see the doc for [crate_info](crate::crates::crate_info),
 /// [gem_info](crate::gems::gem_info) and [perldist_info](crate::perldist::perldist_info)
 pub(super) fn get_pkginfo(pkg_name: &str, pkg_type: PkgType) -> Result<PkgInfo, Error> {
     if pkg_type == PkgType::Crate {
@@ -178,7 +178,7 @@ pub(super) fn get_git_author() -> Result<String, Error> {
             Ok(_) => {}
             Err(e) => {
                 if let std::io::ErrorKind::NotFound = e.kind() {
-                    return Err(Error::GitError("Couldn't find the command `git`. Make sure you have installed git and that it's in your PATH, or set GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL!".to_string()));
+                    return Err(Error::Git("Couldn't find the command `git`. Make sure you have installed git and that it's in your PATH, or set GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL!".to_string()));
                 }
             }
         }
@@ -191,11 +191,11 @@ pub(super) fn get_git_author() -> Result<String, Error> {
             .output()?;
 
         if !git_author.status.success() {
-            return Err(Error::GitError(from_utf8(&git_author.stderr)?.to_string()));
+            return Err(Error::Git(from_utf8(&git_author.stderr)?.to_string()));
         }
 
         if !git_mail.status.success() {
-            return Err(Error::GitError(from_utf8(&git_mail.stderr)?.to_string()));
+            return Err(Error::Git(from_utf8(&git_mail.stderr)?.to_string()));
         }
 
         (
@@ -209,7 +209,7 @@ pub(super) fn get_git_author() -> Result<String, Error> {
     Ok(maintainer)
 }
 
-/// Download the file specified via dwnld_url and return its checksum
+/// Download the file specified via `dwnld_url` and return its checksum
 ///
 /// # Errors
 ///
@@ -228,7 +228,7 @@ pub(super) fn gen_checksum(dwnld_url: &str) -> Result<String, Error> {
         ) {
             Ok(resp) => resp,
             Err(err) => {
-                return Err(Error::ShaError(format!(
+                return Err(Error::Sha(format!(
                     "Couldn't download URL {}: {}",
                     url,
                     err.to_string()
@@ -278,7 +278,7 @@ pub(super) fn gen_checksum(dwnld_url: &str) -> Result<String, Error> {
     let hash_res = std::io::copy(&mut source, &mut hasher);
 
     if hash_res.is_err() {
-        return Err(Error::ShaError(hash_res.unwrap_err().to_string()));
+        return Err(Error::Sha(hash_res.unwrap_err().to_string()));
     }
 
     let hash = hasher.result();
@@ -328,14 +328,14 @@ pub(super) fn check_native_deps(
             }
         }
 
-        if !make_dep_vec.is_empty() {
+        if make_dep_vec.is_empty() {
+            Ok(None)
+        } else {
             Ok(Some(Dependencies {
                 host: Some(vec!["pkg-config".to_string()]),
                 make: Some(make_dep_vec),
                 run: None,
             }))
-        } else {
-            Ok(None)
         }
     } else {
         Err(Error::WrongUsage {
