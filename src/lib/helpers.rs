@@ -20,6 +20,7 @@ use crate::perldist::*;
 use crate::types::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, info, warn};
+use rayon::prelude::*;
 use retry::retry_exponentially;
 use sha2::{Digest, Sha256};
 use std::env::var_os;
@@ -134,13 +135,18 @@ pub(super) fn correct_license(license: &str) -> String {
         licenses: data.licenses,
     };
 
-    for x in corrected_vals.licenses {
-        if license == x.is {
-            return x.should.to_string();
-        }
-    }
+    let correct_license = corrected_vals
+        .licenses
+        .par_iter()
+        .filter(|x| license == x.is)
+        .map(|x| x.should.to_string())
+        .collect::<String>();
 
-    license.to_string()
+    if correct_license.is_empty() {
+        license.to_string()
+    } else {
+        correct_license
+    }
 }
 
 /// Convenience function to get `PkgInfo` for the package `pkg_name` of a certain `PkgType`

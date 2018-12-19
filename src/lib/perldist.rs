@@ -17,6 +17,7 @@ use crate::errors::Error;
 use crate::helpers::*;
 use crate::types::*;
 use log::debug;
+use rayon::prelude::*;
 use retry::retry_exponentially;
 
 /// Query the metacpan.org API. If `perldist_name` is the name of a perl module, it will query
@@ -96,56 +97,63 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
 }
 
 fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, Error> {
-    let mut make_vec = vec!["perl".to_string()];
-    let mut run_vec = vec!["perl".to_string()];
-
     let client = metacpan_api::SyncClient::new();
 
-    for x in dep_vec {
-        if TmplBuilder::new(&x.module)
-            .set_type(PkgType::PerlDist)
-            .is_built_in()
-            .unwrap_or({ false })
-        {
-            continue;
-        }
+    let make_vec = dep_vec
+        .par_iter()
+        .filter(|&x| {
+            !TmplBuilder::new(&x.module)
+                .set_type(PkgType::PerlDist)
+                .is_built_in()
+                .unwrap_or(false)
+        })
+        .filter(|&x| x.phase == "configure".to_string())
+        .map(|x| {
+            let query_result = client.perl_info(&x.module);
 
-        match x.phase.as_ref() {
-            "configure" => {
-                let query_result = client.perl_info(&x.module);
-
-                let query_result = match query_result {
-                    Ok(query_result) => query_result,
-                    Err(_e) => client.perl_info(
+            let result = match query_result {
+                Ok(query_result) => query_result,
+                Err(_) => client
+                    .perl_info(
                         &client
                             .get_dist(&x.module)
-                            .map_err(|e| Error::PerlDist(e.to_string()))?,
-                    )?,
-                };
+                            .map_err(|e| Error::PerlDist(e.to_string()))
+                            .unwrap(),
+                    )
+                    .unwrap(),
+            };
 
-                if !make_vec.contains(&query_result.name) {
-                    make_vec.push(query_result.name)
-                }
-            }
-            "runtime" => {
-                let query_result = client.perl_info(&x.module);
+            result.name
+        })
+        .collect::<Vec<_>>();
 
-                let query_result = match query_result {
-                    Ok(query_result) => query_result,
-                    Err(_e) => client.perl_info(
+    let run_vec = dep_vec
+        .par_iter()
+        .filter(|&x| {
+            !TmplBuilder::new(&x.module)
+                .set_type(PkgType::PerlDist)
+                .is_built_in()
+                .unwrap_or(false)
+        })
+        .filter(|&x| x.phase == "runtime".to_string())
+        .map(|x| {
+            let query_result = client.perl_info(&x.module);
+
+            let result = match query_result {
+                Ok(query_result) => query_result,
+                Err(_) => client
+                    .perl_info(
                         &client
                             .get_dist(&x.module)
-                            .map_err(|e| Error::PerlDist(e.to_string()))?,
-                    )?,
-                };
+                            .map_err(|e| Error::PerlDist(e.to_string()))
+                            .unwrap(),
+                    )
+                    .unwrap(),
+            };
 
-                if !run_vec.contains(&query_result.name) {
-                    run_vec.push(query_result.name)
-                }
-            }
-            _ => (),
-        }
-    }
+            result.name
+        })
+        .collect::<Vec<_>>();
 
     Ok(Dependencies {
         host: Some(vec!["perl".to_string()]),
