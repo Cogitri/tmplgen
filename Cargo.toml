@@ -28,6 +28,7 @@ indicatif = "0.10"
 retry = "0.4"
 # rustc-demangle >=0.1.10 needs nightly cargo features for building, which causes the coverage build to fail
 rustc-demangle = "=0.1.9"
+rayon = "1.0"
 
 [replace]
 "crates_io_api:0.3.0" = { git = 'https://github.com/Cogitri/crates_io_api' }
