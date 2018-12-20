@@ -216,7 +216,7 @@ impl TmplBuilder {
                 tmpl_vec.push(tmpl_builder.get_info()?.generate(true)?);
 
                 tmpl_vec.append(
-                    &mut TmplBuilder::new(&pkg)
+                    &mut Self::new(&pkg)
                         .set_type(self.pkg_type.unwrap())
                         .get_info()?
                         .gen_deps(tmpl_path)?,
