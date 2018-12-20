@@ -99,7 +99,7 @@ impl TmplBuilder {
             if self.pkg_type.unwrap() == PkgType::Gem {
                 for x in built_ins.ruby {
                     if self.pkg_name == x.name {
-                        warn!(
+                        info!(
                             "Gem {} is part of ruby, won't write a template for it!",
                             self.pkg_name
                         );
@@ -111,7 +111,7 @@ impl TmplBuilder {
 
                 for x in built_ins.perl {
                     if pkg_name == x.name {
-                        warn!(
+                        info!(
                             "Perl distribution {} is part of perl, won't write a template for it!",
                             pkg_name
                         );
@@ -208,7 +208,6 @@ impl TmplBuilder {
                     };
 
                     if tmpl_path_exists {
-                        warn!("Won't overwrite already existing template {}", pkg);
                         continue;
                     }
                 }
