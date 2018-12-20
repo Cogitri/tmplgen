@@ -335,6 +335,10 @@ fn test_correct_license() {
         correct_license("perl_5"),
         "Artistic-1.0-Perl, GPL-1.0-or-later".to_string()
     );
+    assert_eq!(
+        correct_license("GPL-3.0-or-later"),
+        "GPL-3.0-or-later".to_string()
+    );
 }
 
 #[test]
