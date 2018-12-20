@@ -8,7 +8,7 @@ fn bench_gen_perl(c: &mut Criterion) {
 
     c.bench_function("bench_gen_perl", |b| {
         b.iter(|| {
-            TmplBuilder::new("Module::Build")
+            TmplBuilder::new("Scalar-List-Utils")
                 .get_type()
                 .unwrap()
                 .get_info()
@@ -35,7 +35,7 @@ fn bench_built_in(c: &mut Criterion) {
 fn bench_gen_deps_perl(c: &mut Criterion) {
     c.bench_function("bench_gen_deps_perl", |b| {
         b.iter(|| {
-            TmplBuilder::new("Moose")
+            TmplBuilder::new("Scalar-List-Utils")
                 .set_type(PkgType::PerlDist)
                 .get_info()
                 .unwrap()
