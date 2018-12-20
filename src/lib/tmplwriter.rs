@@ -16,6 +16,7 @@
 use crate::errors::Error;
 use crate::helpers::*;
 use crate::types::*;
+use rayon::prelude::*;
 use std::path::Path;
 
 use log::{info, warn};
@@ -284,38 +285,33 @@ impl TmplBuilder {
 
         let mut template_string = old_template.inner.clone();
 
-        let mut orig_ver_string = String::new();
-        let mut orig_checksum_string = String::new();
-        let mut orig_distfiles_string = String::new();
+        let mut orig_vec = vec![
+            "version=",
+            "checksum=",
+            "distfiles=",
+            "homepage=",
+            "short_desc=",
+        ]
+        .par_iter()
+        .map(|search_str| {
+            template_string
+                .lines()
+                .filter(|x| x.contains(search_str))
+                .map(|x| x)
+                .collect::<String>()
+        })
+        .collect::<Vec<String>>();
 
-        for x in template_string.lines() {
-            if x.contains("version=") {
-                orig_ver_string = x.to_string();
-            }
-            if x.contains("checksum=") {
-                orig_checksum_string = x.to_string();
-            }
-            if x.contains("distfiles=") {
-                orig_distfiles_string = x.to_string();
-            }
-        }
+        let orig_description_string = orig_vec.pop().unwrap();
+        let orig_homepage_string = orig_vec.pop().unwrap();
+        let orig_distfiles_string = orig_vec.pop().unwrap();
+        let orig_checksum_string = orig_vec.pop().unwrap();
+        let orig_ver_string = orig_vec.pop().unwrap();
 
         template_string =
             template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
 
         if update_all {
-            let mut orig_homepage_string = String::new();
-            let mut orig_description_string = String::new();
-
-            for x in template_string.lines() {
-                if x.contains("homepage=") {
-                    orig_homepage_string = x.to_string();
-                }
-                if x.contains("short_desc=") {
-                    orig_description_string = x.to_string();
-                }
-            }
-
             template_string = template_string.replace(
                 &orig_checksum_string,
                 &format!("checksum={}", &pkg_info.sha),
@@ -472,15 +468,19 @@ impl TmplBuilder {
         }
 
         if pkg_info.license.is_some() {
-            let mut license = String::new();
+            let license_iter = pkg_info.license.as_ref().unwrap().par_iter();
+            let mut license = license_iter
+                .clone()
+                .take(1)
+                .map(|x| correct_license(x))
+                .collect::<String>();
 
-            for x in pkg_info.license.as_ref().unwrap() {
-                if !license.is_empty() {
-                    license.push_str(", ");
-                }
-
-                license.push_str(&correct_license(x));
-            }
+            license.push_str(
+                &license_iter
+                    .skip(1)
+                    .map(|x| format!(", {}", correct_license(x)))
+                    .collect::<String>(),
+            );
 
             template_string = template_string.replace("@license@", &license)
         } else {
