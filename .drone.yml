@@ -36,9 +36,6 @@ steps:
     GIT_AUTHOR_EMAIL: drone@exqa.de
     GIT_AUTHOR_NAME: drone
   commands:
-  - export RUST_BACKTRACE=1
-  - export GIT_AUTHOR_NAME="drone"
-  - export GIT_AUTHOR_EMAIL="drone@exqa.de"
   - cargo build --verbose --all
   - cargo test --verbose --all
 
@@ -95,6 +92,6 @@ steps:
      - failure
 ---
 kind: signature
-hmac: 8e2012cc8e985094f8bbd143142e6463fa79741768106fedabe22af8d0c34784
+hmac: 9018fc7a7176addb866b0b27edc6c40ba4fde1e6a51f46618651033fb618f18c
 
 ...
