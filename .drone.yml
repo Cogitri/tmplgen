@@ -60,7 +60,7 @@ depends_on:
 
 steps:
 - name: generate-coverage
-  image: xd009642/tarpaulin:develop-nightly
+  image: xd009642/tarpaulin:develop
   pull: always
   privileged: true
   environment:
@@ -95,6 +95,6 @@ steps:
      - failure
 ---
 kind: signature
-hmac: 2a01bc42cbe89af297a1f5e5337225f69a08b3d6cebf65a8f587d26c46b2632a
+hmac: 2f2542b699540152057d88f92c554f706736ee7fe07b732e5df33ae2314121d6
 
 ...
