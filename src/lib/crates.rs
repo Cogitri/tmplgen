@@ -28,7 +28,7 @@ use retry::retry_exponentially;
 /// * Errors if the native deps can't be determined (via `check_native_deps`)
 // TODO: Switch to AsyncClient
 pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
-    let client = crates_io_api::SyncClient::new();
+    let client = crates_io_api::SyncClient::with_user_agent("tmplgen/1");
 
     let query_result = match retry_exponentially(
         3,
