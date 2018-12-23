@@ -86,7 +86,9 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
             .unwrap_or_else(|| format!("https://metacpan.org/pod/{}", query_result.name)),
         description: query_result.description,
         license: Some(query_result.license.unwrap_or_default()),
-        dependencies: Some(order_perldeps(query_result.dependency.unwrap_or_default())?),
+        dependencies: Some(order_perldeps(
+            &query_result.dependency.unwrap_or_default(),
+        )?),
         sha: gen_checksum(&query_result.download_url)?,
         download_url: Some(download_url),
     };
@@ -96,10 +98,10 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
     Ok(pkg_info)
 }
 
-fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, Error> {
+fn order_perldeps(dep_vec: &Vec<metacpan_api::PerlDep>) -> Result<Dependencies, Error> {
     let client = metacpan_api::SyncClient::new();
 
-    let make_vec = dep_vec
+    let make_vec: Result<Vec<String>, Error> = dep_vec
         .par_iter()
         .filter(|&x| {
             !TmplBuilder::new(&x.module)
@@ -107,27 +109,24 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, E
                 .is_built_in()
                 .unwrap_or(false)
         })
-        .filter(|&x| x.phase == "configure".to_string())
+        .filter(|&x| x.phase == "configure")
         .map(|x| {
             let query_result = client.perl_info(&x.module);
 
             let result = match query_result {
                 Ok(query_result) => query_result,
-                Err(_) => client
-                    .perl_info(
-                        &client
-                            .get_dist(&x.module)
-                            .map_err(|e| Error::PerlDist(e.to_string()))
-                            .unwrap(),
-                    )
-                    .unwrap(),
+                Err(_) => client.perl_info(
+                    &client
+                        .get_dist(&x.module)
+                        .map_err(|e| Error::PerlDist(e.to_string()))?,
+                )?,
             };
 
-            result.name
+            Ok(result.name)
         })
-        .collect::<Vec<_>>();
+        .collect();
 
-    let run_vec = dep_vec
+    let run_vec: Result<Vec<String>, Error> = dep_vec
         .par_iter()
         .filter(|&x| {
             !TmplBuilder::new(&x.module)
@@ -135,29 +134,26 @@ fn order_perldeps(dep_vec: Vec<metacpan_api::PerlDep>) -> Result<Dependencies, E
                 .is_built_in()
                 .unwrap_or(false)
         })
-        .filter(|&x| x.phase == "runtime".to_string())
+        .filter(|&x| x.phase == "runtime")
         .map(|x| {
             let query_result = client.perl_info(&x.module);
 
             let result = match query_result {
                 Ok(query_result) => query_result,
-                Err(_) => client
-                    .perl_info(
-                        &client
-                            .get_dist(&x.module)
-                            .map_err(|e| Error::PerlDist(e.to_string()))
-                            .unwrap(),
-                    )
-                    .unwrap(),
+                Err(_) => client.perl_info(
+                    &client
+                        .get_dist(&x.module)
+                        .map_err(|e| Error::PerlDist(e.to_string()))?,
+                )?,
             };
 
-            result.name
+            Ok(result.name)
         })
-        .collect::<Vec<_>>();
+        .collect();
 
     Ok(Dependencies {
         host: Some(vec!["perl".to_string()]),
-        make: Some(make_vec),
-        run: Some(run_vec),
+        make: Some(make_vec?),
+        run: Some(run_vec?),
     })
 }
