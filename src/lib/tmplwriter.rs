@@ -307,11 +307,11 @@ impl TmplBuilder {
         })
         .collect::<Vec<String>>();
 
-        let orig_description_string = orig_vec.pop().unwrap();
-        let orig_homepage_string = orig_vec.pop().unwrap();
-        let orig_distfiles_string = orig_vec.pop().unwrap();
-        let orig_checksum_string = orig_vec.pop().unwrap();
-        let orig_ver_string = orig_vec.pop().unwrap();
+        let orig_description_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
+        let orig_homepage_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
+        let orig_distfiles_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
+        let orig_checksum_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
+        let orig_ver_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
 
         template_string =
             template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
