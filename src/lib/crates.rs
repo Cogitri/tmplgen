@@ -49,6 +49,22 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
         name = &crate_name,
     );
 
+    let license_query = query_result.license.unwrap_or_default();
+
+    let license = if license_query.contains("OR") {
+        license_query
+            .replace("OR", "")
+            .split_whitespace()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+    } else {
+        license_query
+            .replace("/", " ")
+            .split_whitespace()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+    };
+
     let pkg_info = PkgInfo {
         pkg_name: format!("rust-{}", &crate_name),
         // gen_checksum can't replace ${version} itself, so we have to do it here
@@ -58,7 +74,7 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
         homepage: query_result
             .homepage
             .unwrap_or_else(|| format!("https://crates.io/crates/{}", &crate_name)),
-        license: Some(vec![query_result.license.unwrap_or_default()]),
+        license: Some(license),
         dependencies: crate_deps,
         download_url: Some(download_url),
     };

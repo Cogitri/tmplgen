@@ -599,3 +599,34 @@ fn test_gen_deps_panic() {
         .gen_deps(None)
         .unwrap();
 }
+
+#[test]
+fn test_crate_or_licensing() {
+    let mut builder1 = TmplBuilder::new("cargo-crev");
+    let pkg_info1 = builder1
+        .set_type(PkgType::Crate)
+        .get_info()
+        .unwrap()
+        .pkg_info
+        .as_ref()
+        .unwrap();
+
+    assert_eq!(
+        pkg_info1.license.as_ref().unwrap().join(","),
+        "MPL-2.0,MIT,Apache-2.0"
+    );
+
+    let mut builder2 = TmplBuilder::new("amethyst");
+    let pkg_info2 = builder2
+        .set_type(PkgType::Crate)
+        .get_info()
+        .unwrap()
+        .pkg_info
+        .as_ref()
+        .unwrap();
+
+    assert_eq!(
+        pkg_info2.license.as_ref().unwrap().join(","),
+        "MIT,Apache-2.0"
+    );
+}
