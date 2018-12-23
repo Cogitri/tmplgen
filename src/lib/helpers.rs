@@ -18,14 +18,13 @@ use crate::errors::Error;
 use crate::gems::*;
 use crate::perldist::*;
 use crate::types::*;
+use git2::Config as GitConfig;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, info, warn};
 use rayon::prelude::*;
 use retry::retry_exponentially;
 use sha2::{Digest, Sha256};
 use std::env::var_os;
-use std::process::Command;
-use std::str::from_utf8;
 
 /// Figure out whether we're dealing with a crate or a gem if the user hasn't specified that.
 ///
@@ -180,33 +179,10 @@ pub(super) fn get_git_author() -> Result<String, Error> {
             git_email_env.unwrap().to_str().unwrap().to_string(),
         )
     } else {
-        match Command::new("git").args(&["--version"]).output() {
-            Ok(_) => {}
-            Err(e) => {
-                if let std::io::ErrorKind::NotFound = e.kind() {
-                    return Err(Error::Git("Couldn't find the command `git`. Make sure you have installed git and that it's in your PATH, or set GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL!".to_string()));
-                }
-            }
-        }
-
-        let git_author = Command::new("git")
-            .args(&["config", "user.name"])
-            .output()?;
-        let git_mail = Command::new("git")
-            .args(&["config", "user.email"])
-            .output()?;
-
-        if !git_author.status.success() {
-            return Err(Error::Git(from_utf8(&git_author.stderr)?.to_string()));
-        }
-
-        if !git_mail.status.success() {
-            return Err(Error::Git(from_utf8(&git_mail.stderr)?.to_string()));
-        }
-
+        let git_config = GitConfig::open_default()?;
         (
-            from_utf8(&git_author.stdout)?.to_string(),
-            from_utf8(&git_mail.stdout)?.to_string(),
+            git_config.get_string("user.name")?,
+            git_config.get_string("user.email")?,
         )
     };
 

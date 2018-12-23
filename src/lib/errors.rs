@@ -95,3 +95,9 @@ impl From<reqwest::UrlError> for Error {
         Error::Reqwest(e.to_string())
     }
 }
+
+impl From<git2::Error> for Error {
+    fn from(e: git2::Error) -> Self {
+        Error::Git(e.to_string())
+    }
+}
