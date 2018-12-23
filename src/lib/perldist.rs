@@ -85,7 +85,7 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
             .clone()
             .unwrap_or_else(|| format!("https://metacpan.org/pod/{}", query_result.name)),
         description: query_result.description,
-        license: Some(query_result.license.unwrap_or_default()),
+        license: query_result.license,
         dependencies: Some(order_perldeps(
             &query_result.dependency.unwrap_or_default(),
         )?),

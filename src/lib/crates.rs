@@ -51,18 +51,24 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
 
     let license_query = query_result.license.unwrap_or_default();
 
-    let license = if license_query.contains("OR") {
-        license_query
-            .replace("OR", "")
-            .split_whitespace()
-            .map(|x| x.to_string())
-            .collect::<Vec<_>>()
+    let license = if license_query.is_empty() {
+        None
+    } else if license_query.contains("OR") {
+        Some(
+            license_query
+                .replace("OR", "")
+                .split_whitespace()
+                .map(|x| x.to_string())
+                .collect::<Vec<_>>(),
+        )
     } else {
-        license_query
-            .replace("/", " ")
-            .split_whitespace()
-            .map(|x| x.to_string())
-            .collect::<Vec<_>>()
+        Some(
+            license_query
+                .replace("/", " ")
+                .split_whitespace()
+                .map(|x| x.to_string())
+                .collect::<Vec<_>>(),
+        )
     };
 
     let pkg_info = PkgInfo {
@@ -74,7 +80,7 @@ pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
         homepage: query_result
             .homepage
             .unwrap_or_else(|| format!("https://crates.io/crates/{}", &crate_name)),
-        license: Some(license),
+        license,
         dependencies: crate_deps,
         download_url: Some(download_url),
     };
