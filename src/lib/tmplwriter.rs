@@ -233,38 +233,44 @@ impl TmplBuilder {
     ///
     /// # Example
     /// ```
-    /// use libtmplgen::{PkgInfo, Template, TmplBuilder};
+    /// use libtmplgen::*;
     /// use std::fs::File;
     /// use std::io::prelude::*;
     ///
-    /// // Do note that we only manually create a PkgInfo here to make the example easier to understand
-    /// let pkg_info_crate = PkgInfo {
-    ///        pkg_name: "tmplgen".to_string(),
-    ///        version: "0.6.0".to_string(),
-    ///        description: Some("Void Linux template generator for language-specific package managers"
-    ///            .to_string()),
-    ///        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
-    ///        license: Some(vec!["GPL-3.0-or-later".to_string()]),
-    ///        dependencies: None,
-    ///        sha: "afc403bf69ad4da168938961b0f02da86ef29d655967cfcbacc8201e1327aff4".to_string(),
-    ///        download_url: Some(
-    ///            "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
-    ///        ),
-    /// };
+    /// fn update_template() -> Result<(), Error> {
+    ///     // Do note that we only manually create a PkgInfo here to make the example easier to understand
+    ///     let pkg_info_crate = PkgInfo {
+    ///            pkg_name: "tmplgen".to_string(),
+    ///            version: "0.6.0".to_string(),
+    ///            description: Some("Void Linux template generator for language-specific package managers"
+    ///                .to_string()),
+    ///            homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+    ///            license: Some(vec!["GPL-3.0-or-later".to_string()]),
+    ///            dependencies: None,
+    ///            sha: "afc403bf69ad4da168938961b0f02da86ef29d655967cfcbacc8201e1327aff4".to_string(),
+    ///            download_url: Some(
+    ///               "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
+    ///            ),
+    ///     };
     ///
-    /// let mut old_template = Template { inner: String::new(), name: "tmplgen".to_string() };
-    /// // Open whatever file you want to below.
-    /// let mut file = File::open("src/lib/tests/template_test_crate.in").unwrap();
-    /// file.read_to_string(&mut old_template.inner).unwrap();
+    ///     let mut old_template = Template { inner: String::new(), name: "tmplgen".to_string() };
+    ///     // Open whatever file you want to below.
+    ///     let mut file = File::open("src/lib/tests/template_test_crate.in")?;
+    ///     file.read_to_string(&mut old_template.inner)?;
     ///
-    /// // This will return a [Template](crate::types::Template), which is updated to 0.6.0 (as specified by pkg_info_crate above)
-    /// // Use TmplBuilder::new("tmplgen").get_info() to manually get the info we manually set in pkg_info_crate!
-    /// // Won't update `homepage`, `distfiles` and `short_desc`, set the second argument to `true` for that
-    /// let template_updated = TmplBuilder::from_pkg_info(pkg_info_crate).get_type().unwrap().update(&old_template, false).unwrap();
+    ///     // This will return a [Template](crate::types::Template), which is updated to 0.6.0 (as specified by pkg_info_crate above)
+    ///     // Use TmplBuilder::new("tmplgen").get_info() to manually get the info we manually set in pkg_info_crate!
+    ///     // Won't update `homepage`, `distfiles` and `short_desc`, set the second argument to `true` for that
+    ///     let template_updated = TmplBuilder::from_pkg_info(pkg_info_crate)
+    ///         .get_type()?
+    ///         .update(&old_template, false)?;
     ///
-    /// // Write the [Template](crate::types::Template) to `./template`
-    /// let mut file = File::create("./template").unwrap();
-    /// file.write_all(template_updated.inner.as_bytes()).unwrap();
+    ///     // Write the [Template](crate::types::Template) to `./template`
+    ///     let mut file = File::create("./template")?;
+    ///     file.write_all(template_updated.inner.as_bytes())?;
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     ///
     /// # Errors
@@ -393,34 +399,38 @@ impl TmplBuilder {
     /// # Example
     ///
     /// ```
-    /// use libtmplgen::{PkgInfo, PkgType, TmplBuilder};
+    /// use libtmplgen::*;
     /// use std::fs::File;
     /// use std::io::prelude::*;
     ///
-    /// // Do note that we only manually create a PkgInfo here to make the example easier to understand
-    /// let pkg_info_crate = PkgInfo {
-    ///        pkg_name: "tmplgen".to_string(),
-    ///        version: "0.6.0".to_string(),
-    ///        description: Some("Void Linux template generator for language-specific package managers"
-    ///            .to_string()),
-    ///        homepage: "https://github.com/Cogitri/tmplgen".to_string(),
-    ///        license: Some(vec!["GPL-3.0-or-later".to_string()]),
-    ///        dependencies: None,
-    ///        sha: "afc403bf69ad4da168938961b0f02da86ef29d655967cfcbacc8201e1327aff4".to_string(),
-    ///        download_url: Some(
-    ///            "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
-    ///        ),
-    /// };
+    /// fn write_template() -> Result<(), Error> {
+    ///     // Do note that we only manually create a PkgInfo here to make the example easier to understand
+    ///     let pkg_info_crate = PkgInfo {
+    ///            pkg_name: "tmplgen".to_string(),
+    ///            version: "0.6.0".to_string(),
+    ///            description: Some("Void Linux template generator for language-specific package managers"
+    ///                .to_string()),
+    ///            homepage: "https://github.com/Cogitri/tmplgen".to_string(),
+    ///            license: Some(vec!["GPL-3.0-or-later".to_string()]),
+    ///            dependencies: None,
+    ///            sha: "afc403bf69ad4da168938961b0f02da86ef29d655967cfcbacc8201e1327aff4".to_string(),
+    ///            download_url: Some(
+    ///               "https://static.crates.io/crates/tmplgen/tmplgen-${version}.crate".to_string(),
+    ///            ),
+    ///     };
     ///
-    /// // Use TmplBuilder::new("tmplgen").get_type.generate() to do this automatically instead of
-    /// // setting PkgInfo and PkgType manually
-    /// // You generally want "prefix" to be true, unless you want to generate a template without
-    /// // the language- prefix.
-    /// let template = TmplBuilder::from_pkg_info(pkg_info_crate).set_type(PkgType::Crate).generate(true).unwrap();
+    ///     // Use TmplBuilder::new("tmplgen").get_type.generate() to do this automatically instead of
+    ///     // setting PkgInfo and PkgType manually
+    ///     // You generally want "prefix" to be true, unless you want to generate a template without
+    ///     // the language- prefix.
+    ///     let template = TmplBuilder::from_pkg_info(pkg_info_crate).set_type(PkgType::Crate).generate(true)?;
     ///
-    /// // Write the [Template](crate::types::Template) to `./template`
-    /// let mut file = File::create("./template").unwrap();
-    /// file.write_all(template.inner.as_bytes()).unwrap();
+    ///     // Write the [Template](crate::types::Template) to `./template`
+    ///     let mut file = File::create("./template")?;
+    ///     file.write_all(template.inner.as_bytes())?;
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     ///
     /// * If you try to call this method without setting/getting pkg_info first via either

@@ -29,10 +29,14 @@
 //! use std::fs::File;
 //! use std::io::prelude::*;
 //!
-//! let template = TmplBuilder::new("tmplgen").get_type().unwrap().get_info().unwrap().generate(true).unwrap();
+//! fn write_template() -> Result<(), Error> {
+//!     let template = TmplBuilder::new("tmplgen").get_type()?.get_info()?.generate(true)?;
 //!
-//! let mut file = File::create("./template").unwrap();
-//! file.write_all(template.inner.as_bytes()).unwrap();
+//!     let mut file = File::create("./template")?;
+//!     file.write_all(template.inner.as_bytes())?;
+//!
+//!     Ok(())
+//! }
 //! ```
 //!
 //! *Wait. What?*
@@ -42,20 +46,24 @@
 //! use std::fs::File;
 //! use std::io::prelude::*;
 //!
-//! // Creates a new TmplBuilder for the pkg "tmplgen"
-//! let mut tmpl_builder = TmplBuilder::new("tmplgen");
-//! // Get the PkgType of this crate
-//! tmpl_builder.get_type().unwrap();
-//! // Get a PkgInfo struct of this crate
-//! tmpl_builder.get_info().unwrap();
-//! // Generate a [Template](crate::types::Template) which we can write later on
-//! // The bool sets if we want the template to be prefixed with {perl-,ruby-,rust-}
-//! let template = tmpl_builder.generate(true).unwrap();
+//! fn write_template() -> Result<(), Error> {
+//!     // Creates a new TmplBuilder for the pkg "tmplgen"
+//!     let mut tmpl_builder = TmplBuilder::new("tmplgen");
+//!     // Get the PkgType of this crate
+//!     tmpl_builder.get_type()?;
+//!     // Get a PkgInfo struct of this crate
+//!     tmpl_builder.get_info()?;
+//!     // Generate a [Template](crate::types::Template) which we can write later on
+//!     // The bool sets if we want the template to be prefixed with {perl-,ruby-,rust-}
+//!     let template = tmpl_builder.generate(true)?;
 //!
-//! // Create a file called "template" in the current dir
-//! let mut file = File::create("./template").unwrap();
-//! // Write the [Template](crate::types::Template) to the file we just created
-//! file.write_all(template.inner.as_bytes()).unwrap();
+//!     // Create a file called "template" in the current dir
+//!     let mut file = File::create("./template")?;
+//!     // Write the [Template](crate::types::Template) to the file we just created
+//!     file.write_all(template.inner.as_bytes())?;
+//!
+//!     Ok(())
+//! }
 //! ```
 //!
 //! See [TmplBuilder](crate::types::TmplBuilder) for most of the exciting other stuff.
