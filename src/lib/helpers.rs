@@ -128,7 +128,7 @@ pub(super) fn gen_dep_string(dep_vec: &[String], pkg_type: PkgType) -> String {
 
 /// Converts some non-SPDX conform names to SPDX-conform ones (e.g. GPL-2.0+ to GPL-2.0-or-later)
 pub(super) fn correct_license(license: &str) -> String {
-    let data: CorrectedVals = serde_json::from_str(include_str!("corrected_values.in")).unwrap();
+    let data: TomlData = toml::from_str(include_str!("data.toml")).unwrap();
 
     let corrected_vals = CorrectedVals {
         licenses: data.licenses,
@@ -289,9 +289,11 @@ pub(super) fn check_native_deps(
 
         debug!("Crate dependencies: {:?}", dependencies);
 
-        let data: NativeDepType = serde_json::from_str(include_str!("native_deps.in")).unwrap();
+        let data: TomlData = toml::from_str(include_str!("data.toml")).unwrap();
 
-        let native_deps = NativeDepType { rust: data.rust };
+        let native_deps = NativeDepType {
+            rust: data.native_deps.rust,
+        };
 
         let mut make_dep_vec = vec![];
 

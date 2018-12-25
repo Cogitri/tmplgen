@@ -78,14 +78,9 @@ impl<R: std::io::Read> std::io::Read for DownloadProgress<R> {
 }
 
 #[derive(Debug, Deserialize)]
-pub(super) struct BuiltIns {
-    pub perl: Vec<BuiltInDep>,
-    pub ruby: Vec<BuiltInDep>,
-}
-
-#[derive(Debug, Deserialize)]
-pub(super) struct BuiltInDep {
-    pub name: String,
+pub(super) struct BuiltInDeps {
+    pub perl: Vec<String>,
+    pub ruby: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -108,4 +103,11 @@ pub(super) struct NativeDepType {
 pub(super) struct NativeDeps {
     pub name: String,
     pub dep: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub(super) struct TomlData {
+    pub builtin: BuiltInDeps,
+    pub licenses: Vec<CorrectedLicenses>,
+    pub native_deps: NativeDepType,
 }

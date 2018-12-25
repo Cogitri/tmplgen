@@ -1,0 +1,159 @@
+[builtin]
+perl = ["Archive-Tar", "Attribute-Handlers", "AutoLoader", "B-Debug", "CPAN", "CPAN-Meta", "CPAN-Meta", "CPAN-Meta", "Carp", "Compress-Raw", "Compress-Raw", "Config-V", "DB_File", "Data-Dumper", "Devel-PPPort", "Devel-SelfStubber", "Digest", "Digest-MD5", "Digest-SHA", "Dumpvalue", "Encode", "Env", "Exporter", "ExtUtils-CBuilder", "ExtUtils-Constant", "ExtUtils-Install", "ExtUtils-MakeMaker", "ExtUtils-Manifest", "ExtUtils-ParseXS", "File-Fetch", "File-Path", "File-Temp", "Filter-Simple", "Filter-Util", "Getopt-Long", "HTTP-Tiny", "I18N-Collate", "I18N-LangTags", "IO-1.39_1", "IO-Compress", "IO-Socket", "IO-Zlib", "IPC-Cmd", "IPC-SysV", "JSON-PP", "Locale-Codes", "Locale-Maketext", "Locale-Maketext", "MIME-Base64", "Math-BigInt", "Math-BigInt", "Math-BigRat", "Math-Complex", "Memoize-", "Module-CoreList", "Module-Load", "Module-Load", "Module-Loaded", "Module-Metadata", "NEXT", "Net-Ping", "Params-Check", "PathTools", "OSType", "PerlIO-via", "Pod-Checker", "Pod-Escapes", "Pod-Parser", "Pod-Perldoc", "Pod-Simple", "Pod-Usage", "Safe", "Scalar-List", "Search-Dict", "SelfLoader", "Socket", "Storable", "Sys-Syslog", "Term-ANSIColor", "Term-Cap", "Term-Complete", "Term-ReadLine", "Test", "Test-Harness", "Test-Simple", "Text-Abbrev", "Text-Balanced", "Text-ParseWords", "Text-Tabs", "Thread-Queue", "Thread-Semaphore", "Tie-File", "Tie-RefHash", "Time-HiRes", "Time-Local", "Time-Piece", "Unicode-Collate", "Unicode-Normalize", "Win32", "Win32API-File", "XSLoader", "autodie", "autouse", "base", "bignum", "constant", "encoding-warnings", "experimental", "if", "lib", "libnet", "parent", "perlfaq", "podlators", "threads", "threads-shared", "version", "perl", "I18N-LangTags", "I18N-LangTags::Detect", "I18N-LangTags::List", "IO", "IO-Dir", "IO-File", "IO-Handle", "IO-Pipe", "IO-Poll", "IO-Seekable", "IO-Select", "IO-Socket", "IO-Socket::INET", "IO-Socket::UNIX", "Amiga-ARexx", "Amiga-Exec", "B", "B-Concise", "B-Showlex", "B-Terse", "B-Xref", "O", "OptreeCheck", "Devel-Peek", "ExtUtils-Miniperl", "Fcntl", "File-DosGlob", "File-Find", "File-Glob", "FileCache", "GDBM_File", "Hash-Util::FieldHash", "Hash-Util", "I18N-Langinfo", "IPC-Open2", "IPC-Open3", "NDBM_File", "ODBM_File", "Opcode", "ops", "POSIX", "PerlIO-encoding", "PerlIO-mmap", "PerlIO-scalar", "PerlIO-via", "Pod-Html", "SDBM_File", "Sys-Hostname", "Tie-Hash::NamedCapture", "Tie-Memoize", "VMS-DCLsym", "VMS-Filespec", "VMS-Stdio", "Win32CORE", "XS-APItest", "XS-Typemap", "arybase", "attributes", "mro", "re", "Haiku", "AnyDBM_File", "B-Deparse", "B-Op_private", "Benchmark", "Class-Struct", "Config-Extensions", "DB", "DBM_Filter", "DBM_Filter-compress", "DBM_Filter-encode", "DBM_Filter-int32", "DBM_Filter-null", "DBM_Filter-utf8", "DirHandle", "English", "ExtUtils-Embed", "ExtUtils-XSSymSet", "File-Basename", "File-Compare", "File-Copy", "File-stat", "FileHandle", "FindBin", "Getopt-Std", "Net-hostent", "Net-netent", "Net-protoent", "Net-servent", "PerlIO", "SelectSaver", "Symbol", "Thread", "Tie-Array", "Tie-Handle", "Tie-StdHandle", "Tie-SubstrHash", "Time-gmtime", "Time-localtime", "Time-tm", "UNIVERSAL", "Unicode-UCD", "User-grent", "User-pwent", "blib", "bytes", "charnames", "deprecate", "feature", "filetest", "integer", "less", "locale", "open", "overload", "overloading", "sigtrap", "sort", "strict", "subs", "utf8", "vars", "vmsish", "warnings", "warnings-register", "OS2-ExtAttr", "OS2-PrfDB", "OS2-Process", "OS2-DLL", "perl"]
+ruby = ["bigdecimal", "bundler", "json", "minitest", "net-telnet", "psych", "rake", "rdoc", "ruby"]
+
+[[licenses]]
+is = "perl_5"
+should = "Artistic-1.0-Perl, GPL-1.0-or-later"
+
+[[licenses]]
+is = "GPL-1.0+"
+should = "GPL-1.0-or-later"
+
+[[licenses]]
+is = "GPL-2.0+"
+should = "GPL-2.0-or-later"
+
+[[licenses]]
+is = "GPL-3.0+"
+should = "GPL-3.0-or-later"
+
+[[licenses]]
+is = "LGPL-2.0+"
+should = "LGPL-2.0-or-later"
+
+[[licenses]]
+is = "LGPL-2.1+"
+should = "LGPL-2.1-or-later"
+
+[[licenses]]
+is = "LGPL-3.0+"
+should = "LGPL-3.0-or-later"
+
+[[licenses]]
+is = "GFDL-1.0+"
+should = "GFDL-1.0-or-later"
+
+[[licenses]]
+is = "GFDL-1.1+"
+should = "GFDL-1.1-or-later"
+
+[[licenses]]
+is = "GFDL-1.2+"
+should = "GFDL-1.2-or-later"
+
+[[licenses]]
+is = "GFDL-1.3+"
+should = "GFDL-1.3-or-later"
+
+[[native_deps.rust]]
+name = "libudev-sys"
+dep = "eudev-libudev-devel"
+
+[[native_deps.rust]]
+name = "llvm-sys"
+dep = "llvm"
+
+[[native_deps.rust]]
+name = "libusb-sys"
+dep = "libusb-devel"
+
+[[native_deps.rust]]
+name = "gexiv2-sys"
+dep = "libgexiv2-devel"
+
+[[native_deps.rust]]
+name = "gphoto2-sys"
+dep = "libgphoto2-devel"
+
+[[native_deps.rust]]
+name = "libraw-sys"
+dep = "libraw-devel"
+
+[[native_deps.rust]]
+name = "rl-sys"
+dep = "readline-devel"
+
+[[native_deps.rust]]
+name = "exif-sys"
+dep = "libexif-devel"
+
+[[native_deps.rust]]
+name = "openssl-sys"
+dep = "libressl-devel"
+
+[[native_deps.rust]]
+name = "miniz-sys"
+dep = "minizip-devel"
+
+[[native_deps.rust]]
+name = "libz-sys"
+dep = "zlib-devel"
+
+[[native_deps.rust]]
+name = "curl-sys"
+dep = "libcurl-devel"
+
+[[native_deps.rust]]
+name = "libgit2-sys"
+dep = "libgit2-devel"
+
+[[native_deps.rust]]
+name = "git2"
+dep = "libgit2-devel"
+
+[[native_deps.rust]]
+name = "libssh2-sys"
+dep = "libssh2-devel"
+
+[[native_deps.rust]]
+name = "openssl-sys-extras"
+dep = "libressl-devel"
+
+[[native_deps.rust]]
+name = "lzma-sys"
+dep = "liblzma-devel"
+
+[[native_deps.rust]]
+name = "osmeasa-sys"
+dep = "MesaLib-devel"
+
+[[native_deps.rust]]
+name = "wayland-sys"
+dep = "wayland-devel"
+
+[[native_deps.rust]]
+name = "bzip2-sys"
+dep = "bzip2-devel"
+
+[[native_deps.rust]]
+name = "clang-sys"
+dep = "clang"
+
+[[native_deps.rust]]
+name = "inotify"
+dep = "inotify-tools-devel"
+
+[[native_deps.rust]]
+name = "libsqlite3-sys"
+dep = "sqlite-devel"
+
+[[native_deps.rust]]
+name = "expat-sys"
+dep = "expat-devel"
+
+[[native_deps.rust]]
+name = "sdl2-sys"
+dep = "SDL2-devel"
+
+[[native_deps.rust]]
+name = "glib-sys"
+dep = "libglib-devel"
+
+[[native_deps.rust]]
+name = "gobject-sys"
+dep = "libglib-devel"
+
+[[native_deps.rust]]
+name = "brotli-sys"
+dep = "brotli-devel"

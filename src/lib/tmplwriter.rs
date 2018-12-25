@@ -89,16 +89,16 @@ impl TmplBuilder {
     ///   (self.get_type)[crate::tmplwriter::TmplBuilder::get_type] or (self.set_type)[crate::tmplwriter::TmplBuilder::set_type]
     pub fn is_built_in(&self) -> Result<bool, Error> {
         if self.pkg_type.is_some() {
-            let data: BuiltIns = serde_json::from_str(include_str!("built_in.in")).unwrap();
+            let data: TomlData = toml::from_str(include_str!("data.toml")).unwrap();
 
-            let built_ins = BuiltIns {
-                perl: data.perl,
-                ruby: data.ruby,
+            let built_ins = BuiltInDeps {
+                perl: data.builtin.perl,
+                ruby: data.builtin.ruby,
             };
 
             if self.pkg_type.unwrap() == PkgType::Gem {
                 for x in built_ins.ruby {
-                    if self.pkg_name == x.name {
+                    if self.pkg_name == x {
                         info!(
                             "Gem {} is part of ruby, won't write a template for it!",
                             self.pkg_name
@@ -110,7 +110,7 @@ impl TmplBuilder {
                 let pkg_name = self.pkg_name.replace("::", "-");
 
                 for x in built_ins.perl {
-                    if pkg_name == x.name {
+                    if pkg_name == x {
                         info!(
                             "Perl distribution {} is part of perl, won't write a template for it!",
                             pkg_name
