@@ -257,6 +257,7 @@
     {"name" : "psych"},
     {"name" : "rake"},
     {"name" : "rdoc"},
-    {"name" : "ruby"}
+    {"name" : "ruby"},
+    {"name" : "bundler"}
   ]
 }
