@@ -98,7 +98,7 @@ pub(super) fn perldist_info(perldist_name: &str) -> Result<PkgInfo, Error> {
     Ok(pkg_info)
 }
 
-fn order_perldeps(dep_vec: &Vec<metacpan_api::PerlDep>) -> Result<Dependencies, Error> {
+fn order_perldeps(dep_vec: &[metacpan_api::PerlDep]) -> Result<Dependencies, Error> {
     let client = metacpan_api::SyncClient::new();
 
     let make_vec: Result<Vec<String>, Error> = dep_vec
