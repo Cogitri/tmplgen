@@ -12,7 +12,7 @@ categories = ["command-line-utilities"]
 edition = "2018"
 
 [dependencies]
-crates_io_api = "0.3"
+crates_io_api = {version="0.3", path="vendor/crates_io_api"}
 clap = {version = "2.32", features = ["yaml"]}
 rubygems_api = "0.3"
 failure = "0.1"
@@ -31,9 +31,6 @@ rustc-demangle = "=0.1.9"
 rayon = "1.0"
 git2 = "0.8"
 toml = "0.4"
-
-[replace]
-"crates_io_api:0.3.0" = { git = "https://github.com/Cogitri/crates_io_api" }
 
 [dev-dependencies]
 cargo-husky = {version = "1.2", features = ["precommit-hook", "run-cargo-test"]}
