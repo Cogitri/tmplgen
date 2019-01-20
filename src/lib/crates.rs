@@ -29,7 +29,8 @@ use retry::retry_exponentially;
 // TODO: Switch to AsyncClient
 pub(super) fn crate_info(crate_name: &str) -> Result<PkgInfo, Error> {
     let client =
-        crates_io_api::SyncClient::with_user_agent("tmplgen/1 (github.com/Cogitri/tmplgen)");
+        //crates_io_api::SyncClient::with_user_agent("tmplgen/1 (github.com/Cogitri/tmplgen)");
+        crates_io_api::SyncClient::new();
 
     let query_result = match retry_exponentially(
         3,
