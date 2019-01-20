@@ -214,7 +214,7 @@ pub(super) fn gen_checksum(dwnld_url: &str) -> Result<String, Error> {
                     "Couldn't download URL {}: {}",
                     url,
                     err.to_string()
-                )))
+                )));
             }
         }
     };

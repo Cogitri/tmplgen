@@ -16,10 +16,9 @@
 use crate::errors::Error;
 use crate::helpers::*;
 use crate::types::*;
+use log::{info, warn};
 use rayon::prelude::*;
 use std::path::Path;
-
-use log::{info, warn};
 
 impl TmplBuilder {
     /// Initializes a new TmplBuilder with nothing but pkg_name set.
