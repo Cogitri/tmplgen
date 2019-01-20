@@ -296,6 +296,7 @@ impl TmplBuilder {
             "distfiles=",
             "homepage=",
             "short_desc=",
+            "revision=",
         ]
         .par_iter()
         .map(|search_str| {
@@ -307,12 +308,17 @@ impl TmplBuilder {
         })
         .collect::<Vec<String>>();
 
+        // Reversed order of orig_vec, we pop off the end
+        let orig_revision_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
         let orig_description_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
         let orig_homepage_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
         let orig_distfiles_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
         let orig_checksum_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
         let orig_ver_string = orig_vec.pop().unwrap_or_else(|| "".to_string());
 
+        if !(orig_ver_string == format!("version={}", &pkg_info.version)) {
+            template_string = template_string.replace(&orig_revision_string, "revision=1");
+        }
         template_string =
             template_string.replace(&orig_ver_string, &format!("version={}", &pkg_info.version));
 
