@@ -36,7 +36,7 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
             Err(error) => return Err(Error::Gem(error.to_string())),
         };
 
-    let mut dep_vec_run = query_result
+    let dep_vec_run = query_result
         .dependencies
         .runtime
         .unwrap_or_default()
@@ -49,9 +49,6 @@ pub(super) fn gem_info(gem_name: &str) -> Result<PkgInfo, Error> {
         })
         .map(|x| parse_gem_version_req(&x))
         .collect::<Vec<_>>();
-
-    // Gems always depend on ruby.
-    dep_vec_run.push("ruby".to_string());
 
     debug!("Gem run dependencies: {:?}", &dep_vec_run);
 
