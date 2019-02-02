@@ -16,7 +16,7 @@
 use crate::errors::Error;
 use crate::helpers::*;
 use crate::types::*;
-use log::{info, warn};
+use log::{debug, info, warn};
 use rayon::prelude::*;
 use std::path::Path;
 
@@ -187,7 +187,7 @@ impl TmplBuilder {
                     .set_type(self.pkg_type.unwrap())
                     .is_built_in()?
                 {
-                    warn!("Won't write template for built-in package {}", pkg);
+                    debug!("Won't write template for built-in package {}", pkg);
                     continue;
                 } else if tmpl_path.is_some() {
                     let tmpl_path_exists = if self.pkg_type.unwrap() == PkgType::Gem {
