@@ -244,10 +244,7 @@ fn test_gem_dep() {
         .as_ref()
         .unwrap();
 
-    assert_eq!(
-        pkg_info_ffi.dependencies.as_ref().unwrap().run,
-        None
-    );
+    assert_eq!(pkg_info_ffi.dependencies.as_ref().unwrap().run, None);
 
     let mut pkg_info_mocha = TmplBuilder::new("mocha");
     let pkg_info_mocha = pkg_info_mocha
@@ -258,7 +255,14 @@ fn test_gem_dep() {
         .as_ref()
         .unwrap();
 
-    assert!(pkg_info_mocha.dependencies.as_ref().unwrap().run.as_ref().unwrap()[0].contains("ruby-metaclass"));
+    assert!(pkg_info_mocha
+        .dependencies
+        .as_ref()
+        .unwrap()
+        .run
+        .as_ref()
+        .unwrap()[0]
+        .contains("ruby-metaclass"));
 }
 
 #[test]
