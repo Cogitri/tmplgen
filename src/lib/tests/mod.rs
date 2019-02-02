@@ -235,8 +235,8 @@ fn test_is_built_in_panic() {
 
 #[test]
 fn test_gem_dep() {
-    let mut pkg_info = TmplBuilder::new("ffi");
-    let pkg_info = pkg_info
+    let mut pkg_info_ffi = TmplBuilder::new("ffi");
+    let pkg_info_ffi = pkg_info_ffi
         .set_type(PkgType::Gem)
         .get_info()
         .unwrap()
@@ -245,9 +245,20 @@ fn test_gem_dep() {
         .unwrap();
 
     assert_eq!(
-        pkg_info.dependencies.as_ref().unwrap().run,
-        Some(vec!["ruby".to_string()])
+        pkg_info_ffi.dependencies.as_ref().unwrap().run,
+        None
     );
+
+    let mut pkg_info_mocha = TmplBuilder::new("mocha");
+    let pkg_info_mocha = pkg_info_mocha
+        .set_type(PkgType::Gem)
+        .get_info()
+        .unwrap()
+        .pkg_info
+        .as_ref()
+        .unwrap();
+
+    assert!(pkg_info_mocha.dependencies.as_ref().unwrap().run.as_ref().unwrap()[0].contains("ruby-metaclass"));
 }
 
 #[test]
