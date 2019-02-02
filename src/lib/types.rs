@@ -13,8 +13,10 @@
 //You should have received a copy of the GNU General Public License
 //along with tmplgen.  If not, see <http://www.gnu.org/licenses/>.
 
+use crossbeam_deque::{Injector, Steal, Stealer, Worker};
 use serde_derive::Deserialize;
 use std::io::Read;
+use std::iter;
 
 /// The TemplateBuilder struct, which is used to build a [Template](crate::types::Template)
 pub struct TmplBuilder {
@@ -110,4 +112,49 @@ pub(super) struct TomlData {
     pub builtin: BuiltInDeps,
     pub licenses: Vec<CorrectedLicenses>,
     pub native_deps: NativeDepType,
+}
+
+pub struct SharedQueue<T> {
+    queue: Injector<T>,
+    stealers: Option<Vec<Stealer<T>>>,
+}
+
+impl<T> SharedQueue<T> {
+    pub fn new() -> SharedQueue<T> {
+        SharedQueue {
+            queue: Injector::<T>::new(),
+            stealers: None,
+        }
+    }
+
+    pub fn add_worker(&mut self) -> Worker<T> {
+        let new_worker = Worker::new_fifo();
+
+        self.stealers
+            .unwrap_or_else(|| Vec::new())
+            .push(new_worker.stealer());
+
+        new_worker
+    }
+
+    pub fn push_job(&mut self, job: T) {
+        self.queue.push(job);
+    }
+
+    pub fn get_work(&self, worker: &Worker<T>) -> Option<T> {
+        // Pop a task from the local queue, if not empty.
+        worker.pop().or_else(|| {
+            iter::repeat_with(|| {
+                // Try stealing a batch of tasks from the global queue.
+                self.queue
+                    .steal_batch_and_pop(&worker)
+                    // Or try stealing a task from one of the other threads.
+                    .or_else(|| self.stealers.unwrap().iter().map(|s| s.steal()).collect())
+            })
+            // Loop while no task was stolen and any steal operation needs to be retried.
+            .find(|s| !s.is_retry())
+            // Extract the stolen task, if there is one.
+            .and_then(|s| s.success())
+        })
+    }
 }

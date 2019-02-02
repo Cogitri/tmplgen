@@ -19,6 +19,8 @@ use crate::types::*;
 use log::{info, warn};
 use rayon::prelude::*;
 use std::path::Path;
+use std::sync::{Arc, Mutex, RwLock};
+use std::thread;
 
 impl TmplBuilder {
     /// Initializes a new TmplBuilder with nothing but pkg_name set.
@@ -172,7 +174,29 @@ impl TmplBuilder {
                 }
             }
 
-            let mut tmpl_vec = Vec::new();
+            let shared_queue = RwLock::new(SharedQueue::<String>::new());
+            let mut tmpl_vec = Arc::new(Mutex::new(Vec::new()));
+
+            let tmpl_t_path = tmpl_path.unwrap().to_string();
+            let thread = thread::spawn(|| {
+                let worker = { shared_queue.write().unwrap().add_worker() };
+                while let Some(pkg) = shared_queue.read().unwrap().get_work(&worker) {
+                    let mut tmpl_builder = Self::new(&pkg);
+                    tmpl_builder.set_type(self.pkg_type.unwrap());
+                    let tmpl = tmpl_builder.get_info().unwrap().generate(true).unwrap();
+
+                    tmpl_vec.lock().unwrap().push(tmpl);
+
+                    let dep_tmpls = &mut Self::new(&pkg)
+                        .set_type(self.pkg_type.unwrap())
+                        .get_info()
+                        .unwrap()
+                        .gen_deps(Some(&tmpl_t_path))
+                        .unwrap();
+
+                    tmpl_vec.lock().unwrap().append(dep_tmpls);
+                }
+            });
 
             for x in dep_vec {
                 let pkg_tainted = x.split('>').collect::<Vec<&str>>()[0]
@@ -211,16 +235,11 @@ impl TmplBuilder {
                     }
                 }
 
-                tmpl_vec.push(tmpl_builder.get_info()?.generate(true)?);
-
-                tmpl_vec.append(
-                    &mut Self::new(&pkg)
-                        .set_type(self.pkg_type.unwrap())
-                        .get_info()?
-                        .gen_deps(tmpl_path)?,
-                )
+                shared_queue.write().unwrap().push_job(pkg.to_string())
             }
-            Ok(tmpl_vec)
+            thread.join().unwrap();
+            let mut tmpl_vec_guarded = tmpl_vec.lock().unwrap();
+            Ok(std::mem::replace(&mut tmpl_vec_guarded, Vec::new()))
         } else {
             Err(Error::TooLittleInfo(
                 "Can't create Templates for deps without setting/getting PkgInfo of the package first!".to_string(),
