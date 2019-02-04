@@ -60,7 +60,53 @@ steps:
     status:
     - failure
 ---
+kind: pipeline
+name: coverage
+
+depends_on:
+- rustfmt
+
+steps:
+- name: git
+  image: docker:git
+  commands:
+    - git submodule update --recursive --init
+- name: generate-coverage
+  image: xd009642/tarpaulin:latest
+  pull: always
+  privileged: true
+  environment:
+    GIT_AUTHOR_EMAIL: drone
+    GIT_AUTHOR_NAME: drone@exqa.de
+  commands:
+  - cargo tarpaulin --verbose --out Xml --timeout 3000 --exclude-files src/bin/** vendor/**
+
+- name: upload-coverage
+  image: plugins/codecov
+  pull: always
+  environment:
+    GIT_AUTHOR_EMAIL: drone@exqa.de
+    GIT_AUTHOR_NAME: drone
+  settings:
+    token:
+      from_secret: codecov_token
+      files:
+      - cobertura.xml
+      required: true
+
+- name: matrix-notification
+  image: plugins/matrix
+  settings:
+    roomid: qOcHPTCOgAbkObQgRy:matrix.org
+    username:
+      from_secret: matrix_username
+    password:
+      from_secret: matrix_password
+  when:
+    status:
+     - failure
+---
 kind: signature
-hmac: 96ee373504b5ab43b8317b1adb75412bcc785f4c68c50b82f40fde057fe9237d
+hmac: c71afc104ce9658b014fa5907247664d72e42727be60511eea2e7a0f31e15aff
 
 ...
