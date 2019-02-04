@@ -23,7 +23,7 @@ use tempfile::tempdir;
 fn test_bin_gen() {
     let dir = tempdir().unwrap();
 
-    Command::main_binary()
+    Command::cargo_bin(env!("CARGO_PKG_NAME"))
         .unwrap()
         .args(&["tmplgen"])
         .env_clear()
@@ -40,7 +40,7 @@ fn test_bin_gen() {
 fn test_bin_update() {
     let dir = tempdir().unwrap();
 
-    Command::main_binary()
+    Command::cargo_bin(env!("CARGO_PKG_NAME"))
         .unwrap()
         .args(&["tmplgen"])
         .env_clear()
@@ -50,7 +50,7 @@ fn test_bin_update() {
         .assert()
         .success();
 
-    Command::main_binary()
+    Command::cargo_bin(env!("CARGO_PKG_NAME"))
         .unwrap()
         .args(&["-U", "tmplgen"])
         .env_clear()
