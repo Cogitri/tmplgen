@@ -144,8 +144,6 @@ impl TmplBuilder {
     // TODO: Make this prettier so we don't needlessly generate templates twice if dep x and y both depend on z
     pub fn gen_deps(&self, tmpl_path: Option<&str>) -> Result<Vec<Template>, Error> {
         if self.pkg_info.is_some() {
-            let mut dep_vec = Vec::new();
-
             let deps = self
                 .pkg_info
                 .as_ref()
@@ -154,27 +152,29 @@ impl TmplBuilder {
                 .as_ref()
                 .unwrap();
 
-            if deps.run.is_some() {
-                for x in deps.run.as_ref().unwrap() {
-                    if x == "perl" && x == "ruby" {
-                        continue;
-                    }
-                    dep_vec.push(x);
-                }
-            }
+            let mut run_vec = if let Some(run_deps) = &deps.run {
+                run_deps
+                    .par_iter()
+                    .filter(|x| x == &&"perl".to_string() || x == &&"ruby".to_string())
+                    .collect::<Vec<&String>>()
+            } else {
+                Vec::new()
+            };
 
-            if deps.make.is_some() {
-                for x in deps.make.as_ref().unwrap() {
-                    if x == "perl" || x == "ruby" {
-                        continue;
-                    }
-                    dep_vec.push(x);
-                }
-            }
+            let mut make_vec = if let Some(make_deps) = &deps.make {
+                make_deps
+                    .par_iter()
+                    .filter(|x| x == &&"perl".to_string() || x == &&"ruby".to_string())
+                    .collect::<Vec<&String>>()
+            } else {
+                Vec::new()
+            };
+
+            run_vec.append(&mut make_vec);
 
             let mut tmpl_vec = Vec::new();
 
-            for x in dep_vec {
+            for x in run_vec {
                 let pkg_tainted = x.split('>').collect::<Vec<&str>>()[0]
                     .split('<')
                     .collect::<Vec<&str>>()[0];
