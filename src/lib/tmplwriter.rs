@@ -542,18 +542,18 @@ impl TmplBuilder {
         if tmpl_type == PkgType::PerlDist {
             template_string = template_string
                 .replace("@build_style@", "perl-module")
-                .replace("@noarch@", "yes");
+                .replace("@archs@", "noarch");
         } else if tmpl_type == PkgType::Gem {
             template_string = template_string
                 .replace("@build_style@", "gem")
                 .replace("\nwrksrc=\"@wrksrc@\"", "")
-                .replace("@noarch@", "yes");
+                .replace("\narchs=@archs@", "");
         } else {
             template_string = template_string
                 .replace("@pkgname@", &pkg_info.pkg_name)
                 .replace("\ndepends=\"@depends@\"", "")
                 .replace("@build_style@", "cargo")
-                .replace("\nnoarch=@noarch@", "");
+                .replace("\narchs=@archs@", "");
         }
 
         if prefix {

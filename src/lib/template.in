@@ -2,7 +2,7 @@
 pkgname=@pkgname@
 version=@version@
 revision=1
-noarch=@noarch@
+archs=@archs@
 wrksrc="@wrksrc@"
 build_style=@build_style@
 hostmakedepends="@hostmakedepends@"
