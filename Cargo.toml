@@ -1,6 +1,6 @@
 [package]
 name = "tmplgen"
-version = "1.2.2"
+version = "1.2.3"
 authors = ["Rasmus Thomsen <rasmus.thomsen@protonmail.com>"]
 description = "Void Linux template generator for language-specific package managers"
 homepage = "https://github.com/Cogitri/tmplgen"
