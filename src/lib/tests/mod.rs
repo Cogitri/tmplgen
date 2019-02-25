@@ -146,6 +146,27 @@ fn test_tmplwriter_correctness() {
         include_str!("template_test_crate_noprefix.in")
     );
 
+    let pkg_info_ruby = PkgInfo {
+        pkg_name: "ruby-mocha".to_string(),
+        version: "1.8.0".to_string(),
+        description: Some("Mocking and stubbing library with JMock/SchMock syntax, which allows mocking and stubbing of methods on real (non-mock) classes.".to_string()),
+        homepage: "https://mocha.jamesmead.org".to_string(),
+        license: Some(vec!["MIT".to_string(),"BSD-2-Clause".to_string()]),
+        dependencies: Some(Dependencies { host: None, make: None, run: Some(vec!["ruby-metaclass>=0.0.1".to_string()]) }),
+        sha: "5491a93cad7e3cf6682ab5977d00194e446db7b69bd34c549128c080e3a54f89".to_string(),
+        download_url: None
+    };
+
+    let tmpl_string_ruby = TmplBuilder::from_pkg_info(pkg_info_ruby)
+        .set_type(PkgType::Gem)
+        .generate(true)
+        .unwrap();
+
+    assert_eq!(
+        tmpl_string_ruby.inner,
+        include_str!("template_test_ruby.in")
+    );
+
     dir.close().unwrap();
 }
 
