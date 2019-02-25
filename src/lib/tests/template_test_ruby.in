@@ -1,0 +1,15 @@
+# Template file for 'ruby-mocha'
+pkgname=ruby-mocha
+version=1.8.0
+revision=1
+build_style=gem
+depends="ruby-metaclass>=0.0.1"
+short_desc="Mocking and stubbing library with JMock/SchMock syntax, which allows mocking and stubbing of methods on real (non-mock) classes"
+maintainer="tmplgentests <tmplgentests@github.com>"
+license="MIT, BSD-2-Clause"
+homepage="https://mocha.jamesmead.org"
+checksum=5491a93cad7e3cf6682ab5977d00194e446db7b69bd34c549128c080e3a54f89
+
+post_install() {
+	vlicense LICENSE
+}
