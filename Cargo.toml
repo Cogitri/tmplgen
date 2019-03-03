@@ -12,7 +12,7 @@ categories = ["command-line-utilities"]
 edition = "2018"
 
 [dependencies]
-crates_io_api = {version="0.3", path="vendor/crates_io_api"}
+crates_io_api = "0.4"
 clap = {version = "2.32", features = ["yaml"]}
 rubygems_api = "0.3"
 failure = "0.1"
