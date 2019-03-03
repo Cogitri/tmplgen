@@ -1,3 +1,0 @@
-[submodule "crates_vendor"]
-	path = vendor/crates_io_api
-	url = https://github.com/theduke/crates_io_api
