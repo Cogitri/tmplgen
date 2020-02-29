@@ -267,7 +267,7 @@ fn test_gem_dep() {
 
     assert_eq!(pkg_info_ffi.dependencies.as_ref().unwrap().run, None);
 
-    let mut pkg_info_mocha = TmplBuilder::new("mocha");
+    let mut pkg_info_mocha = TmplBuilder::new("mocha_rails");
     let pkg_info_mocha = pkg_info_mocha
         .set_type(PkgType::Gem)
         .get_info()
@@ -283,7 +283,7 @@ fn test_gem_dep() {
         .run
         .as_ref()
         .unwrap()[0]
-        .contains("ruby-metaclass"));
+        .contains("ruby-rails"));
 }
 
 #[test]
